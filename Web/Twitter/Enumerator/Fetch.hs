@@ -30,14 +30,15 @@ import Data.ByteString (ByteString)
 
 import Control.Monad.State
 
-api :: String -> Iteratee ByteString IO a -> Manager -> TW (Iteratee ByteString IO a)
-api url iter mgr = do
+api :: String -> [(ByteString, Maybe ByteString)] -> Iteratee ByteString IO a -> Manager -> TW (Iteratee ByteString IO a)
+api url query iter mgr = do
   env <- get
   req <- liftIO $ signOAuth (twOAuth env) (twCredential env) =<< parseUrl url
+  let req' = req { queryString = query }
   return $ http req (\_ _ -> iter) mgr
 
-statuses :: String -> Manager -> TW (Iteratee ByteString IO [Status])
-statuses url = api aurl iter
+statuses :: String -> [(ByteString, Maybe ByteString)] -> Manager -> TW (Iteratee ByteString IO [Status])
+statuses url query = api aurl query iter
   where iter = enumLine =$ enumJSON =$ skipNothing =$ enumJsonToStatus =$ EL.consume
         aurl = "https://api.twitter.com/1/statuses/" ++ url
 
@@ -54,6 +55,6 @@ iterFold :: FromJSON a => Iteratee ByteString IO [a]
 iterFold = enumLine =$ enumJSON =$ skipNothing =$ EL.map fromJSON' =$ skipNothing =$ EL.fold (++) []
 
 friendsIds, followerIds :: Manager -> TW (Iteratee ByteString IO [Integer])
-friendsIds = api "https://api.twitter.com/1/friends/ids.json" iterFold
-followerIds = api "https://api.twitter.com/1/follower/ids.json" iterFold
+friendsIds = api "https://api.twitter.com/1/friends/ids.json" [] iterFold
+followerIds = api "https://api.twitter.com/1/follower/ids.json" [] iterFold
 
