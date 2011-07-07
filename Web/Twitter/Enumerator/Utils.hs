@@ -40,8 +40,7 @@ enumJSON = EL.map $ \line -> maybeResult $ parse json line
 
 enumJsonToStatus :: Monad m => Enumeratee Value Status m a
 enumJsonToStatus = EL.concatMap jts
-  where jts v@(Array _) = filterJust $ map fromJSON' . fromJust . fromJSON' $ v
-        jts v@(Object _) = filterJust $ [fromJSON' v]
+  where jts v@(Array _) = fromJust . fromJSON' $ v
+        jts v@(Object _) = maybe [] (:[]) $ fromJSON' v
         jts _ = []
-        filterJust = map fromJust . filter isJust
 
