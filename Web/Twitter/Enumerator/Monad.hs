@@ -7,10 +7,13 @@ module Web.Twitter.Enumerator.Monad
        , putOAuth
        , getCredential
        , putCredential
+       , getProxy
+       , putProxy
        )
        where
 
 import Web.Authenticate.OAuth
+import Network.HTTP.Enumerator
 import Control.Monad.State
 
 type TW = StateT TWEnv IO
@@ -18,6 +21,7 @@ type TW = StateT TWEnv IO
 data TWEnv = TWEnv
              { twOAuth :: OAuth
              , twCredential :: Credential
+             , twProxy :: Maybe Proxy
              }
 
 runTW :: TWEnv -> TW a -> IO a
@@ -28,6 +32,7 @@ newEnv tokens
   = TWEnv
     { twOAuth = tokens
     , twCredential = Credential []
+    , twProxy = Nothing
     }
 
 getOAuth :: TW OAuth
@@ -45,3 +50,11 @@ putCredential :: Credential -> TW ()
 putCredential cred = do
   env <- get
   put env { twCredential = cred }
+
+getProxy :: TW (Maybe Proxy)
+getProxy = twProxy `fmap` get
+
+putProxy :: Maybe Proxy -> TW ()
+putProxy p = do
+  env <- get
+  put env { twProxy = p }
