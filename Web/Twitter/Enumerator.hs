@@ -19,7 +19,6 @@ module Web.Twitter.Enumerator
        , putCredential
 
        -- Web.Twitter.Fetch
-       , api
        , statusesPublicTimeline
        , statusesUserTimeline
        , statusesFriendsTimeline
