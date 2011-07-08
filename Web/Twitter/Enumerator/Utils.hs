@@ -11,6 +11,7 @@ module Web.Twitter.Enumerator.Utils
 import Web.Twitter.Enumerator.Types
 
 import Data.Aeson hiding (Error)
+import Data.Aeson.Types (parseMaybe)
 import Data.Attoparsec (maybeResult, parse)
 import Data.Enumerator hiding (filter, map)
 import qualified Data.Enumerator.List as EL
@@ -29,11 +30,7 @@ debugEE :: Show a => Enumeratee a a IO r
 debugEE = EL.mapM $ \x -> (putStrLn . show) x >> return x
 
 fromJSON' :: FromJSON a => Value -> Maybe a
-fromJSON' = resultToMaybe . fromJSON
-
-resultToMaybe :: Data.Aeson.Result a -> Maybe a
-resultToMaybe (Success a) = Just a
-resultToMaybe _           = Nothing
+fromJSON' = parseMaybe parseJSON
 
 enumJSON :: Monad m => Enumeratee ByteString (Maybe Value) m a
 enumJSON = EL.map $ \line -> maybeResult $ parse json line
