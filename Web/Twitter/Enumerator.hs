@@ -30,6 +30,7 @@ module Web.Twitter.Enumerator
        , statusesRetweetsOfMe
        , friendsIds
        , followerIds
+       , userstream
        )
        where
 
