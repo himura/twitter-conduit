@@ -35,7 +35,7 @@ api url query iter mgr = do
   env <- get
   req <- liftIO $ signOAuth (twOAuth env) (twCredential env) =<< parseUrl url
   let req' = req { queryString = query, proxy = twProxy env }
-  return $ http req (\_ _ -> iter) mgr
+  return $ http req' (\_ _ -> iter) mgr
 
 statuses :: String -> [(ByteString, Maybe ByteString)] -> Manager -> TW (Iteratee ByteString IO [Status])
 statuses url query = api aurl query iter
