@@ -73,7 +73,7 @@ instance FromJSON Status where
            <*> o .:? "in_reply_to_status_id"
            <*> o .:? "in_reply_to_user_id"
            <*> o .:? "favorite"
-           <*> (o .: "user" >>= parseJSON)
+           <*> o .:  "user"
   parseJSON _ = mzero
 
 data RetweetedStatus =
@@ -90,12 +90,12 @@ data RetweetedStatus =
 instance FromJSON RetweetedStatus where
   parseJSON (Object o) =
     RetweetedStatus <$> o .: "created_at"
-                    <*> o .:  "id"
-                    <*> o .:  "text"
-                    <*> o .:  "source"
-                    <*> o .:  "truncated"
-                    <*> (o .: "user" >>= parseJSON)
-                    <*> (o .: "retweeted_status" >>= parseJSON)
+                    <*> o .: "id"
+                    <*> o .: "text"
+                    <*> o .: "source"
+                    <*> o .: "truncated"
+                    <*> o .: "user"
+                    <*> o .: "retweeted_status"
   parseJSON _ = mzero
 
 data EventType = Favorite | Unfavorite
@@ -109,8 +109,8 @@ data EventTarget = ETUser User | ETStatus Status | ETUnknown Value
 
 instance FromJSON EventTarget where
   parseJSON v@(Object o) =
-    (ETUser <$> (parseJSON v :: Parser User)) <|>
-    (ETStatus <$> (parseJSON v :: Parser Status)) <|>
+    ETUser <$> parseJSON v <|>
+    ETStatus <$> parseJSON v <|>
     (return $ ETUnknown v)
   parseJSON _ = mzero
 
