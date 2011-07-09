@@ -39,12 +39,15 @@ data StreamingAPI = SStatus Status
 
 instance FromJSON StreamingAPI where
   parseJSON v@(Object o) =
-    SRetweetedStatus <$> (parseJSON v :: Parser RetweetedStatus)
-    <|> SStatus <$> (parseJSON v :: Parser Status)
-    <|> SEvent <$> (parseJSON v :: Parser Event)
-    <|> SDelete <$> (parseJSON v :: Parser Delete)
-    <|> SFriends <$> (parseJSON v :: Parser Friends)
-    <|> (return $ SUnknown v)
+    SRetweetedStatus <$> js <|>
+    SStatus <$> js <|>
+    SEvent <$> js <|>
+    SDelete <$> js <|>
+    SFriends <$> js <|>
+    (return $ SUnknown v)
+    where
+      js :: FromJSON a => Parser a
+      js = parseJSON v
   parseJSON _ = mzero
 
 data Status =
@@ -133,8 +136,7 @@ data Delete =
   Delete
   { delId  :: StatusId
   , delUserId :: String
-  }
-  deriving (Show, Eq)
+  } deriving (Show, Eq)
 
 instance FromJSON Delete where
   parseJSON (Object o) = do
