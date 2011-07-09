@@ -103,21 +103,21 @@ data EventType = Favorite | Unfavorite
                | UserUpdate | Block | Unblock | Follow
                deriving (Show, Eq)
 
--- unrecogernized
-data EventTarget = ETUser User | ETStatus Status | ETUnknown Value
+data EventTarget = ETUser User | ETStatus Status | ETList List | ETUnknown Value
                  deriving (Show, Eq)
 
 instance FromJSON EventTarget where
   parseJSON v@(Object o) =
     ETUser <$> parseJSON v <|>
     ETStatus <$> parseJSON v <|>
+    ETList <$> parseJSON v <|>
     (return $ ETUnknown v)
   parseJSON _ = mzero
 
 data Event =
   Event
   { evCreatedAt       :: DateString
-  , evTargetObject    :: EventTarget
+  , evTargetObject    :: Maybe EventTarget
   , evEvent           :: String
   , evTarget          :: EventTarget
   , evSource          :: EventTarget
@@ -125,22 +125,22 @@ data Event =
 
 instance FromJSON Event where
   parseJSON (Object o) =
-    Event <$> o .: "created_at"
-          <*> o .: "target_object"
-          <*> o .: "event"
-          <*> o .: "target"
-          <*> o .: "source"
+    Event <$> o .:  "created_at"
+          <*> o .:? "target_object"
+          <*> o .:  "event"
+          <*> o .:  "target"
+          <*> o .:  "source"
   parseJSON _ = mzero
 
 data Delete =
   Delete
   { delId  :: StatusId
-  , delUserId :: String
+  , delUserId :: UserId
   } deriving (Show, Eq)
 
 instance FromJSON Delete where
   parseJSON (Object o) = do
-    s <- o .: "status"
+    s <- o .: "delete" >>= (.: "status")
     Delete <$> s .: "id"
            <*> s .: "user_id"
   parseJSON _ = mzero
@@ -171,4 +171,26 @@ instance FromJSON User where
          <*> o .:? "url"
          <*> o .:? "protected"
          <*> o .:? "followers_count"
+  parseJSON _ = mzero
+
+data List =
+  List
+  { listId :: Int
+  , listName :: String
+  , listFullName :: String
+  , listMemberCount :: Int
+  , listSubscriberCount :: Int
+  , listMode :: String
+  , listUser :: User
+  } deriving (Show, Eq)
+
+instance FromJSON List where
+  parseJSON (Object o) =
+    List <$> o .: "id"
+         <*> o .: "name"
+         <*> o .: "full_name"
+         <*> o .: "member_count"
+         <*> o .: "subscriber_count"
+         <*> o .: "mode"
+         <*> o .: "user"
   parseJSON _ = mzero
