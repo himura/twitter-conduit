@@ -58,5 +58,5 @@ friendsIds, followerIds :: Manager -> TW (Iteratee ByteString IO [Integer])
 friendsIds = api "https://api.twitter.com/1/friends/ids.json" [] iterFold
 followerIds = api "https://api.twitter.com/1/follower/ids.json" [] iterFold
 
-userstream :: Iteratee Status IO a -> Manager -> TW (Iteratee ByteString IO a)
-userstream iter = api "https://userstream.twitter.com/2/user.json" [] (enumLine =$ enumJSON =$ enumJsonToStatus =$ iter)
+userstream :: Iteratee StreamingAPI IO a -> Manager -> TW (Iteratee ByteString IO a)
+userstream iter = api "https://userstream.twitter.com/2/user.json" [] (enumLine =$ enumJSON =$ EL.map fromJSON' =$ skipNothing =$ iter)

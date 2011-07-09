@@ -5,7 +5,12 @@ module Web.Twitter.Enumerator
        , URLString
        , UserName
        , StatusId
+       , StreamingAPI(..)
        , Status(..)
+       , RetweetedStatus(..)
+       , EventTarget(..)
+       , Event(..)
+       , Delete(..)
        , User(..)
 
        -- Web.Twitter.Enumerator.Monad

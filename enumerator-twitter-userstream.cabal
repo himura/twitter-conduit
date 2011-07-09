@@ -24,6 +24,7 @@ library
     , http-enumerator
     , aeson >= 0.3.2.2
     , attoparsec >= 0.8.6.1
+    , attoparsec-enumerator
     , bytestring
     , text
     , containers
