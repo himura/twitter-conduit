@@ -1,7 +1,6 @@
 module Web.Twitter.Enumerator.Utils
        ( enumLine
        , enumJSON
-       , enumJsonToStatus
        , skipNothing
        , debugEE
        , fromJSON'
@@ -36,9 +35,4 @@ fromJSON' = parseMaybe parseJSON
 enumJSON :: Monad m => E.Enumeratee ByteString Value m a
 enumJSON = E.sequence $ iterParser json
 
-enumJsonToStatus :: Monad m => E.Enumeratee Value Status m a
-enumJsonToStatus = EL.concatMap jts
-  where jts v@(Array _) = fromJust . fromJSON' $ v
-        jts v@(Object _) = maybe [] (:[]) $ fromJSON' v
-        jts _ = []
 

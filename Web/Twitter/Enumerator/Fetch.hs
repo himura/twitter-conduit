@@ -39,7 +39,7 @@ api url query iter mgr = do
 
 statuses :: String -> [(ByteString, Maybe ByteString)] -> Manager -> TW (Iteratee ByteString IO [Status])
 statuses url query = api aurl query iter
-  where iter = enumLine =$ enumJSON =$ enumJsonToStatus =$ EL.consume
+  where iter = enumLine =$ enumJSON =$ EL.map fromJSON' =$ skipNothing =$ EL.consume
         aurl = "https://api.twitter.com/1/statuses/" ++ url
 
 statusesPublicTimeline = statuses "public_timeline.json"
