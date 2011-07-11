@@ -13,6 +13,7 @@ module Web.Twitter.Enumerator.Types
        , Event(..)
        , Delete(..)
        , User(..)
+       , List(..)
        )
        where
 

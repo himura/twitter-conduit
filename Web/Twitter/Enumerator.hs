@@ -12,6 +12,7 @@ module Web.Twitter.Enumerator
        , Event(..)
        , Delete(..)
        , User(..)
+       , List(..)
 
        -- Web.Twitter.Enumerator.Monad
        , TW
