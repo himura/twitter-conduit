@@ -1,0 +1,40 @@
+name:              enumerator-twitter-userstream
+version:           0.0.0
+license:           BSD3
+-- license-file:      LICENSE
+author:            Takahiro HIMURA
+maintainer:        Takahiro HIMURA
+synopsis:          Twitter API package with enumerator interface and Streaming API support.
+description:       This package uses enumerator package for access Twitter API.
+category:          Web
+stability:         Experimental
+cabal-version:     >= 1.6
+build-type:        Simple
+homepage:
+
+library
+  ghc-options: -Wall -O2
+
+
+  build-depends:
+      base >= 4 && < 5
+    , mtl
+    , authenticate >= 0.9
+    , enumerator >= 0.4.8 && < 0.5
+    , http-enumerator
+    , aeson >= 0.3.2.2
+    , attoparsec >= 0.8.6.1
+    , attoparsec-enumerator
+    , bytestring
+    , text
+    , containers
+    , vector >= 0.7
+
+  exposed-modules:
+    Web.Twitter.Enumerator
+    Web.Twitter.Enumerator.Types
+    Web.Twitter.Enumerator.Monad
+    Web.Twitter.Enumerator.Fetch
+
+  other-modules:
+    Web.Twitter.Enumerator.Utils
