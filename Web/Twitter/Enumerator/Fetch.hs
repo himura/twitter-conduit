@@ -15,6 +15,7 @@ module Web.Twitter.Enumerator.Fetch
        , listsAll
        , listsMembers
        , listsMembers'
+       , listsMembersIter
        , userstream
        )
        where
@@ -29,7 +30,8 @@ import Data.Aeson hiding (Error)
 import qualified Data.Aeson.Types as AE
 
 import Network.HTTP.Enumerator
-import Data.Enumerator hiding (map, filter, drop, span)
+import Network.HTTP.Types (Query)
+import Data.Enumerator hiding (map, filter, drop, span, iterate)
 import qualified Data.Enumerator.List as EL
 
 import qualified Data.Text as T
@@ -39,14 +41,19 @@ import qualified Data.ByteString.Char8 as B8
 import Control.Monad.State
 import Control.Applicative
 
-api :: String -> [(ByteString, Maybe ByteString)] -> Iteratee ByteString IO a -> Manager -> TW (Iteratee ByteString IO a)
-api url query iter mgr = do
-  env <- get
-  req <- liftIO $ signOAuth (twOAuth env) (twCredential env) =<< parseUrl url
-  let req' = req { queryString = query, proxy = twProxy env }
-  return $ http req' (\_ _ -> iter) mgr
+import qualified Data.Map as M
 
-statuses :: String -> [(ByteString, Maybe ByteString)] -> Manager -> TW (Iteratee ByteString IO [Status])
+api :: String -> Query -> Iteratee ByteString IO a -> Manager -> TW (Iteratee ByteString IO a)
+api url query iter mgr = do
+  req <- get >>= liftIO . apiRequest url query
+  return $ http req (\_ _ -> iter) mgr
+
+apiRequest :: String -> Query -> TWEnv -> IO (Request IO)
+apiRequest uri query env = do
+  req <- parseUrl uri >>= \r -> return $ r { queryString = query, proxy = twProxy env }
+  signOAuth (twOAuth env) (twCredential env) $ req
+
+statuses :: String -> Query -> Manager -> TW (Iteratee ByteString IO [Status])
 statuses url query = api aurl query iter
   where iter = enumLine =$ enumJSON =$ EL.map fromJSON' =$ skipNothing =$ EL.consume
         aurl = "https://api.twitter.com/1/statuses/" ++ url
@@ -61,7 +68,7 @@ statusesRetweetedToMe = statuses "retweeted_to_me.json"
 statusesRetweetsOfMe = statuses "retweeted_of_me.json"
 
 iterFold :: FromJSON a => Iteratee ByteString IO [a]
-iterFold = enumLine =$ enumJSON =$ EL.map fromJSON' =$ skipNothing =$ EL.fold (++) []
+iterFold = enumLine =$ enumJSON =$ EL.map fromJSON' =$ skipNothing =$ EL.consume
 
 friendsIds, followerIds :: Manager -> TW (Iteratee ByteString IO [UserId])
 friendsIds = api "https://api.twitter.com/1/friends/ids.json" [] iterFold
@@ -72,12 +79,24 @@ listsAll q =
   let query = either ((,) "screen_name" . Just . B8.pack) ((,) "user_id" . Just . B8.pack . show) q in
   api "https://api.twitter.com/1/lists/all.json" [query] iterFold
 
-listsMembers :: Either String Integer -> Manager -> TW (Iteratee ByteString IO [User])
-listsMembers q = withCursor iterFold $ listsMembers' q
+listsMembers :: Either String Integer -> Manager -> TW (Iteratee ByteString IO User)
+listsMembers = undefined
 
 listsMembers' :: Either String Integer -> Iteratee ByteString IO a -> Manager -> TW (Iteratee ByteString IO a)
 listsMembers' q =
   api "http://api.twitter.com/1/lists/members.json" query
+  where query = either mkSlug mkListId q
+        mkSlug s =
+          let (screenName, ln) = span (/= '/') s
+              listName = drop 1 ln in
+          [("slug", w listName), ("owner_screen_name", w screenName)]
+        mkListId id = [("list_id", w . show $ id)]
+        w = Just . B8.pack
+
+listsMembersIter :: Either String Integer -> Manager -> Iteratee User IO a -> TW (Iteratee User IO a)
+listsMembersIter q mgr iter = do
+  enum <- apiCursor "http://api.twitter.com/1/lists/members.json" query "users" (-1) mgr
+  return $ enum $$ iter
   where query = either mkSlug mkListId q
         mkSlug s =
           let (screenName, ln) = span (/= '/') s
@@ -93,16 +112,75 @@ data Cursor a =
   , cursorNext :: Maybe Integer
   } deriving (Show, Eq)
 
-withCursor :: FromJSON a
-           => Iteratee ByteString IO a
-           -> (Iteratee ByteString IO a -> Manager -> TW (Iteratee ByteString IO a))
-           -> Manager -> TW (Iteratee ByteString IO a)
-withCursor = undefined
+iterCursor' :: FromJSON a => T.Text -> Iteratee Value IO (Maybe (Cursor a))
+iterCursor' key = do
+  ret <- EL.head
+  case ret of
+    Just v -> return . AE.parseMaybe (parseCursor key) $ v
+    Nothing -> return Nothing
 
-parseCursor :: FromJSON a => Value -> AE.Parser (Cursor a)
-parseCursor (Object o) =
-  Cursor <$> o .: "user" <*> o .:? "prev" <*> o .:? "next"
-parseCursor v@(Array arr) = return $ Cursor (maybe [] id $ fromJSON' v) Nothing Nothing
+iterCursor :: FromJSON a => T.Text -> Iteratee ByteString IO (Maybe (Cursor a))
+iterCursor key = enumLine =$ enumJSON =$ iterCursor' key
+
+addCursor :: Integer -> Query -> Query
+addCursor cursor = nq
+  where nq = M.toList . M.insert "cursor" (Just strcur) . M.fromList
+        strcur = B8.pack . show $ cursor
+parseCursor :: FromJSON a => T.Text -> Value -> AE.Parser (Cursor a)
+parseCursor key (Object o) =
+  Cursor <$> o .: key <*> o .:? "previous_cursor" <*> o .:? "next_cursor"
+parseCursor _ v@(Array arr) = return $ Cursor (maybe [] id $ fromJSON' v) Nothing Nothing
+
+apiCursor
+  :: (FromJSON a, Show a) =>
+     String
+     -> Query
+     -> T.Text
+     -> Integer
+     -> Manager
+     -> TW (Enumerator a IO b)
+apiCursor uri query cursorKey initCur mgr = do
+  env <- get
+  return $ checkContinue1 go (env, initCur)
+  where
+    go loop s k = do
+      let (env, cursor) = s
+          query' = addCursor cursor query
+      req <- liftIO $ apiRequest uri query' env
+      liftIO . putStrLn . show . queryString $ req
+      res <- liftIO $ withManager (\mgr -> run_ $ http req (\_ _ -> iterCursor cursorKey) mgr)
+      case res of
+        Just r -> do
+          let nextCur = cursorNext r
+              chunks = Chunks . cursorCurrent $ r
+          case nextCur of
+            Just nc -> k chunks >>== loop (env, nc)
+            Nothing -> k EOF
+        Nothing -> k EOF
+
+-- apiCursor uri query cursorKey initCur mgr = do
+--   env <- get
+--   req <- apiRequest uri query
+--   let oauth = twOAuth env
+--       crd = twCredential env
+--   return $ go oauth crd req $ Just initCur
+--   where
+--     go oauth crd req cursor (Continue k) = do
+--       liftIO $ putStrLn $ show cursor
+--       case cursor of
+--         Just c -> do
+--           req' <- liftIO $ signOAuth oauth crd $ addCursor c req
+--           -- putStrLn $ show $ queryString req'
+--           res <- liftIO $ withManager (\mgr -> run_ $ http req' (\_ _ -> iterCursor cursorKey) mgr)
+--           case res of
+--             Just r -> do
+--               k $ Chunks . cursorCurrent $ r
+--               let next = cursorNext r
+--               go oauth crd req next 
+--             Nothing -> do
+--               k EOF
+--         Nothing -> k EOF
+--     go oauth crd req cursor step = returnI step
 
 userstream :: Iteratee StreamingAPI IO a -> Manager -> TW (Iteratee ByteString IO a)
 userstream iter = api "https://userstream.twitter.com/2/user.json" [] (enumLine =$ enumJSON =$ EL.map fromJSON' =$ skipNothing =$ iter)
