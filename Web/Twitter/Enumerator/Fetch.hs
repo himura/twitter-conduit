@@ -77,7 +77,7 @@ listsAll q =
   let query = either ((,) "screen_name" . Just . B8.pack) ((,) "user_id" . Just . B8.pack . show) q in
   api "https://api.twitter.com/1/lists/all.json" [query] iterFold
 
-listsMembers :: Either String Integer -> Manager -> TW (Enumerator User IO a)
+listsMembers :: Either String Integer -> Manager -> Enumerator User TW a
 listsMembers q mgr =
   apiCursor "http://api.twitter.com/1/lists/members.json" query "users" (-1) mgr
   where query = either mkSlug mkListId q
@@ -121,14 +121,13 @@ apiCursor
      -> T.Text
      -> Integer
      -> Manager
-     -> TW (Enumerator a IO b)
-apiCursor uri query cursorKey initCur mgr = do
-  env <- get
-  return $ checkContinue1 go (env, initCur)
+     -> Enumerator a TW b
+apiCursor uri query cursorKey initCur mgr =
+  checkContinue1 go initCur
   where
-    go loop s k = do
-      let (env, cursor) = s
-          query' = addCursor cursor query
+    go loop cursor k = do
+      env <- lift get
+      let query' = addCursor cursor query
       req <- liftIO $ apiRequest uri query' env
       liftIO . putStrLn . show . queryString $ req
       res <- liftIO $ withManager (\mgr -> run_ $ http req (\_ _ -> iterCursor cursorKey) mgr)
@@ -139,7 +138,7 @@ apiCursor uri query cursorKey initCur mgr = do
           case nextCur of
             -- TODO: clean up
             Just 0  -> k chunks
-            Just nc -> k chunks >>== loop (env, nc)
+            Just nc -> k chunks >>== loop nc
             Nothing -> k chunks
         Nothing -> k EOF
 
