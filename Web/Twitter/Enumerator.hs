@@ -34,7 +34,7 @@ module Web.Twitter.Enumerator
        , statusesRetweetedToMe
        , statusesRetweetsOfMe
        , friendsIds
-       , followerIds
+       , followersIds
        , listsAll
        , listsMembers
        , userstream

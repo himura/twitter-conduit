@@ -11,7 +11,7 @@ module Web.Twitter.Enumerator.Fetch
        , statusesRetweetedToMe
        , statusesRetweetsOfMe
        , friendsIds
-       , followerIds
+       , followersIds
        , listsAll
        , listsMembers
        , userstream
@@ -68,14 +68,14 @@ statusesRetweetsOfMe = statuses "retweeted_of_me.json"
 iterFold :: FromJSON a => Iteratee ByteString IO [a]
 iterFold = enumLine =$ enumJSON =$ EL.map fromJSON' =$ skipNothing =$ EL.consume
 
-friendsIds, followerIds :: Manager -> TW (Iteratee ByteString IO [UserId])
-friendsIds = api "https://api.twitter.com/1/friends/ids.json" [] iterFold
-followerIds = api "https://api.twitter.com/1/follower/ids.json" [] iterFold
+queryUserId = either ((,) "screen_name" . Just . B8.pack) ((,) "user_id" . Just . B8.pack . show)
 
-listsAll :: Either String UserId -> Manager -> TW (Iteratee ByteString IO [List])
-listsAll q =
-  let query = either ((,) "screen_name" . Just . B8.pack) ((,) "user_id" . Just . B8.pack . show) q in
-  api "https://api.twitter.com/1/lists/all.json" [query] iterFold
+friendsIds, followersIds :: Either String UserId -> Manager -> Enumerator UserId TW a
+friendsIds q = apiCursor "https://api.twitter.com/1/friends/ids.json" [queryUserId q] "ids" (-1)
+followersIds q = apiCursor "https://api.twitter.com/1/followers/ids.json" [queryUserId q] "ids" (-1)
+
+listsAll :: Either String UserId -> Manager -> Enumerator List TW a
+listsAll q mgr = apiCursor "https://api.twitter.com/1/lists/all.json" [queryUserId q] "" (-1) mgr
 
 listsMembers :: Either String Integer -> Manager -> Enumerator User TW a
 listsMembers q mgr =
