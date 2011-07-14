@@ -50,10 +50,28 @@ apiRequest uri query env = do
   req <- parseUrl uri >>= \r -> return $ r { queryString = query, proxy = twProxy env }
   signOAuth (twOAuth env) (twCredential env) $ req
 
-statuses :: String -> Query -> Manager -> Iteratee ByteString TW [Status]
-statuses url query = api aurl query iter
-  where iter = enumLine =$ enumJSON =$ EL.map fromJSON' =$ skipNothing =$ EL.consume
-        aurl = "https://api.twitter.com/1/statuses/" ++ url
+statuses :: String -> Query -> Integer -> Manager -> Enumerator Status TW a
+statuses uri query mgr = apiWithPages furi query 0 mgr
+  where furi = "https://api.twitter.com/1/statuses/" ++ uri
+
+apiWithPages :: (FromJSON a, Show a) => String -> Query -> Integer -> Manager -> Enumerator a TW b
+apiWithPages uri query initPage mgr =
+  checkContinue1 go initPage
+  where
+    go loop page k = do
+      env <- lift get
+      let query' = addPageQuery page query
+      req <- liftIO $ apiRequest uri query' env
+      liftIO . putStrLn . show . queryString $ req
+      res <- liftIO $ withManager (\mgr -> run_ $ http req (\_ _ -> enumLine =$ enumJSON =$ EL.map fromJSON' =$ skipNothing =$ EL.consume) mgr)
+      case res of
+        [] -> k EOF
+        xs -> k (Chunks xs) >>== loop (page + 1)
+
+addPageQuery :: Integer -> Query -> Query
+addPageQuery page = nq
+  where nq = M.toList . M.insert "page" (Just strp) . M.fromList
+        strp = B8.pack . show $ page
 
 statusesPublicTimeline = statuses "public_timeline.json"
 statusesUserTimeline = statuses "user_timeline.json"
