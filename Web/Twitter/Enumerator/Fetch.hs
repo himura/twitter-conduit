@@ -35,23 +35,22 @@ import qualified Data.Enumerator.List as EL
 import qualified Data.Text as T
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as B8
-
 import Control.Monad.State
 import Control.Applicative
 
 import qualified Data.Map as M
 
-api :: String -> Query -> Iteratee ByteString IO a -> Manager -> TW (Iteratee ByteString IO a)
+api :: String -> Query -> Iteratee ByteString IO a -> Manager -> Iteratee ByteString TW a
 api url query iter mgr = do
-  req <- get >>= liftIO . apiRequest url query
-  return $ http req (\_ _ -> iter) mgr
+  req <- lift get >>= liftIO . apiRequest url query
+  liftTrans $ http req (\_ _ -> iter) mgr
 
 apiRequest :: String -> Query -> TWEnv -> IO (Request IO)
 apiRequest uri query env = do
   req <- parseUrl uri >>= \r -> return $ r { queryString = query, proxy = twProxy env }
   signOAuth (twOAuth env) (twCredential env) $ req
 
-statuses :: String -> Query -> Manager -> TW (Iteratee ByteString IO [Status])
+statuses :: String -> Query -> Manager -> Iteratee ByteString TW [Status]
 statuses url query = api aurl query iter
   where iter = enumLine =$ enumJSON =$ EL.map fromJSON' =$ skipNothing =$ EL.consume
         aurl = "https://api.twitter.com/1/statuses/" ++ url
@@ -65,9 +64,7 @@ statusesRetweetedByMe = statuses "retweeted_by_me.json"
 statusesRetweetedToMe = statuses "retweeted_to_me.json"
 statusesRetweetsOfMe = statuses "retweeted_of_me.json"
 
-iterFold :: FromJSON a => Iteratee ByteString IO [a]
-iterFold = enumLine =$ enumJSON =$ EL.map fromJSON' =$ skipNothing =$ EL.consume
-
+queryUserId :: Either String Integer -> (ByteString, Maybe ByteString)
 queryUserId = either ((,) "screen_name" . Just . B8.pack) ((,) "user_id" . Just . B8.pack . show)
 
 friendsIds, followersIds :: Either String UserId -> Manager -> Enumerator UserId TW a
@@ -75,11 +72,10 @@ friendsIds q = apiCursor "https://api.twitter.com/1/friends/ids.json" [queryUser
 followersIds q = apiCursor "https://api.twitter.com/1/followers/ids.json" [queryUserId q] "ids" (-1)
 
 listsAll :: Either String UserId -> Manager -> Enumerator List TW a
-listsAll q mgr = apiCursor "https://api.twitter.com/1/lists/all.json" [queryUserId q] "" (-1) mgr
+listsAll q = apiCursor "https://api.twitter.com/1/lists/all.json" [queryUserId q] "" (-1)
 
 listsMembers :: Either String Integer -> Manager -> Enumerator User TW a
-listsMembers q mgr =
-  apiCursor "http://api.twitter.com/1/lists/members.json" query "users" (-1) mgr
+listsMembers q = apiCursor "http://api.twitter.com/1/lists/members.json" query "users" (-1)
   where query = either mkSlug mkListId q
         mkSlug s =
           let (screenName, ln) = span (/= '/') s
@@ -142,5 +138,5 @@ apiCursor uri query cursorKey initCur mgr =
             Nothing -> k chunks
         Nothing -> k EOF
 
-userstream :: Iteratee StreamingAPI IO a -> Manager -> TW (Iteratee ByteString IO a)
+userstream :: Iteratee StreamingAPI IO a -> Manager -> Iteratee ByteString TW a
 userstream iter = api "https://userstream.twitter.com/2/user.json" [] (enumLine =$ enumJSON =$ EL.map fromJSON' =$ skipNothing =$ iter)
