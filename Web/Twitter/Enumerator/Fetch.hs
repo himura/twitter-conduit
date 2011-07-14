@@ -14,8 +14,6 @@ module Web.Twitter.Enumerator.Fetch
        , followerIds
        , listsAll
        , listsMembers
-       , listsMembers'
-       , listsMembersIter
        , userstream
        )
        where
@@ -79,24 +77,9 @@ listsAll q =
   let query = either ((,) "screen_name" . Just . B8.pack) ((,) "user_id" . Just . B8.pack . show) q in
   api "https://api.twitter.com/1/lists/all.json" [query] iterFold
 
-listsMembers :: Either String Integer -> Manager -> TW (Iteratee ByteString IO User)
-listsMembers = undefined
-
-listsMembers' :: Either String Integer -> Iteratee ByteString IO a -> Manager -> TW (Iteratee ByteString IO a)
-listsMembers' q =
-  api "http://api.twitter.com/1/lists/members.json" query
-  where query = either mkSlug mkListId q
-        mkSlug s =
-          let (screenName, ln) = span (/= '/') s
-              listName = drop 1 ln in
-          [("slug", w listName), ("owner_screen_name", w screenName)]
-        mkListId id = [("list_id", w . show $ id)]
-        w = Just . B8.pack
-
-listsMembersIter :: Either String Integer -> Manager -> Iteratee User IO a -> TW (Iteratee User IO a)
-listsMembersIter q mgr iter = do
-  enum <- apiCursor "http://api.twitter.com/1/lists/members.json" query "users" (-1) mgr
-  return $ enum $$ iter
+listsMembers :: Either String Integer -> Manager -> TW (Enumerator User IO a)
+listsMembers q mgr =
+  apiCursor "http://api.twitter.com/1/lists/members.json" query "users" (-1) mgr
   where query = either mkSlug mkListId q
         mkSlug s =
           let (screenName, ln) = span (/= '/') s
@@ -154,33 +137,11 @@ apiCursor uri query cursorKey initCur mgr = do
           let nextCur = cursorNext r
               chunks = Chunks . cursorCurrent $ r
           case nextCur of
+            -- TODO: clean up
+            Just 0  -> k chunks
             Just nc -> k chunks >>== loop (env, nc)
-            Nothing -> k EOF
+            Nothing -> k chunks
         Nothing -> k EOF
-
--- apiCursor uri query cursorKey initCur mgr = do
---   env <- get
---   req <- apiRequest uri query
---   let oauth = twOAuth env
---       crd = twCredential env
---   return $ go oauth crd req $ Just initCur
---   where
---     go oauth crd req cursor (Continue k) = do
---       liftIO $ putStrLn $ show cursor
---       case cursor of
---         Just c -> do
---           req' <- liftIO $ signOAuth oauth crd $ addCursor c req
---           -- putStrLn $ show $ queryString req'
---           res <- liftIO $ withManager (\mgr -> run_ $ http req' (\_ _ -> iterCursor cursorKey) mgr)
---           case res of
---             Just r -> do
---               k $ Chunks . cursorCurrent $ r
---               let next = cursorNext r
---               go oauth crd req next 
---             Nothing -> do
---               k EOF
---         Nothing -> k EOF
---     go oauth crd req cursor step = returnI step
 
 userstream :: Iteratee StreamingAPI IO a -> Manager -> TW (Iteratee ByteString IO a)
 userstream iter = api "https://userstream.twitter.com/2/user.json" [] (enumLine =$ enumJSON =$ EL.map fromJSON' =$ skipNothing =$ iter)
