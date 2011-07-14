@@ -91,14 +91,14 @@ data Cursor a =
   , cursorNext :: Maybe Integer
   } deriving (Show, Eq)
 
-iterCursor' :: FromJSON a => T.Text -> Iteratee Value IO (Maybe (Cursor a))
+iterCursor' :: (Monad m, FromJSON a) => T.Text -> Iteratee Value m (Maybe (Cursor a))
 iterCursor' key = do
   ret <- EL.head
   case ret of
     Just v -> return . AE.parseMaybe (parseCursor key) $ v
     Nothing -> return Nothing
 
-iterCursor :: FromJSON a => T.Text -> Iteratee ByteString IO (Maybe (Cursor a))
+iterCursor :: (Monad m, FromJSON a) => T.Text -> Iteratee ByteString m (Maybe (Cursor a))
 iterCursor key = enumLine =$ enumJSON =$ iterCursor' key
 
 addCursor :: Integer -> Query -> Query

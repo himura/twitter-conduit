@@ -18,16 +18,17 @@ import qualified Data.Enumerator.List as EL
 import qualified Data.Enumerator.Binary as EB
 import Data.ByteString (ByteString)
 import Data.Maybe
+import Control.Monad.Trans
 
-enumLine :: E.Enumeratee ByteString ByteString IO a
+enumLine :: Monad m => E.Enumeratee ByteString ByteString m a
 enumLine = EB.splitWhen newline
   where newline x = (x == 10) || (x == 13)
 
 skipNothing :: Monad m => E.Enumeratee (Maybe a) a m r
 skipNothing = EL.concatMap (\x -> [fromJust x | isJust x])
 
-debugEE :: Show a => E.Enumeratee a a IO r
-debugEE = EL.mapM $ \x -> (putStrLn . show) x >> return x
+debugEE :: (MonadIO m, Show a) => E.Enumeratee a a m r
+debugEE = EL.mapM $ \x -> (liftIO . putStrLn . show) x >> return x
 
 fromJSON' :: FromJSON a => Value -> Maybe a
 fromJSON' = parseMaybe parseJSON
