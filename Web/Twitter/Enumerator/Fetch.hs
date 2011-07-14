@@ -50,7 +50,7 @@ apiRequest uri query env = do
   req <- parseUrl uri >>= \r -> return $ r { queryString = query, proxy = twProxy env }
   signOAuth (twOAuth env) (twCredential env) $ req
 
-statuses :: String -> Query -> Integer -> Manager -> Enumerator Status TW a
+statuses :: String -> Query -> Manager -> Enumerator Status TW a
 statuses uri query mgr = apiWithPages furi query 0 mgr
   where furi = "https://api.twitter.com/1/statuses/" ++ uri
 
@@ -63,10 +63,19 @@ apiWithPages uri query initPage mgr =
       let query' = addPageQuery page query
       req <- liftIO $ apiRequest uri query' env
       liftIO . putStrLn . show . queryString $ req
-      res <- liftIO $ withManager (\mgr -> run_ $ http req (\_ _ -> enumLine =$ enumJSON =$ EL.map fromJSON' =$ skipNothing =$ EL.consume) mgr)
+      res <- liftIO $ run_ $ http req (\_ _ -> enumJSON =$ iterPageC) mgr
+      liftIO . putStrLn . show $ res
       case res of
-        [] -> k EOF
-        xs -> k (Chunks xs) >>== loop (page + 1)
+        Just [] -> k EOF
+        Just xs -> k (Chunks xs) >>== loop (page + 1)
+        Nothing -> k EOF
+
+iterPageC :: (Monad m, FromJSON a) => Iteratee Value m (Maybe [a])
+iterPageC = do
+  ret <- EL.head
+  case ret of
+    Just v -> return . fromJSON' $ v
+    Nothing -> return Nothing
 
 addPageQuery :: Integer -> Query -> Query
 addPageQuery page = nq
