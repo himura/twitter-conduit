@@ -21,6 +21,7 @@ library
     , mtl
     , authenticate >= 0.9
     , enumerator >= 0.4.8 && < 0.5
+    , http-types
     , http-enumerator
     , aeson >= 0.3.2.2
     , attoparsec >= 0.8.6.1
