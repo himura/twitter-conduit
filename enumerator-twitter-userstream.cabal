@@ -22,6 +22,9 @@ library
     , authenticate >= 0.9
     , enumerator >= 0.4.8 && < 0.5
     , http-types
+    -- Needs version specifier for http-enumerator,
+    -- but currently the adequate version is not available.
+    -- (needs higher then commit 4732f8be)
     , http-enumerator
     , aeson >= 0.3.2.2
     , attoparsec >= 0.8.6.1

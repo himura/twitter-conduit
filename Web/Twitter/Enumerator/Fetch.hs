@@ -147,7 +147,7 @@ apiCursor uri query cursorKey initCur mgr =
       let query' = insertQuery "cursor" (Just . B8.pack . show $ cursor) query
       req <- liftIO $ apiRequest uri query' env
       liftIO . putStrLn . show . queryString $ req
-      res <- liftIO $ withManager $ \mgr -> run_ $ http req (\_ _ -> iterCursor cursorKey) mgr
+      res <- liftIO $ run_ $ http req (\_ _ -> iterCursor cursorKey) mgr
       case res of
         Just r -> do
           let nextCur = cursorNext r
