@@ -60,11 +60,10 @@ apiWithPages uri query initPage mgr =
   where
     go loop page k = do
       env <- lift get
-      let query' = addPageQuery page query
+      let query' = insertQuery "page" (Just . B8.pack . show $ page) query
       req <- liftIO $ apiRequest uri query' env
       liftIO . putStrLn . show . queryString $ req
       res <- liftIO $ run_ $ http req (\_ _ -> enumJSON =$ iterPageC) mgr
-      liftIO . putStrLn . show $ res
       case res of
         Just [] -> k EOF
         Just xs -> k (Chunks xs) >>== loop (page + 1)
@@ -77,10 +76,9 @@ iterPageC = do
     Just v -> return . fromJSON' $ v
     Nothing -> return Nothing
 
-addPageQuery :: Integer -> Query -> Query
-addPageQuery page = nq
-  where nq = M.toList . M.insert "page" (Just strp) . M.fromList
-        strp = B8.pack . show $ page
+insertQuery :: ByteString -> Maybe ByteString -> Query -> Query
+insertQuery key value = mk
+  where mk = M.toList . M.insert key value . M.fromList
 
 statusesPublicTimeline = statuses "public_timeline.json"
 statusesUserTimeline = statuses "user_timeline.json"
@@ -128,10 +126,6 @@ iterCursor' key = do
 iterCursor :: (Monad m, FromJSON a) => T.Text -> Iteratee ByteString m (Maybe (Cursor a))
 iterCursor key = enumLine =$ enumJSON =$ iterCursor' key
 
-addCursor :: Integer -> Query -> Query
-addCursor cursor = nq
-  where nq = M.toList . M.insert "cursor" (Just strcur) . M.fromList
-        strcur = B8.pack . show $ cursor
 parseCursor :: FromJSON a => T.Text -> Value -> AE.Parser (Cursor a)
 parseCursor key (Object o) =
   Cursor <$> o .: key <*> o .:? "previous_cursor" <*> o .:? "next_cursor"
@@ -150,10 +144,10 @@ apiCursor uri query cursorKey initCur mgr =
   where
     go loop cursor k = do
       env <- lift get
-      let query' = addCursor cursor query
+      let query' = insertQuery "cursor" (Just . B8.pack . show $ cursor) query
       req <- liftIO $ apiRequest uri query' env
       liftIO . putStrLn . show . queryString $ req
-      res <- liftIO $ withManager (\mgr -> run_ $ http req (\_ _ -> iterCursor cursorKey) mgr)
+      res <- liftIO $ withManager $ \mgr -> run_ $ http req (\_ _ -> iterCursor cursorKey) mgr
       case res of
         Just r -> do
           let nextCur = cursorNext r
