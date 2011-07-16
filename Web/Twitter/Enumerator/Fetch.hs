@@ -35,20 +35,21 @@ import qualified Data.Enumerator.List as EL
 import qualified Data.Text as T
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as B8
-import Control.Monad.State
+import Control.Monad.Trans
 import Control.Applicative
 
 import qualified Data.Map as M
 
 api :: String -> Query -> Iteratee ByteString IO a -> Manager -> Iteratee ByteString TW a
 api url query iter mgr = do
-  req <- lift get >>= liftIO . apiRequest url query
+  req <- lift $ apiRequest url query
   liftTrans $ http req (\_ _ -> iter) mgr
 
-apiRequest :: String -> Query -> TWEnv -> IO (Request IO)
-apiRequest uri query env = do
-  req <- parseUrl uri >>= \r -> return $ r { queryString = query, proxy = twProxy env }
-  signOAuth (twOAuth env) (twCredential env) $ req
+apiRequest :: String -> Query -> TW (Request IO)
+apiRequest uri query = do
+  p <- getProxy
+  req <- liftIO $ parseUrl uri >>= \r -> return $ r { queryString = query, proxy = p }
+  signOAuthTW req
 
 statuses :: String -> Query -> Manager -> Enumerator Status TW a
 statuses uri query mgr = apiWithPages furi query 0 mgr
@@ -59,9 +60,8 @@ apiWithPages uri query initPage mgr =
   checkContinue1 go initPage
   where
     go loop page k = do
-      env <- lift get
       let query' = insertQuery "page" (Just . B8.pack . show $ page) query
-      req <- liftIO $ apiRequest uri query' env
+      req <- lift $ apiRequest uri query'
       liftIO . putStrLn . show . queryString $ req
       res <- liftIO $ run_ $ http req (\_ _ -> enumJSON =$ iterPageC) mgr
       case res of
@@ -143,9 +143,8 @@ apiCursor uri query cursorKey initCur mgr =
   checkContinue1 go initCur
   where
     go loop cursor k = do
-      env <- lift get
       let query' = insertQuery "cursor" (Just . B8.pack . show $ cursor) query
-      req <- liftIO $ apiRequest uri query' env
+      req <- lift $ apiRequest uri query'
       liftIO . putStrLn . show . queryString $ req
       res <- liftIO $ run_ $ http req (\_ _ -> iterCursor cursorKey) mgr
       case res of

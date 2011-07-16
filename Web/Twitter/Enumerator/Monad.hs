@@ -4,57 +4,49 @@ module Web.Twitter.Enumerator.Monad
        , runTW
        , newEnv
        , getOAuth
-       , putOAuth
        , getCredential
-       , putCredential
        , getProxy
-       , putProxy
+       , signOAuthTW
        )
        where
 
 import Web.Authenticate.OAuth
 import Network.HTTP.Enumerator
-import Control.Monad.State
+import Control.Monad.Reader
+import Control.Applicative
 
-type TW = StateT TWEnv IO
+type TW = ReaderT TWEnv IO
 
 data TWEnv = TWEnv
              { twOAuth :: OAuth
              , twCredential :: Credential
              , twProxy :: Maybe Proxy
+             , twManager :: Manager
              }
 
 runTW :: TWEnv -> TW a -> IO a
-runTW env st = fst `fmap` runStateT st env
+runTW env st = runReaderT st env
 
-newEnv :: OAuth -> TWEnv
-newEnv tokens
+newEnv :: OAuth -> Manager -> TWEnv
+newEnv tokens manager
   = TWEnv
     { twOAuth = tokens
     , twCredential = Credential []
     , twProxy = Nothing
+    , twManager = manager
     }
 
 getOAuth :: TW OAuth
-getOAuth = twOAuth `fmap` get
-
-putOAuth :: OAuth -> TW ()
-putOAuth oauth = do
-  env <- get
-  put env { twOAuth = oauth}
+getOAuth = twOAuth `fmap` ask
 
 getCredential :: TW Credential
-getCredential = twCredential `fmap` get
-
-putCredential :: Credential -> TW ()
-putCredential cred = do
-  env <- get
-  put env { twCredential = cred }
+getCredential = twCredential `fmap` ask
 
 getProxy :: TW (Maybe Proxy)
-getProxy = twProxy `fmap` get
+getProxy = twProxy `fmap` ask
 
-putProxy :: Maybe Proxy -> TW ()
-putProxy p = do
-  env <- get
-  put env { twProxy = p }
+signOAuthTW :: Request IO -> TW (Request IO)
+signOAuthTW req = do
+  oa <- getOAuth
+  cred <- getCredential
+  liftIO $ signOAuth oa cred req

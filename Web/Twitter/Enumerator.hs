@@ -20,9 +20,8 @@ module Web.Twitter.Enumerator
        , runTW
        , newEnv
        , getOAuth
-       , putOAuth
        , getCredential
-       , putCredential
+       , getProxy
 
        -- Web.Twitter.Fetch
        , statusesPublicTimeline
