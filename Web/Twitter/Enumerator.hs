@@ -18,6 +18,8 @@ module Web.Twitter.Enumerator
        , TW
        , TWEnv (..)
        , runTW
+       , runTWCreateManager
+       , runTWManager
        , newEnv
        , getOAuth
        , getCredential
