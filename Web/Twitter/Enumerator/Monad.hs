@@ -8,7 +8,6 @@ module Web.Twitter.Enumerator.Monad
        , getCredential
        , getProxy
        , getManager
-       , withManagerTW
        , signOAuthTW
        )
        where
@@ -58,13 +57,12 @@ getCredential = twCredential `fmap` ask
 getProxy :: TW (Maybe Proxy)
 getProxy = twProxy `fmap` ask
 
-getManager :: TW (Maybe Manager)
-getManager = twManager `fmap` ask
-
-withManagerTW :: (Manager -> TW a) -> TW a
-withManagerTW task = do
-  mgr <- getManager
-  maybe (withManager task) task mgr
+getManager :: TW Manager
+getManager = do
+  mgr <- twManager `fmap` ask
+  case mgr of
+    Just m -> return m
+    Nothing -> error "manager is not initialized"
 
 signOAuthTW :: Request IO -> TW (Request IO)
 signOAuthTW req = do

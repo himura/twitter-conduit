@@ -40,10 +40,14 @@ import Control.Applicative
 
 import qualified Data.Map as M
 
-api :: String -> Query -> Iteratee ByteString IO a -> Manager -> Iteratee ByteString TW a
-api url query iter mgr = do
+api :: String -> Query -> Iteratee ByteString IO a -> Iteratee ByteString TW a
+api url query iter = do
   req <- lift $ apiRequest url query
-  liftTrans $ http req (\_ _ -> iter) mgr
+  httpMgr req (\_ _ -> iter)
+
+httpMgr req iterf = do
+  mgr <- lift $ getManager
+  liftTrans $ http req iterf mgr
 
 apiRequest :: String -> Query -> TW (Request IO)
 apiRequest uri query = do
@@ -51,19 +55,19 @@ apiRequest uri query = do
   req <- liftIO $ parseUrl uri >>= \r -> return $ r { queryString = query, proxy = p }
   signOAuthTW req
 
-statuses :: String -> Query -> Manager -> Enumerator Status TW a
-statuses uri query mgr = apiWithPages furi query 0 mgr
+statuses :: String -> Query -> Enumerator Status TW a
+statuses uri query = apiWithPages furi query 0
   where furi = "https://api.twitter.com/1/statuses/" ++ uri
 
-apiWithPages :: (FromJSON a, Show a) => String -> Query -> Integer -> Manager -> Enumerator a TW b
-apiWithPages uri query initPage mgr =
+apiWithPages :: (FromJSON a, Show a) => String -> Query -> Integer -> Enumerator a TW b
+apiWithPages uri query initPage =
   checkContinue1 go initPage
   where
     go loop page k = do
       let query' = insertQuery "page" (Just . B8.pack . show $ page) query
       req <- lift $ apiRequest uri query'
       liftIO . putStrLn . show . queryString $ req
-      res <- liftIO $ run_ $ http req (\_ _ -> enumJSON =$ iterPageC) mgr
+      res <- lift $ run_ $ httpMgr req (\_ _ -> enumJSON =$ iterPageC)
       case res of
         Just [] -> k EOF
         Just xs -> k (Chunks xs) >>== loop (page + 1)
@@ -92,14 +96,14 @@ statusesRetweetsOfMe = statuses "retweeted_of_me.json"
 queryUserId :: Either String Integer -> (ByteString, Maybe ByteString)
 queryUserId = either ((,) "screen_name" . Just . B8.pack) ((,) "user_id" . Just . B8.pack . show)
 
-friendsIds, followersIds :: Either String UserId -> Manager -> Enumerator UserId TW a
+friendsIds, followersIds :: Either String UserId -> Enumerator UserId TW a
 friendsIds q = apiCursor "https://api.twitter.com/1/friends/ids.json" [queryUserId q] "ids" (-1)
 followersIds q = apiCursor "https://api.twitter.com/1/followers/ids.json" [queryUserId q] "ids" (-1)
 
-listsAll :: Either String UserId -> Manager -> Enumerator List TW a
+listsAll :: Either String UserId -> Enumerator List TW a
 listsAll q = apiCursor "https://api.twitter.com/1/lists/all.json" [queryUserId q] "" (-1)
 
-listsMembers :: Either String Integer -> Manager -> Enumerator User TW a
+listsMembers :: Either String Integer -> Enumerator User TW a
 listsMembers q = apiCursor "http://api.twitter.com/1/lists/members.json" query "users" (-1)
   where query = either mkSlug mkListId q
         mkSlug s =
@@ -137,16 +141,15 @@ apiCursor
      -> Query
      -> T.Text
      -> Integer
-     -> Manager
      -> Enumerator a TW b
-apiCursor uri query cursorKey initCur mgr =
+apiCursor uri query cursorKey initCur =
   checkContinue1 go initCur
   where
     go loop cursor k = do
       let query' = insertQuery "cursor" (Just . B8.pack . show $ cursor) query
       req <- lift $ apiRequest uri query'
       liftIO . putStrLn . show . queryString $ req
-      res <- liftIO $ run_ $ http req (\_ _ -> iterCursor cursorKey) mgr
+      res <- lift $ run_ $ httpMgr req (\_ _ -> iterCursor cursorKey)
       case res of
         Just r -> do
           let nextCur = cursorNext r
@@ -158,5 +161,5 @@ apiCursor uri query cursorKey initCur mgr =
             Nothing -> k chunks
         Nothing -> k EOF
 
-userstream :: Iteratee StreamingAPI IO a -> Manager -> Iteratee ByteString TW a
+userstream :: Iteratee StreamingAPI IO a -> Iteratee ByteString TW a
 userstream iter = api "https://userstream.twitter.com/2/user.json" [] (enumLine =$ enumJSON =$ EL.map fromJSON' =$ skipNothing =$ iter)
