@@ -28,7 +28,7 @@ import Data.Aeson hiding (Error)
 import qualified Data.Aeson.Types as AE
 
 import Network.HTTP.Enumerator
-import Network.HTTP.Types (Query)
+import qualified Network.HTTP.Types as HT
 import Data.Enumerator hiding (map, filter, drop, span, iterate)
 import qualified Data.Enumerator.List as EL
 
@@ -40,26 +40,31 @@ import Control.Applicative
 
 import qualified Data.Map as M
 
-api :: String -> Query -> Iteratee ByteString IO a -> Iteratee ByteString TW a
+api :: String -> HT.Query -> Iteratee ByteString IO a -> Iteratee ByteString TW a
 api url query iter = do
   req <- lift $ apiRequest url query
   httpMgr req (\_ _ -> iter)
 
+httpMgr :: Request IO
+        -> (HT.Status
+            -> HT.ResponseHeaders
+            -> Iteratee ByteString IO a)
+        -> Iteratee ByteString TW a
 httpMgr req iterf = do
   mgr <- lift $ getManager
   liftTrans $ http req iterf mgr
 
-apiRequest :: String -> Query -> TW (Request IO)
+apiRequest :: String -> HT.Query -> TW (Request IO)
 apiRequest uri query = do
   p <- getProxy
   req <- liftIO $ parseUrl uri >>= \r -> return $ r { queryString = query, proxy = p }
   signOAuthTW req
 
-statuses :: String -> Query -> Enumerator Status TW a
+statuses :: String -> HT.Query -> Enumerator Status TW a
 statuses uri query = apiWithPages furi query 0
   where furi = "https://api.twitter.com/1/statuses/" ++ uri
 
-apiWithPages :: (FromJSON a, Show a) => String -> Query -> Integer -> Enumerator a TW b
+apiWithPages :: (FromJSON a, Show a) => String -> HT.Query -> Integer -> Enumerator a TW b
 apiWithPages uri query initPage =
   checkContinue1 go initPage
   where
@@ -80,7 +85,7 @@ iterPageC = do
     Just v -> return . fromJSON' $ v
     Nothing -> return Nothing
 
-insertQuery :: ByteString -> Maybe ByteString -> Query -> Query
+insertQuery :: ByteString -> Maybe ByteString -> HT.Query -> HT.Query
 insertQuery key value = mk
   where mk = M.toList . M.insert key value . M.fromList
 
@@ -138,7 +143,7 @@ parseCursor _ v@(Array arr) = return $ Cursor (maybe [] id $ fromJSON' v) Nothin
 apiCursor
   :: (FromJSON a, Show a) =>
      String
-     -> Query
+     -> HT.Query
      -> T.Text
      -> Integer
      -> Enumerator a TW b
