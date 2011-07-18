@@ -1,4 +1,4 @@
-name:              enumerator-twitter-userstream
+name:              twitter-enumerator
 version:           0.0.0
 license:           BSD3
 -- license-file:      LICENSE
