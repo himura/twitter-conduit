@@ -18,11 +18,11 @@ module Web.Twitter.Enumerator
        , TW
        , TWEnv (..)
        , runTW
+       , runTWManager
        , newEnv
        , getOAuth
-       , putOAuth
        , getCredential
-       , putCredential
+       , getProxy
 
        -- Web.Twitter.Fetch
        , statusesPublicTimeline
@@ -34,7 +34,9 @@ module Web.Twitter.Enumerator
        , statusesRetweetedToMe
        , statusesRetweetsOfMe
        , friendsIds
-       , followerIds
+       , followersIds
+       , listsAll
+       , listsMembers
        , userstream
        )
        where
