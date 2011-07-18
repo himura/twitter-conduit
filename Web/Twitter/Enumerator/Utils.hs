@@ -7,11 +7,8 @@ module Web.Twitter.Enumerator.Utils
        )
        where
 
-import Web.Twitter.Enumerator.Types
-
 import Data.Aeson hiding (Error)
 import Data.Aeson.Types (parseMaybe)
-import Data.Attoparsec (maybeResult, parse)
 import Data.Attoparsec.Enumerator (iterParser)
 import Data.Enumerator as E
 import qualified Data.Enumerator.List as EL

@@ -39,7 +39,7 @@ data StreamingAPI = SStatus Status
                   deriving (Show, Eq)
 
 instance FromJSON StreamingAPI where
-  parseJSON v@(Object o) =
+  parseJSON v@(Object _) =
     SRetweetedStatus <$> js <|>
     SStatus <$> js <|>
     SEvent <$> js <|>
@@ -108,7 +108,7 @@ data EventTarget = ETUser User | ETStatus Status | ETList List | ETUnknown Value
                  deriving (Show, Eq)
 
 instance FromJSON EventTarget where
-  parseJSON v@(Object o) =
+  parseJSON v@(Object _) =
     ETUser <$> parseJSON v <|>
     ETStatus <$> parseJSON v <|>
     ETList <$> parseJSON v <|>

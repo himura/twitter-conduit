@@ -22,8 +22,6 @@ import Web.Twitter.Enumerator.Types
 import Web.Twitter.Enumerator.Monad
 import Web.Twitter.Enumerator.Utils
 
-import Web.Authenticate.OAuth
-
 import Data.Aeson hiding (Error)
 import qualified Data.Aeson.Types as AE
 
@@ -113,9 +111,9 @@ listsMembers q = apiCursor "http://api.twitter.com/1/lists/members.json" query "
   where query = either mkSlug mkListId q
         mkSlug s =
           let (screenName, ln) = span (/= '/') s
-              listName = drop 1 ln in
-          [("slug", w listName), ("owner_screen_name", w screenName)]
-        mkListId id = [("list_id", w . show $ id)]
+              lstName = drop 1 ln in
+          [("slug", w lstName), ("owner_screen_name", w screenName)]
+        mkListId lstId = [("list_id", w . show $ lstId)]
         w = Just . B8.pack
 
 data Cursor a =
@@ -138,7 +136,8 @@ iterCursor key = enumLine =$ enumJSON =$ iterCursor' key
 parseCursor :: FromJSON a => T.Text -> Value -> AE.Parser (Cursor a)
 parseCursor key (Object o) =
   Cursor <$> o .: key <*> o .:? "previous_cursor" <*> o .:? "next_cursor"
-parseCursor _ v@(Array arr) = return $ Cursor (maybe [] id $ fromJSON' v) Nothing Nothing
+parseCursor _ v@(Array _) = return $ Cursor (maybe [] id $ fromJSON' v) Nothing Nothing
+parseCursor _ o = fail $ "Error at parseCursor: unknown object " ++ show o
 
 apiCursor
   :: (FromJSON a, Show a) =>

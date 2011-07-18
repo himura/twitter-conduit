@@ -15,8 +15,6 @@ module Web.Twitter.Enumerator.Monad
 import Web.Authenticate.OAuth
 import Network.HTTP.Enumerator
 import Control.Monad.Reader
-import Control.Applicative
-import Data.Maybe
 
 type TW = ReaderT TWEnv IO
 
