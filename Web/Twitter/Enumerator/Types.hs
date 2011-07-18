@@ -7,13 +7,14 @@ module Web.Twitter.Enumerator.Types
        , UserName
        , StatusId
        , Status(..)
-       , nullStatus
        , User(..)
-       , nullUser
        )
        where
 
+import Data.Aeson
 import Data.Text as T
+import Control.Applicative
+import Control.Monad
 
 type DateString  = String
 type UserId      = Integer
@@ -34,18 +35,18 @@ data Status
      , statusUser          :: User
      } deriving (Show, Eq)
 
-nullStatus :: Status
-nullStatus = Status
-     { statusCreated       = ""
-     , statusId            = 0
-     , statusText          = ""
-     , statusSource        = ""
-     , statusTruncated     = False
-     , statusInReplyTo     = Nothing
-     , statusInReplyToUser = Nothing
-     , statusFavorite      = Nothing
-     , statusUser          = nullUser
-     }
+instance FromJSON Status where
+  parseJSON (Object o) =
+    Status <$> o .:  "created_at"
+           <*> o .:  "id"
+           <*> o .:  "text"
+           <*> o .:  "source"
+           <*> o .:  "truncated"
+           <*> o .:? "in_reply_to_status_id"
+           <*> o .:? "in_reply_to_user_id"
+           <*> o .:? "favorite"
+           <*> (o .: "user" >>= parseJSON)
+  parseJSON _ = mzero
 
 data User
   = User
@@ -60,15 +61,15 @@ data User
      , userFollowers       :: Maybe Int
      } deriving (Show, Eq)
 
-nullUser :: User
-nullUser = User
-     { userId              = 0
-     , userName            = ""
-     , userScreenName      = ""
-     , userDescription     = ""
-     , userLocation        = ""
-     , userProfileImageURL = Nothing
-     , userURL             = Nothing
-     , userProtected       = Nothing
-     , userFollowers       = Nothing
-     }
+instance FromJSON User where
+  parseJSON (Object o) =
+    User <$> o .:  "id"
+         <*> o .:  "name"
+         <*> o .:  "screen_name"
+         <*> o .:  "description"
+         <*> o .:  "location"
+         <*> o .:? "profile_image_url"
+         <*> o .:? "url"
+         <*> o .:? "protected"
+         <*> o .:? "followers_count"
+  parseJSON _ = mzero

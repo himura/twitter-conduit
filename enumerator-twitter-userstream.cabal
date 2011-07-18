@@ -30,8 +30,8 @@ library
     , vector >= 0.7
 
   exposed-modules:
+    Web.Twitter.Enumerator
     Web.Twitter.Enumerator.Types
-    Web.Twitter.Enumerator.Status
     Web.Twitter.Enumerator.Monad
     Web.Twitter.Enumerator.Fetch
 

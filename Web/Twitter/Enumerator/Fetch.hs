@@ -14,7 +14,6 @@ module Web.Twitter.Enumerator.Fetch
        where
 
 import Web.Twitter.Enumerator.Types
-import Web.Twitter.Enumerator.Status
 import Web.Twitter.Enumerator.Monad
 import Web.Twitter.Enumerator.Utils
 

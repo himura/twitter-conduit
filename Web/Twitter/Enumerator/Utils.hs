@@ -9,7 +9,6 @@ module Web.Twitter.Enumerator.Utils
        where
 
 import Web.Twitter.Enumerator.Types
-import Web.Twitter.Enumerator.Status
 
 import Data.Aeson hiding (Error)
 import Data.Attoparsec (maybeResult, parse)
@@ -41,8 +40,8 @@ enumJSON = EL.map $ \line -> maybeResult $ parse json line
 
 enumJsonToStatus :: Monad m => Enumeratee Value Status m a
 enumJsonToStatus = EL.concatMap jts
-  where jts v@(Array _) = filterJust $ map jsonToStatus . fromJust . fromJSON' $ v
-        jts v@(Object _) = filterJust $ [jsonToStatus v]
+  where jts v@(Array _) = filterJust $ map fromJSON' . fromJust . fromJSON' $ v
+        jts v@(Object _) = filterJust $ [fromJSON' v]
         jts _ = []
         filterJust = map fromJust . filter isJust
 

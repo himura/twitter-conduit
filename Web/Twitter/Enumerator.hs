@@ -6,13 +6,7 @@ module Web.Twitter.Enumerator
        , UserName
        , StatusId
        , Status(..)
-       , nullStatus
        , User(..)
-       , nullUser
-
-       -- Web.Twitter.Enumerator.Status
-       , jsonToStatus
-       , jsonToUser
 
        -- Web.Twitter.Enumerator.Monad
        , TW
@@ -40,6 +34,5 @@ module Web.Twitter.Enumerator
        where
 
 import Web.Twitter.Enumerator.Types
-import Web.Twitter.Enumerator.Status
 import Web.Twitter.Enumerator.Monad
 import Web.Twitter.Enumerator.Fetch
