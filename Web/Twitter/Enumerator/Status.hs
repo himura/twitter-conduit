@@ -26,13 +26,13 @@ resultToMaybe (Success a) = Just a
 resultToMaybe _           = Nothing
 
 jsonToStatus :: Value -> Maybe Status
-jsonToStatus json = do
-  stId <- lookup "id" json
-  stText <- lookup "text" json
-  stSource <- lookup "source" json
-  stCreated <- lookup "created_at" json
-  stTruncated <- lookup "truncated" json
-  stUser <- lookup "user" json >>= jsonToUser
+jsonToStatus val = do
+  stId <- lookup "id" val
+  stText <- lookup "text" val
+  stSource <- lookup "source" val
+  stCreated <- lookup "created_at" val
+  stTruncated <- lookup "truncated" val
+  stUser <- lookup "user" val >>= jsonToUser
 
   return $ Status
     { statusId = stId
@@ -40,19 +40,19 @@ jsonToStatus json = do
     , statusSource = stSource
     , statusCreated = stCreated
     , statusTruncated = stTruncated
-    , statusInReplyTo = lookup "in_reply_to_status_id" json
-    , statusInReplyToUser = lookup "in_reply_to_user_id" json
-    , statusFavorite = lookup "favrite" json
+    , statusInReplyTo = lookup "in_reply_to_status_id" val
+    , statusInReplyToUser = lookup "in_reply_to_user_id" val
+    , statusFavorite = lookup "favrite" val
     , statusUser = stUser
     }
 
 jsonToUser :: Value -> Maybe User
-jsonToUser json = do
-  uId <- lookup "id" json
-  uName <- lookup "name" json
-  uScreenName <- lookup "screen_name" json
-  uDescription <- lookup "description" json
-  uLocation <- lookup "location" json
+jsonToUser val = do
+  uId <- lookup "id" val
+  uName <- lookup "name" val
+  uScreenName <- lookup "screen_name" val
+  uDescription <- lookup "description" val
+  uLocation <- lookup "location" val
 
   return $ User
     { userId = uId
@@ -60,8 +60,8 @@ jsonToUser json = do
     , userScreenName = uScreenName
     , userDescription = uDescription
     , userLocation = uLocation
-    , userProfileImageURL = lookup "profile_image_url" json
-    , userURL = lookup "url" json
-    , userProtected = lookup "protected" json
-    , userFollowers = lookup "followers_count" json
+    , userProfileImageURL = lookup "profile_image_url" val
+    , userURL = lookup "url" val
+    , userProtected = lookup "protected" val
+    , userFollowers = lookup "followers_count" val
     }

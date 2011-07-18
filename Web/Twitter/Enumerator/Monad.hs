@@ -11,9 +11,6 @@ module Web.Twitter.Enumerator.Monad
        where
 
 import Web.Authenticate.OAuth
-import Network.HTTP.Enumerator
-import Data.Enumerator
-import Data.ByteString (ByteString)
 import Control.Monad.State
 
 type TW = StateT TWEnv IO
