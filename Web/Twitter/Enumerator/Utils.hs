@@ -1,4 +1,4 @@
-module Web.Twitter.Utils
+module Web.Twitter.Enumerator.Utils
        ( enumLine
        , enumJSON
        , enumJsonToStatus
@@ -8,8 +8,8 @@ module Web.Twitter.Utils
        )
        where
 
-import Web.Twitter.Types
-import Web.Twitter.Status
+import Web.Twitter.Enumerator.Types
+import Web.Twitter.Enumerator.Status
 
 import Data.Aeson hiding (Error)
 import Data.Attoparsec (maybeResult, parse)

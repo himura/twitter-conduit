@@ -1,38 +1,5 @@
-module Web.Twitter
-       ( -- Web.Twitter.Types
-         DateString
-       , UserId
-       , URLString
-       , UserName
-       , StatusId
-       , Status(..)
-       , nullStatus
-       , User(..)
-       , nullUser
-
-       -- Web.Twitter.Status
-       , jsonToStatus
-       , jsonToUser
-
-       -- Web.Twitter.Monad
-       , TW
-       , TWEnv (..)
-       , runTW
-       , newEnv
-       , getOAuth
-       , putOAuth
-       , getCredential
-       , putCredential
-       -- Web.Twitter.Utils
-       , enumLine
-       , enumJSON
-       , enumJsonToStatus
-       , skipNothing
-       , debugEE
-       , fromJSON'
-
-       -- Web.Twitter
-       , api
+module Web.Twitter.Enumerator.Fetch
+       ( api
        , statusesPublicTimeline
        , statusesUserTimeline
        , statusesFriendsTimeline
@@ -46,10 +13,10 @@ module Web.Twitter
        )
        where
 
-import Web.Twitter.Types
-import Web.Twitter.Status
-import Web.Twitter.Monad
-import Web.Twitter.Utils
+import Web.Twitter.Enumerator.Types
+import Web.Twitter.Enumerator.Status
+import Web.Twitter.Enumerator.Monad
+import Web.Twitter.Enumerator.Utils
 
 import Web.Authenticate.OAuth
 

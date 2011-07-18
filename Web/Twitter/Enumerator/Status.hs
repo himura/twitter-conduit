@@ -1,12 +1,12 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Web.Twitter.Status
+module Web.Twitter.Enumerator.Status
        ( jsonToStatus
        , jsonToUser
        ) where
 
 import Data.Aeson
-import Web.Twitter.Types
+import Web.Twitter.Enumerator.Types
 
 import qualified Data.Text as T
 import qualified Data.Map as M

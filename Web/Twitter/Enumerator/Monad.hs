@@ -1,4 +1,4 @@
-module Web.Twitter.Monad
+module Web.Twitter.Enumerator.Monad
        ( TW
        , TWEnv (..)
        , runTW

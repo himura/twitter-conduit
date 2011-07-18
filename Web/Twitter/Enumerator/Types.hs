@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Web.Twitter.Types
+module Web.Twitter.Enumerator.Types
        ( DateString
        , UserId
        , URLString
