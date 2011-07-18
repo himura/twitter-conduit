@@ -1,6 +1,17 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Web.Twitter.Types where
+module Web.Twitter.Types
+       ( DateString
+       , UserId
+       , URLString
+       , UserName
+       , StatusId
+       , Status(..)
+       , nullStatus
+       , User(..)
+       , nullUser
+       )
+       where
 
 import Data.Text as T
 
