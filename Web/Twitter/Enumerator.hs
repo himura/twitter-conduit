@@ -25,6 +25,8 @@ module Web.Twitter.Enumerator
        , getProxy
 
        -- Web.Twitter.Fetch
+       , QueryUser(..)
+       , QueryList(..)
        , statusesPublicTimeline
        , statusesUserTimeline
        , statusesFriendsTimeline

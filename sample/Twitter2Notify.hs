@@ -46,7 +46,7 @@ main = withCF $ do
   let cid = map userId curious
   run_ $ userstream (EL.mapM (\x -> showTL x >> return x) =$ EL.filter (filterUsers cid) =$ iterNotify)
   where withCF t = credentialFile >>= \f -> withCredentialFile f t
-        fetchListAll str = run_ $ listsMembers (Left str) $$ EL.consume
+        fetchListAll str = run_ $ listsMembers (QListName str) $$ EL.consume
         filterUsers ulist (SStatus s) = (\uid -> any (== uid) ulist) . userId . statusUser $ s
         filterUsers _ _ = False
 
