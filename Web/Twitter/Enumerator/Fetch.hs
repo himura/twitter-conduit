@@ -4,14 +4,15 @@ module Web.Twitter.Enumerator.Fetch
        ( api
        , QueryUser(..)
        , QueryList(..)
-       , statusesPublicTimeline
-       , statusesUserTimeline
-       , statusesFriendsTimeline
-       , statusesReplies
+       , statusesHomeTimeline
        , statusesMentions
+       , statusesPublicTimeline
        , statusesRetweetedByMe
        , statusesRetweetedToMe
        , statusesRetweetsOfMe
+       , statusesUserTimeline
+       , statusesRetweetedToUser
+       , statusesRetweetedByUser
        , friendsIds
        , followersIds
        , listsAll
@@ -94,14 +95,32 @@ insertQuery :: ByteString -> Maybe ByteString -> HT.Query -> HT.Query
 insertQuery key value = mk
   where mk = M.toList . M.insert key value . M.fromList
 
-statusesPublicTimeline = statuses "public_timeline.json"
-statusesUserTimeline = statuses "user_timeline.json"
-statusesFriendsTimeline = statuses "friends_timeline.json"
-statusesReplies = statuses "replies.json"
+statusesHomeTimeline :: HT.Query -> Enumerator Status TW a
+statusesHomeTimeline = statuses "home_timeline.json"
+
+statusesMentions :: HT.Query -> Enumerator Status TW a
 statusesMentions = statuses "mentions.json"
+
+statusesPublicTimeline :: HT.Query -> Enumerator Status TW a
+statusesPublicTimeline = statuses "public_timeline.json"
+
+statusesRetweetedByMe :: HT.Query -> Enumerator Status TW a
 statusesRetweetedByMe = statuses "retweeted_by_me.json"
+
+statusesRetweetedToMe :: HT.Query -> Enumerator Status TW a
 statusesRetweetedToMe = statuses "retweeted_to_me.json"
+
+statusesRetweetsOfMe :: HT.Query -> Enumerator Status TW a
 statusesRetweetsOfMe = statuses "retweeted_of_me.json"
+
+statusesUserTimeline :: HT.Query -> Enumerator Status TW a
+statusesUserTimeline = statuses "user_timeline.json"
+
+statusesRetweetedToUser :: HT.Query -> Enumerator Status TW a
+statusesRetweetedToUser = statuses "retweeted_to_user.json"
+
+statusesRetweetedByUser :: HT.Query -> Enumerator Status TW a
+statusesRetweetedByUser = statuses "retweeted_by_user.json"
 
 mkQueryUser :: QueryUser -> HT.Query
 mkQueryUser (QUserId uid) =  [("user_id", toMaybeByteString uid)]

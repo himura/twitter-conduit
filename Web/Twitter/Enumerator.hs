@@ -27,14 +27,15 @@ module Web.Twitter.Enumerator
        -- Web.Twitter.Fetch
        , QueryUser(..)
        , QueryList(..)
-       , statusesPublicTimeline
-       , statusesUserTimeline
-       , statusesFriendsTimeline
-       , statusesReplies
+       , statusesHomeTimeline
        , statusesMentions
+       , statusesPublicTimeline
        , statusesRetweetedByMe
        , statusesRetweetedToMe
        , statusesRetweetsOfMe
+       , statusesUserTimeline
+       , statusesRetweetedToUser
+       , statusesRetweetedByUser
        , friendsIds
        , followersIds
        , listsAll
