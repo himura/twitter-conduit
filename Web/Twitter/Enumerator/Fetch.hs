@@ -124,7 +124,7 @@ statusesRetweetedByUser = statuses "retweeted_by_user.json"
 
 mkQueryUser :: QueryUser -> HT.Query
 mkQueryUser (QUserId uid) =  [("user_id", toMaybeByteString uid)]
-mkQueryUser (QScreenName sn) = [("screen_name", toMaybeByteString sn)]
+mkQueryUser (QScreenName sn) = [("screen_name", Just . B8.pack $ sn)]
 
 mkQueryList :: QueryList -> HT.Query
 mkQueryList (QListId lid) =  [("list_id", toMaybeByteString lid)]
