@@ -15,6 +15,7 @@ module Web.Twitter.Enumerator.Fetch
        , statusesRetweetedByUser
        , friendsIds
        , followersIds
+       , usersShow
        , listsAll
        , listsMembers
        , userstream
@@ -138,6 +139,9 @@ mkQueryList (QListName listname) =
 friendsIds, followersIds :: QueryUser -> Enumerator UserId TW a
 friendsIds q = apiCursor "https://api.twitter.com/1/friends/ids.json" (mkQueryUser q) "ids" (-1)
 followersIds q = apiCursor "https://api.twitter.com/1/followers/ids.json" (mkQueryUser q) "ids" (-1)
+
+usersShow :: QueryUser -> TW (Maybe User)
+usersShow q = run_ $ api "http://api.twitter.com/1/users/show.json" (mkQueryUser q) (enumJSON =$ EL.map fromJSON' =$ skipNothing =$ EL.head)
 
 listsAll :: QueryUser -> Enumerator List TW a
 listsAll q = apiCursor "https://api.twitter.com/1/lists/all.json" (mkQueryUser q) "" (-1)
