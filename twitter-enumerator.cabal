@@ -23,7 +23,7 @@ library
     , enumerator >= 0.4.8 && < 0.5
     , http-types
     , http-enumerator >= 0.6.6
-    , aeson >= 0.3.2.2
+    , aeson-native >= 0.3.2.2
     , attoparsec >= 0.8.6.1
     , attoparsec-enumerator
     , bytestring

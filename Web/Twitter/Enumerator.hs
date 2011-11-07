@@ -42,6 +42,7 @@ module Web.Twitter.Enumerator
        , listsAll
        , listsMembers
        , userstream
+       , statusesFilter
        )
        where
 

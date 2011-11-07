@@ -26,7 +26,7 @@ data TWEnv = TWEnv
              }
 
 runTW' :: TWEnv -> TW a -> IO a
-runTW' env st = runReaderT st env
+runTW' = flip runReaderT
 
 runTW :: TWEnv -> TW a -> IO a
 runTW env st =

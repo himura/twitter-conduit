@@ -15,6 +15,7 @@ import qualified Data.Enumerator.List as EL
 import qualified Data.Map as M
 import qualified Data.ByteString.Lazy.Char8 as LB
 import qualified Data.ByteString.Char8 as B
+import qualified Data.CaseInsensitive as CI
 import Data.Attoparsec
 import Control.Monad.IO.Class
 import Control.Applicative
@@ -42,7 +43,8 @@ tokens = OAuth { oauthServerName = "twitter"
 
 main :: IO ()
 main = withCF $ do
-  curious <- fetchListAll "yourid/curious"
+  (listName:_) <- liftIO getArgs
+  curious <- fetchListAll listName
   let cid = map userId curious
   run_ $ userstream (EL.mapM (\x -> showTL x >> return x) =$ EL.filter (filterUsers cid) =$ iterNotify)
   where withCF t = credentialFile >>= \f -> withCredentialFile f t
@@ -52,8 +54,7 @@ main = withCF $ do
 
 ensureDirectoryExist :: FilePath -> IO FilePath
 ensureDirectoryExist dir = do
-  exist <- doesDirectoryExist dir
-  when (not exist) $ createDirectory dir
+  createDirectoryIfMissing True dir
   return dir
 
 confdir :: IO FilePath
@@ -67,7 +68,7 @@ iconPath = (</> "icons") <$> confdir >>= ensureDirectoryExist
 
 getProxyEnv :: IO (Maybe Proxy)
 getProxyEnv = do
-  env <- M.fromList <$> map (\(k,v) -> (map toLower k, v)) <$> getEnvironment
+  env <- M.fromList <$> map (\(k,v) -> (CI.mk k, v)) <$> getEnvironment
   let u = M.lookup "https_proxy" env <|>
           M.lookup "http_proxy" env <|>
           M.lookup "proxy" env >>= URI.parseURI >>= URI.uriAuthority
@@ -98,8 +99,7 @@ withCredentialFile file task = do
   cred <- maybe (authorize pr tokens getPIN) return =<< loadCredential file
   saveCredential file cred
   let env = newEnv tokens
-  ret <- runTW env { twCredential = cred, twProxy = pr } $ task
-  return $ ret
+  runTW env { twCredential = cred, twProxy = pr } $ task
   where
     getPIN url = do
       putStrLn $ "browse URL: " ++ url

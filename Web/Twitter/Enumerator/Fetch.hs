@@ -19,6 +19,7 @@ module Web.Twitter.Enumerator.Fetch
        , listsAll
        , listsMembers
        , userstream
+       , statusesFilter
        )
        where
 
@@ -198,8 +199,15 @@ apiCursor uri query cursorKey initCur =
             Nothing -> k chunks
         Nothing -> k EOF
 
+{-# SPECIALIZE apiIter ::  Iteratee StreamingAPI IO b -> Iteratee ByteString IO b #-}
+apiIter :: (FromJSON a, Monad m) => Iteratee a m b -> Iteratee ByteString m b
+apiIter iter = enumLine =$ enumJSON =$ EL.map fromJSON' =$ skipNothing =$ iter
+
 userstream :: Iteratee StreamingAPI IO a -> Iteratee ByteString TW a
-userstream iter = api "https://userstream.twitter.com/2/user.json" [] (enumLine =$ enumJSON =$ EL.map fromJSON' =$ skipNothing =$ iter)
+userstream = api "https://userstream.twitter.com/2/user.json" [] . apiIter
+
+statusesFilter :: HT.Query -> Iteratee StreamingAPI IO a -> Iteratee ByteString TW a
+statusesFilter query = api "https://stream.twitter.com/1/statuses/filter.json" query . apiIter
 
 toMaybeByteString :: Show a => a -> Maybe ByteString
 toMaybeByteString = Just . B8.pack . show
