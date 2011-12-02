@@ -79,7 +79,7 @@ apiRequest uri query = do
   signOAuthTW req
 
 statuses :: (FromJSON a, Show a) => String -> HT.Query -> Enumerator a TW b
-statuses uri query = apiWithPages furi query 0
+statuses uri query = apiWithPages furi query 1
   where furi = endpoint ++ "statuses/" ++ uri
 
 apiWithPages :: (FromJSON a, Show a) => String -> HT.Query -> Integer -> Enumerator a TW b
