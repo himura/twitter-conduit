@@ -1,0 +1,40 @@
+name:              twitter-enumerator-samples
+version:           0.0.0
+build-type:        Simple
+cabal-version:     >= 1.6
+
+library
+  ghc-options: -Wall -O2
+  build-depends:
+      base >= 4 && < 5
+    , mtl
+    , containers
+    , twitter-enumerator == 0.0.0
+    , authenticate >= 0.9
+    , http-enumerator >= 0.6.6
+    , enumerator >= 0.4.8 && < 0.5
+    , aeson-native >= 0.3.2.2
+    , attoparsec >= 0.8.6.1
+    , bytestring
+    , case-insensitive
+    , filepath
+    , directory
+    , network
+  exposed-modules:
+      Common
+
+executable Twitter2Notify
+  main-is: Twitter2Notify.hs
+  ghc-options: -Wall -O2
+  build-depends:
+      transformers
+    , text
+    , process
+  other-modules:
+      Common
+
+executable oslist
+  main-is: oslist.hs
+  ghc-options: -Wall -O2
+  other-modules:
+      Common
