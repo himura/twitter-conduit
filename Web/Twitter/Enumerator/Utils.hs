@@ -4,6 +4,7 @@ module Web.Twitter.Enumerator.Utils
        , skipNothing
        , debugEE
        , fromJSON'
+       , catchErrorWithChunks
        )
        where
 
@@ -15,6 +16,7 @@ import qualified Data.Enumerator.List as EL
 import qualified Data.Enumerator.Binary as EB
 import Data.ByteString (ByteString)
 import Data.Maybe
+import Control.Exception
 import Control.Monad.Trans
 
 enumLine :: Monad m => E.Enumeratee ByteString ByteString m a
@@ -33,4 +35,30 @@ fromJSON' = parseMaybe parseJSON
 enumJSON :: Monad m => E.Enumeratee ByteString Value m a
 enumJSON = E.sequence $ iterParser json
 
-
+catchErrorWithChunks :: Monad m
+                     => Iteratee a m b
+                     -> (Stream a -> SomeException -> Iteratee a m b)
+                     -> Iteratee a m b
+catchErrorWithChunks i h = go i
+  where
+    go iter = Iteratee $ do
+      step <- runIteratee iter
+      case step of
+        Yield _ _ -> return step
+        Error err -> runIteratee (h (Chunks []) err)
+        Continue k -> return (Continue (wrap k))
+    wrap k EOF = Iteratee $ do
+      res <- run (k EOF)
+      case res of
+        Left err -> runIteratee (enumEOF $$ h EOF err)
+        Right b -> return (Yield b EOF)
+    wrap k stream = Iteratee $ do
+      step <- runIteratee (k stream)
+      case step of
+        Yield _ _ -> return step
+        Error err -> do
+          step' <- runIteratee (h stream err)
+          case step' of
+            Continue k' -> runIteratee (k' stream)
+            _ -> return step'
+        Continue k' -> return (Continue (wrap k'))

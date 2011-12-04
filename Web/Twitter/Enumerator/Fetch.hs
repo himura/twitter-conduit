@@ -51,7 +51,12 @@ data QueryList = QListId Integer | QListName String
 api :: String -> HT.Query -> Iteratee ByteString IO a -> Iteratee ByteString TW a
 api url query iter = do
   req <- lift $ apiRequest url query
-  httpMgr req (\_ _ -> iter)
+  httpMgr req (handleError iter)
+  where
+    handleError iter' st@(HT.Status sc _) _ =
+      if 200 <= sc && sc < 300
+      then iter'
+      else throwError $ HTTPStatusCodeException st
 
 httpMgr :: Request IO
         -> (HT.Status
@@ -78,9 +83,7 @@ apiWithPages uri query initPage =
   where
     go loop page k = do
       let query' = insertQuery "page" (toMaybeByteString page) query
-      req <- lift $ apiRequest uri query'
-      liftIO . putStrLn . show . queryString $ req
-      res <- lift $ run_ $ httpMgr req (\_ _ -> enumJSON =$ iterPageC)
+      res <- lift $ run_ $ api uri query' (handleParseError (enumJSON =$ iterPageC))
       case res of
         Just [] -> k EOF
         Just xs -> k (Chunks xs) >>== loop (page + 1)
@@ -142,7 +145,7 @@ friendsIds q = apiCursor "https://api.twitter.com/1/friends/ids.json" (mkQueryUs
 followersIds q = apiCursor "https://api.twitter.com/1/followers/ids.json" (mkQueryUser q) "ids" (-1)
 
 usersShow :: QueryUser -> TW (Maybe User)
-usersShow q = run_ $ api "http://api.twitter.com/1/users/show.json" (mkQueryUser q) (enumJSON =$ EL.map fromJSON' =$ skipNothing =$ EL.head)
+usersShow q = run_ $ api "http://api.twitter.com/1/users/show.json" (mkQueryUser q) $ handleParseError (enumJSON =$ EL.map fromJSON' =$ skipNothing =$ EL.head)
 
 listsAll :: QueryUser -> Enumerator List TW a
 listsAll q = apiCursor "https://api.twitter.com/1/lists/all.json" (mkQueryUser q) "" (-1)
@@ -165,10 +168,18 @@ iterCursor' key = do
     Nothing -> return Nothing
 
 iterCursor :: (Monad m, FromJSON a) => T.Text -> Iteratee ByteString m (Maybe (Cursor a))
-iterCursor key = enumLine =$ enumJSON =$ iterCursor' key
+iterCursor key = enumLine =$ handleParseError (enumJSON =$ iterCursor' key)
+
+handleParseError :: Monad m => Iteratee ByteString m b -> Iteratee ByteString m b
+handleParseError iter = iter `catchErrorWithChunks` hndl
+  where
+    hndl (Chunks x) e = throwError $ PerserException e x
+    hndl _ e = throwError $ PerserException e []
 
 parseCursor :: FromJSON a => T.Text -> Value -> AE.Parser (Cursor a)
 parseCursor key (Object o) =
+  checkError o
+  <|>
   Cursor <$> o .: key <*> o .:? "previous_cursor" <*> o .:? "next_cursor"
 parseCursor _ v@(Array _) = return $ Cursor (maybe [] id $ fromJSON' v) Nothing Nothing
 parseCursor _ o = fail $ "Error at parseCursor: unknown object " ++ show o
@@ -185,9 +196,7 @@ apiCursor uri query cursorKey initCur =
   where
     go loop cursor k = do
       let query' = insertQuery "cursor" (toMaybeByteString cursor) query
-      req <- lift $ apiRequest uri query'
-      liftIO . putStrLn . show . queryString $ req
-      res <- lift $ run_ $ httpMgr req (\_ _ -> iterCursor cursorKey)
+      res <- lift $ run_ $ api uri query' (iterCursor cursorKey)
       case res of
         Just r -> do
           let nextCur = cursorNext r
@@ -201,7 +210,7 @@ apiCursor uri query cursorKey initCur =
 
 {-# SPECIALIZE apiIter ::  Iteratee StreamingAPI IO b -> Iteratee ByteString IO b #-}
 apiIter :: (FromJSON a, Monad m) => Iteratee a m b -> Iteratee ByteString m b
-apiIter iter = enumLine =$ enumJSON =$ EL.map fromJSON' =$ skipNothing =$ iter
+apiIter iter = enumLine =$ handleParseError (enumJSON =$ EL.map fromJSON' =$ skipNothing =$ iter)
 
 userstream :: Iteratee StreamingAPI IO a -> Iteratee ByteString TW a
 userstream = api "https://userstream.twitter.com/2/user.json" [] . apiIter
