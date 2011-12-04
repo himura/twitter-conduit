@@ -242,10 +242,12 @@ iterCursor :: (Monad m, FromJSON a) => T.Text -> Iteratee ByteString m (Maybe (C
 iterCursor key = enumLine =$ handleParseError (enumJSON =$ iterCursor' key)
 
 handleParseError :: Monad m => Iteratee ByteString m b -> Iteratee ByteString m b
-handleParseError iter = iter `catchErrorWithChunks` hndl
+handleParseError iter = iter `catchError` hndl
   where
-    hndl (Chunks x) e = throwError $ PerserException e x
-    hndl _ e = throwError $ PerserException e []
+    getChunk = continue return
+    hndl e = getChunk >>= \x -> case x of
+      Chunks xs -> throwError $ PerserException e xs
+      _ -> throwError $ PerserException e []
 
 parseCursor :: FromJSON a => T.Text -> Value -> AE.Parser (Cursor a)
 parseCursor key (Object o) =
