@@ -48,6 +48,9 @@ data QueryUser = QUserId UserId | QScreenName String
 data QueryList = QListId Integer | QListName String
                deriving (Show, Eq)
 
+endpoint :: String
+endpoint = "https://api.twitter.com/1/"
+
 api :: String -> HT.Query -> Iteratee ByteString IO a -> Iteratee ByteString TW a
 api url query iter = do
   req <- lift $ apiRequest url query
@@ -64,7 +67,7 @@ httpMgr :: Request IO
             -> Iteratee ByteString IO a)
         -> Iteratee ByteString TW a
 httpMgr req iterf = do
-  mgr <- lift $ getManager
+  mgr <- lift getManager
   liftTrans $ http req iterf mgr
 
 apiRequest :: String -> HT.Query -> TW (Request IO)
@@ -75,7 +78,7 @@ apiRequest uri query = do
 
 statuses :: String -> HT.Query -> Enumerator Status TW a
 statuses uri query = apiWithPages furi query 0
-  where furi = "https://api.twitter.com/1/statuses/" ++ uri
+  where furi = endpoint ++ "statuses/" ++ uri
 
 apiWithPages :: (FromJSON a, Show a) => String -> HT.Query -> Integer -> Enumerator a TW b
 apiWithPages uri query initPage =
@@ -141,17 +144,17 @@ mkQueryList (QListName listname) =
     lstName = drop 1 ln
 
 friendsIds, followersIds :: QueryUser -> Enumerator UserId TW a
-friendsIds q = apiCursor "https://api.twitter.com/1/friends/ids.json" (mkQueryUser q) "ids" (-1)
-followersIds q = apiCursor "https://api.twitter.com/1/followers/ids.json" (mkQueryUser q) "ids" (-1)
+friendsIds q = apiCursor (endpoint ++ "friends/ids.json") (mkQueryUser q) "ids" (-1)
+followersIds q = apiCursor (endpoint ++ "followers/ids.json") (mkQueryUser q) "ids" (-1)
 
 usersShow :: QueryUser -> TW (Maybe User)
-usersShow q = run_ $ api "http://api.twitter.com/1/users/show.json" (mkQueryUser q) $ handleParseError (enumJSON =$ EL.map fromJSON' =$ skipNothing =$ EL.head)
+usersShow q = run_ $ api (endpoint ++ "users/show.json") (mkQueryUser q) $ handleParseError (enumJSON =$ EL.map fromJSON' =$ skipNothing =$ EL.head)
 
 listsAll :: QueryUser -> Enumerator List TW a
-listsAll q = apiCursor "https://api.twitter.com/1/lists/all.json" (mkQueryUser q) "" (-1)
+listsAll q = apiCursor (endpoint ++ "lists/all.json") (mkQueryUser q) "" (-1)
 
 listsMembers :: QueryList -> Enumerator User TW a
-listsMembers q = apiCursor "http://api.twitter.com/1/lists/members.json" (mkQueryList q) "users" (-1)
+listsMembers q = apiCursor (endpoint ++ "lists/members.json") (mkQueryList q) "users" (-1)
 
 data Cursor a =
   Cursor
