@@ -13,6 +13,8 @@ module Web.Twitter.Enumerator.Fetch
        , statusesUserTimeline
        , statusesRetweetedToUser
        , statusesRetweetedByUser
+       , statusesIdRetweetedBy
+       , statusesIdRetweetedByIds
        , friendsIds
        , followersIds
        , usersShow
@@ -76,7 +78,7 @@ apiRequest uri query = do
   req <- liftIO $ parseUrl uri >>= \r -> return $ r { queryString = query, proxy = p }
   signOAuthTW req
 
-statuses :: String -> HT.Query -> Enumerator Status TW a
+statuses :: (FromJSON a, Show a) => String -> HT.Query -> Enumerator a TW b
 statuses uri query = apiWithPages furi query 0
   where furi = endpoint ++ "statuses/" ++ uri
 
@@ -129,6 +131,12 @@ statusesRetweetedToUser = statuses "retweeted_to_user.json"
 
 statusesRetweetedByUser :: HT.Query -> Enumerator Status TW a
 statusesRetweetedByUser = statuses "retweeted_by_user.json"
+
+statusesIdRetweetedBy :: StatusId -> HT.Query -> Enumerator User TW a
+statusesIdRetweetedBy status_id = statuses (show status_id ++ "/retweeted_by.json")
+
+statusesIdRetweetedByIds :: StatusId -> HT.Query -> Enumerator UserId TW a
+statusesIdRetweetedByIds status_id = statuses (show status_id ++ "/retweeted_by/ids.json")
 
 mkQueryUser :: QueryUser -> HT.Query
 mkQueryUser (QUserId uid) =  [("user_id", toMaybeByteString uid)]
