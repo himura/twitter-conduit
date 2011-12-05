@@ -33,4 +33,3 @@ fromJSON' = parseMaybe parseJSON
 enumJSON :: Monad m => E.Enumeratee ByteString Value m a
 enumJSON = E.sequence $ iterParser json
 
-

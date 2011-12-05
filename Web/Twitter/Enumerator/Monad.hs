@@ -26,7 +26,7 @@ data TWEnv = TWEnv
              }
 
 runTW' :: TWEnv -> TW a -> IO a
-runTW' env st = runReaderT st env
+runTW' = flip runReaderT
 
 runTW :: TWEnv -> TW a -> IO a
 runTW env st =
@@ -47,17 +47,17 @@ newEnv tokens
     }
 
 getOAuth :: TW OAuth
-getOAuth = twOAuth `fmap` ask
+getOAuth = asks twOAuth
 
 getCredential :: TW Credential
-getCredential = twCredential `fmap` ask
+getCredential = asks twCredential
 
 getProxy :: TW (Maybe Proxy)
-getProxy = twProxy `fmap` ask
+getProxy = asks twProxy
 
 getManager :: TW Manager
 getManager = do
-  mgr <- twManager `fmap` ask
+  mgr <- asks twManager
   case mgr of
     Just m -> return m
     Nothing -> error "manager is not initialized"
