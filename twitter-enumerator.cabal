@@ -1,12 +1,12 @@
 name:              twitter-enumerator
-version:           0.0.1
+version:           0.0.1.1
 license:           BSD3
 license-file:      LICENSE
 author:            Takahiro HIMURA
 maintainer:        taka@himura.jp
 synopsis:          Twitter API package with enumerator interface and Streaming API support.
 description:       This package uses enumerator package for access Twitter API.
-category:          Web
+category:          Web, Enumerator
 stability:         Experimental
 cabal-version:     >= 1.6
 build-type:        Simple
@@ -19,7 +19,7 @@ source-repository head
 source-repository this
   type: git
   location: git://github.com/himura/twitter-enumerator.git
-  tag: 0.0.1
+  tag: 0.0.1.1
 
 library
   ghc-options: -Wall
@@ -28,7 +28,7 @@ library
       base >= 4 && < 5
     , mtl
     , authenticate >= 0.9
-    , enumerator >= 0.4.8 && < 0.5
+    , enumerator >= 0.4.14 && < 0.5
     , http-types
     , http-enumerator >= 0.6.6
     , aeson >= 0.3.2.2
@@ -37,7 +37,6 @@ library
     , bytestring
     , text
     , containers
-    , vector >= 0.7
 
   exposed-modules:
     Web.Twitter.Enumerator

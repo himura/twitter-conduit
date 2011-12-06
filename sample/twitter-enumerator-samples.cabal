@@ -1,5 +1,5 @@
 name:              twitter-enumerator-samples
-version:           0.0.0
+version:           0
 build-type:        Simple
 cabal-version:     >= 1.6
 
@@ -9,7 +9,7 @@ library
       base >= 4 && < 5
     , mtl
     , containers
-    , twitter-enumerator == 0.0.0
+    , twitter-enumerator
     , authenticate >= 0.9
     , http-enumerator >= 0.6.6
     , enumerator >= 0.4.8 && < 0.5
