@@ -1,0 +1,10 @@
+
+Changes from Takahiro HIMURA's original code (version 0.0.1.1)
+
+Version 0.0.1.2
+
+  - restricts the authenticate package since version 0.11 has switched
+    to the conduit package which conflicts with the use of enumerator
+
+  - added a Setup.hs to stop sdist from complaining
+
