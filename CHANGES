@@ -13,6 +13,8 @@ Version 0.1.0.1
 
   - Changes to the Status record:
 
+    - added statusRetweetCount and an experimental RetweetCount type;
+
     - the statusFavorite field of the Status record is now populated
       from the "favorited" field of the JSON rather than "favorite".
 

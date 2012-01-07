@@ -9,6 +9,7 @@ module Web.Twitter.Enumerator.Types
        , UserName
        , StatusId
        , LanguageCode
+       , RetweetCount
        , StreamingAPI(..)
        , Status(..)
        , RetweetedStatus(..)
@@ -24,6 +25,7 @@ module Web.Twitter.Enumerator.Types
 import qualified Network.HTTP.Types as HT
 import Data.Aeson
 import Data.Aeson.Types (Parser)
+import Data.Attoparsec.Number (Number(..))
 import Data.Text as T
 import Data.ByteString (ByteString)
 import Data.Typeable
@@ -44,6 +46,37 @@ type URLString    = String
 type UserName     = T.Text
 type StatusId     = Integer
 type LanguageCode = String
+
+-- | The re-tweeted count appears to be limited to 100;
+--   any values larger than this are listed as a string
+--   as \"100+\". It is not clear from the documentation
+--   whether you can get a 100 and 100+ or just the latter.
+--
+--   For now we treat the re-tweet cound as a bounded value
+--   between 0 and 100 inclusive, but this is an
+--   /experimental/ change.
+--
+newtype RetweetCount = RC Int
+                       deriving Eq
+                                
+instance Show RetweetCount where
+  show (RC i) = show i
+  
+instance Bounded RetweetCount where
+  minBound = RC 0
+  maxBound = RC 100
+
+instance Enum RetweetCount where
+  toEnum i | i >= 0 && i <= 100 = RC i
+           | otherwise          = error "Integer value outside range of RetweetCount"
+  fromEnum (RC i) = i
+
+instance FromJSON RetweetCount where
+  parseJSON (Number (I n)) | n >= 0 && n <= 100 = return $ RC $ fromIntegral n
+                           | otherwise          = mzero
+  parseJSON (String s)     | s == "100+" = return maxBound
+                           | otherwise   = mzero
+  parseJSON _ = mzero
 
 data StreamingAPI = SStatus Status
                   | SRetweetedStatus RetweetedStatus
@@ -84,6 +117,7 @@ data Status =
   , statusInReplyTo     :: Maybe StatusId
   , statusInReplyToUser :: Maybe UserId
   , statusFavorite      :: Maybe Bool
+  , statusRetweetCount  :: Maybe RetweetCount
   , statusUser          :: User
   } deriving (Show, Eq)
 
@@ -98,6 +132,7 @@ instance FromJSON Status where
            <*> o .:? "in_reply_to_user_id"
            -- <*> o .:? "favorite" -- TODO: check whether it should be favorite or favorited
            <*> o .:? "favorited"
+           <*> o .:? "retweet_count"
            <*> o .:  "user"
   parseJSON _ = mzero
 
