@@ -1,6 +1,14 @@
 
 Changes from Takahiro HIMURA's original code (version 0.0.1.1)
 
+Version 0.1.0.1
+
+  - the userDescription and userLocation fields of the User record
+    are now optional since they are not always provided
+
+  - the statusFavorite field of the Status record is now populated 
+    from the "favorited" field of the JSON rather than "favorite"
+
 Version 0.0.1.2
 
   - restricts the authenticate package since version 0.11 has switched

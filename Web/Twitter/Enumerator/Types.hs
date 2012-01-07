@@ -4,6 +4,7 @@ module Web.Twitter.Enumerator.Types
        ( TwitterException(..)
        , DateString
        , UserId
+       , Friends
        , URLString
        , UserName
        , StatusId
@@ -64,7 +65,7 @@ instance FromJSON StreamingAPI where
     SEvent <$> js <|>
     SDelete <$> js <|>
     SFriends <$> js <|>
-    (return $ SUnknown v)
+    return (SUnknown v)
     where
       js :: FromJSON a => Parser a
       js = parseJSON v
@@ -92,7 +93,8 @@ instance FromJSON Status where
            <*> o .:  "truncated"
            <*> o .:? "in_reply_to_status_id"
            <*> o .:? "in_reply_to_user_id"
-           <*> o .:? "favorite"
+           -- <*> o .:? "favorite" -- TODO: check whether it should be favorite or favorited
+           <*> o .:? "favorited"
            <*> o .:  "user"
   parseJSON _ = mzero
 
@@ -131,7 +133,7 @@ instance FromJSON EventTarget where
     ETUser <$> parseJSON v <|>
     ETStatus <$> parseJSON v <|>
     ETList <$> parseJSON v <|>
-    (return $ ETUnknown v)
+    return (ETUnknown v)
   parseJSON _ = mzero
 
 data Event =
@@ -172,8 +174,8 @@ data User =
   { userId              :: UserId
   , userName            :: UserName
   , userScreenName      :: String
-  , userDescription     :: T.Text
-  , userLocation        :: T.Text
+  , userDescription     :: Maybe T.Text
+  , userLocation        :: Maybe T.Text
   , userProfileImageURL :: Maybe URLString
   , userURL             :: Maybe URLString
   , userProtected       :: Maybe Bool
@@ -185,8 +187,8 @@ instance FromJSON User where
     User <$> o .:  "id"
          <*> o .:  "name"
          <*> o .:  "screen_name"
-         <*> o .:  "description"
-         <*> o .:  "location"
+         <*> o .:? "description"
+         <*> o .:? "location"
          <*> o .:? "profile_image_url"
          <*> o .:? "url"
          <*> o .:? "protected"
