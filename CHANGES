@@ -1,0 +1,35 @@
+
+Changes from Takahiro HIMURA's original code (version 0.0.1.1)
+
+Version 0.1.0.1
+
+  - Changes to the User record:
+
+    - the userDescription and userLocation fields are now optional
+      since they are not always provided;
+
+    - added userFriends, userTweets, userLangCode, and userCreatedAt
+      fields.
+
+  - Changes to the Status record:
+
+    - added statusEntities, statusRetweetCount and an experimental
+      RetweetCount type;
+
+    - the statusFavorite field of the Status record is now populated
+      from the "favorited" field of the JSON rather than "favorite".
+
+  - Changes to the RetweetedStatus record:
+
+    - added the rsEntities field.
+
+  - Added the Entities, HashTagEntity, UserEntity, and URLEntity
+    types to record the entity information provided with each tweet.
+
+Version 0.0.1.2
+
+  - Restricts the authenticate package since version 0.11 has switched
+    to the conduit package which conflicts with the use of enumerator.
+
+  - Added a Setup.hs to stop sdist from complaining.
+
