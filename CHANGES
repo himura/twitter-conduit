@@ -3,16 +3,23 @@ Changes from Takahiro HIMURA's original code (version 0.0.1.1)
 
 Version 0.1.0.1
 
-  - the userDescription and userLocation fields of the User record
-    are now optional since they are not always provided
+  - Changes to the User record:
 
-  - the statusFavorite field of the Status record is now populated 
-    from the "favorited" field of the JSON rather than "favorite"
+    - the userDescription and userLocation fields are now optional
+      since they are not always provided;
+
+    - added userFriends, userTweets, userLangCode, and userCreatedAt
+      fields.
+
+  - Changes to the Status record:
+
+    - the statusFavorite field of the Status record is now populated
+      from the "favorited" field of the JSON rather than "favorite".
 
 Version 0.0.1.2
 
-  - restricts the authenticate package since version 0.11 has switched
-    to the conduit package which conflicts with the use of enumerator
+  - Restricts the authenticate package since version 0.11 has switched
+    to the conduit package which conflicts with the use of enumerator.
 
-  - added a Setup.hs to stop sdist from complaining
+  - Added a Setup.hs to stop sdist from complaining.
 

@@ -8,6 +8,7 @@ module Web.Twitter.Enumerator.Types
        , URLString
        , UserName
        , StatusId
+       , LanguageCode
        , StreamingAPI(..)
        , Status(..)
        , RetweetedStatus(..)
@@ -36,11 +37,13 @@ data TwitterException = HTTPStatusCodeException HT.Status
                       deriving (Show, Typeable)
 instance Exception TwitterException
 
-type DateString  = String
-type UserId      = Integer
-type URLString   = String
-type UserName    = T.Text
-type StatusId    = Integer
+type DateString   = String
+type UserId       = Integer
+type Friends      = [UserId]
+type URLString    = String
+type UserName     = T.Text
+type StatusId     = Integer
+type LanguageCode = String
 
 data StreamingAPI = SStatus Status
                   | SRetweetedStatus RetweetedStatus
@@ -167,8 +170,6 @@ instance FromJSON Delete where
            <*> s .: "user_id"
   parseJSON _ = mzero
 
-type Friends = [UserId]
-
 data User =
   User
   { userId              :: UserId
@@ -180,6 +181,10 @@ data User =
   , userURL             :: Maybe URLString
   , userProtected       :: Maybe Bool
   , userFollowers       :: Maybe Int
+  , userFriends         :: Maybe Int
+  , userTweets          :: Maybe Int
+  , userLangCode        :: Maybe LanguageCode
+  , userCreatedAt       :: Maybe DateString
   } deriving (Show, Eq)
 
 instance FromJSON User where
@@ -193,6 +198,10 @@ instance FromJSON User where
          <*> o .:? "url"
          <*> o .:? "protected"
          <*> o .:? "followers_count"
+         <*> o .:? "friends_count"
+         <*> o .:? "statuses_count"
+         <*> o .:? "lang"
+         <*> o .:? "created_at"
   parseJSON _ = mzero
 
 data List =
