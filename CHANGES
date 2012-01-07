@@ -13,10 +13,18 @@ Version 0.1.0.1
 
   - Changes to the Status record:
 
-    - added statusRetweetCount and an experimental RetweetCount type;
+    - added statusEntities, statusRetweetCount and an experimental
+      RetweetCount type;
 
     - the statusFavorite field of the Status record is now populated
       from the "favorited" field of the JSON rather than "favorite".
+
+  - Changes to the RetweetedStatus record:
+
+    - added the rsEntities field.
+
+  - Added the Entities, HashTagEntity, UserEntity, and URLEntity
+    types to record the entity information provided with each tweet.
 
 Version 0.0.1.2
 

@@ -18,6 +18,10 @@ module Web.Twitter.Enumerator.Types
        , Delete(..)
        , User(..)
        , List(..)
+       , Entities(..)
+       , HashTagEntity
+       , UserEntity
+       , URLEntity(..)
        , checkError
        )
        where
@@ -114,6 +118,7 @@ data Status =
   , statusText          :: T.Text
   , statusSource        :: String
   , statusTruncated     :: Bool
+  , statusEntities      :: Entities
   , statusInReplyTo     :: Maybe StatusId
   , statusInReplyToUser :: Maybe UserId
   , statusFavorite      :: Maybe Bool
@@ -128,6 +133,7 @@ instance FromJSON Status where
            <*> o .:  "text"
            <*> o .:  "source"
            <*> o .:  "truncated"
+           <*> o .:  "entities"
            <*> o .:? "in_reply_to_status_id"
            <*> o .:? "in_reply_to_user_id"
            -- <*> o .:? "favorite" -- TODO: check whether it should be favorite or favorited
@@ -143,6 +149,7 @@ data RetweetedStatus =
   , rsText            :: T.Text
   , rsSource          :: String
   , rsTruncated       :: Bool
+  , rsEntities        :: Entities
   , rsUser            :: User
   , rsRetweetedStatus :: Status
   } deriving (Show, Eq)
@@ -154,6 +161,7 @@ instance FromJSON RetweetedStatus where
                     <*> o .: "text"
                     <*> o .: "source"
                     <*> o .: "truncated"
+                    <*> o .: "entities"
                     <*> o .: "user"
                     <*> o .: "retweeted_status"
   parseJSON _ = mzero
@@ -260,3 +268,57 @@ instance FromJSON List where
          <*> o .: "mode"
          <*> o .: "user"
   parseJSON _ = mzero
+
+data HashTagEntity = HashTagEntity T.Text
+                   deriving (Show, Eq)
+                        
+instance FromJSON HashTagEntity where
+  parseJSON (Object o) = 
+    HashTagEntity <$> o .: "text"
+  parseJSON _ = mzero
+  
+{-|
+The 'UserEntity' is just a wrapper around 'User' which is
+a bit wasteful, and should probably be replaced by just
+storing the id, name and screen name here.
+-}
+data UserEntity = UserEntity User
+                deriving (Show, Eq)
+
+instance FromJSON UserEntity where
+  parseJSON = (UserEntity <$>) . parseJSON
+  
+data URLEntity = 
+  URLEntity
+  { ueURL      :: URLString
+  , ueExpanded :: URLString
+  , ueDisplay  :: T.Text
+  } deriving (Show, Eq)
+             
+instance FromJSON URLEntity where
+  parseJSON (Object o) = 
+    URLEntity <$> o .:  "url"
+              <*> o .:  "expanded_url"
+              <*> o .:  "display_url"
+  parseJSON _ = mzero
+
+{-|
+Entity handling. At present the information about where
+in the Tweet the entity was found (the @indices@ information)
+is not retained.
+-}
+
+data Entities = 
+  Entities 
+  { enHashTags     :: [HashTagEntity]
+  , enUserMentions :: [UserEntity]
+  , enURLs         :: [URLEntity]
+  } deriving (Show, Eq)
+             
+instance FromJSON Entities where
+  parseJSON (Object o) = 
+    Entities <$> o .:  "hashtags"
+             <*> o .:  "user_mentions"
+             <*> o .:  "urls"
+  parseJSON _ = mzero
+             
