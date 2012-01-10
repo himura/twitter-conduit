@@ -19,8 +19,8 @@ module Web.Twitter.Enumerator.Types
        , User(..)
        , List(..)
        , Entities(..)
-       , HashTagEntity
-       , UserEntity
+       , HashTagEntity(..)
+       , UserEntity(..)
        , URLEntity(..)
        , checkError
        )
