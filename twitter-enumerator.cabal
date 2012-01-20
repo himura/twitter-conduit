@@ -43,6 +43,9 @@ library
     Web.Twitter.Enumerator.Types
     Web.Twitter.Enumerator.Monad
     Web.Twitter.Enumerator.Fetch
+    Web.Twitter.Enumerator.Post
 
   other-modules:
     Web.Twitter.Enumerator.Utils
+    Web.Twitter.Enumerator.Api
+
