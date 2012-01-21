@@ -1,4 +1,7 @@
-module Web.Twitter.Enumerator.Api where
+module Web.Twitter.Enumerator.Api
+       ( api
+       , endpoint
+       ) where
 
 import Web.Twitter.Enumerator.Types
 import Web.Twitter.Enumerator.Monad

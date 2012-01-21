@@ -1,8 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 module Web.Twitter.Enumerator.Fetch
-       ( api
-       , QueryUser(..)
+       ( QueryUser(..)
        , QueryList(..)
 
        -- * Timelines
@@ -82,7 +81,6 @@ import Web.Twitter.Enumerator.Api
 import Data.Aeson hiding (Error)
 import qualified Data.Aeson.Types as AE
 
-import Network.HTTP.Enumerator
 import qualified Network.HTTP.Types as HT
 import Data.Enumerator hiding (map, filter, drop, span, iterate)
 import qualified Data.Enumerator.List as EL
@@ -102,7 +100,7 @@ data QueryList = QListId Integer | QListName String
 
 
 apiGet :: FromJSON a => String -> HT.Query -> Iteratee a IO b -> TW b
-apiGet uri query iter = run_ $ api (B8.pack "GET") uri query (handleParseError iter')
+apiGet uri query iter = run_ $ api "GET" uri query (handleParseError iter')
   where iter' = enumJSON =$ EL.map fromJSON' =$ skipNothing =$ iter
 
 statuses :: (FromJSON a, Show a) => String -> HT.Query -> Enumerator a TW b
@@ -115,7 +113,7 @@ apiWithPages uri query initPage =
   where
     go loop page k = do
       let query' = insertQuery "page" (toMaybeByteString page) query
-      res <- lift $ run_ $ api (B8.pack "GET") uri query' (handleParseError (enumJSON =$ iterPageC))
+      res <- lift $ run_ $ api "GET" uri query' (handleParseError (enumJSON =$ iterPageC))
       case res of
         Just [] -> k EOF
         Just xs -> k (Chunks xs) >>== loop (page + 1)
@@ -243,7 +241,7 @@ apiCursor uri query cursorKey initCur =
   where
     go loop cursor k = do
       let query' = insertQuery "cursor" (toMaybeByteString cursor) query
-      res <- lift $ run_ $ api (B8.pack "GET") uri query' (iterCursor cursorKey)
+      res <- lift $ run_ $ api "GET" uri query' (iterCursor cursorKey)
       case res of
         Just r -> do
           let nextCur = cursorNext r
@@ -260,10 +258,10 @@ apiIter :: (FromJSON a, Monad m) => Iteratee a m b -> Iteratee ByteString m b
 apiIter iter = enumLine =$ handleParseError (enumJSON =$ EL.map fromJSON' =$ skipNothing =$ iter)
 
 userstream :: Iteratee StreamingAPI IO a -> Iteratee ByteString TW a
-userstream = api (B8.pack "GET") "https://userstream.twitter.com/2/user.json" [] . apiIter
+userstream = api "GET" "https://userstream.twitter.com/2/user.json" [] . apiIter
 
 statusesFilter :: HT.Query -> Iteratee StreamingAPI IO a -> Iteratee ByteString TW a
-statusesFilter query = api (B8.pack "GET") "https://stream.twitter.com/1/statuses/filter.json" query . apiIter
+statusesFilter query = api "GET" "https://stream.twitter.com/1/statuses/filter.json" query . apiIter
 
 toMaybeByteString :: Show a => a -> Maybe ByteString
 toMaybeByteString = Just . B8.pack . show
