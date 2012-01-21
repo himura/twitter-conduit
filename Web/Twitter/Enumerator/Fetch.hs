@@ -88,7 +88,8 @@ import qualified Data.Enumerator.List as EL
 import qualified Data.Text as T
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as B8
-import Control.Monad.Trans
+import Control.Monad.Trans.Class
+import Control.Monad.IO.Class (MonadIO (liftIO))
 import Control.Applicative
 
 import qualified Data.Map as M

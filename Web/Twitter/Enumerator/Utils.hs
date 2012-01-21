@@ -15,7 +15,7 @@ import qualified Data.Enumerator.List as EL
 import qualified Data.Enumerator.Binary as EB
 import Data.ByteString (ByteString)
 import Data.Maybe
-import Control.Monad.Trans
+import Control.Monad.IO.Class (MonadIO (liftIO))
 
 enumLine :: Monad m => E.Enumeratee ByteString ByteString m a
 enumLine = EB.splitWhen newline
