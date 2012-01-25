@@ -17,8 +17,11 @@ import Control.Monad.Trans
 endpoint :: String
 endpoint = "https://api.twitter.com/1/"
 
--- Method -> Url -> Query -> Iteratee
-api :: ByteString -> String -> HT.Query -> Iteratee ByteString IO a -> Iteratee ByteString TW a
+api :: ByteString -- ^ HTTP request method (GET or POST)
+    -> String -- ^ API Resource URL
+    -> HT.Query -- ^ Query
+    -> Iteratee ByteString IO a
+    -> Iteratee ByteString TW a
 api m url query iter = do
   req <- lift $ apiRequest m url query
   httpMgr req (handleError iter)
@@ -33,7 +36,7 @@ httpMgr :: Request IO
             -> HT.ResponseHeaders
             -> Iteratee ByteString IO a)
         -> Iteratee ByteString TW a
-httpMgr req iterf = do        
+httpMgr req iterf = do
   mgr <- lift getManager
   liftTrans $ http req iterf mgr
 

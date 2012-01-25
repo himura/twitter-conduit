@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 module Web.Twitter.Enumerator.Post
-       ( update
+       ( statusesUpdate
 
          -- * Friendship
          -- , friendshipCreate
@@ -27,5 +27,5 @@ import Data.ByteString (ByteString)
 
 import Data.Enumerator (Iteratee)
 
-update :: ByteString -> Iteratee ByteString IO a -> Iteratee ByteString TW a
-update tweet iter = api "POST" (endpoint ++ "statuses/update.json") [("status",Just tweet)] iter
+statusesUpdate :: ByteString -> Iteratee ByteString IO a -> Iteratee ByteString TW a
+statusesUpdate tweet iter = api "POST" (endpoint ++ "statuses/update.json") [("status", Just tweet)] iter
