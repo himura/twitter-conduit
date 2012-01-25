@@ -12,7 +12,8 @@ import Data.Enumerator (Iteratee, throwError, liftTrans)
 
 import Data.ByteString (ByteString)
 
-import Control.Monad.Trans
+import Control.Monad.Trans.Class
+import Control.Monad.IO.Class (MonadIO (liftIO))
 
 endpoint :: String
 endpoint = "https://api.twitter.com/1/"
