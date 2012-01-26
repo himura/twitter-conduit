@@ -1,11 +1,9 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 module Web.Twitter.Enumerator.Fetch
-       ( QueryUser(..)
-       , QueryList(..)
-
+       (
        -- * Timelines
-       , statusesHomeTimeline
+       statusesHomeTimeline
        , statusesMentions
        , statusesPublicTimeline
        , statusesRetweetedByMe
@@ -94,12 +92,6 @@ import Control.Applicative
 
 import qualified Data.Map as M
 
-data QueryUser = QUserId UserId | QScreenName String
-               deriving (Show, Eq)
-data QueryList = QListId Integer | QListName String
-               deriving (Show, Eq)
-
-
 apiGet :: FromJSON a => String -> HT.Query -> Iteratee a IO b -> TW b
 apiGet uri query iter = run_ $ api "GET" uri query (handleParseError iter')
   where iter' = enumJSON =$ EL.map fromJSON' =$ skipNothing =$ iter
@@ -170,19 +162,6 @@ statusesRetweetsId status_id query = apiGet uri query EL.head_
 
 statusesShowId :: StatusId -> HT.Query -> TW Status
 statusesShowId status_id query = apiGet (endpoint ++ "statuses/show/" ++ show status_id ++ ".json") query EL.head_
-
-mkQueryUser :: QueryUser -> HT.Query
-mkQueryUser (QUserId uid) =  [("user_id", toMaybeByteString uid)]
-mkQueryUser (QScreenName sn) = [("screen_name", Just . B8.pack $ sn)]
-
-mkQueryList :: QueryList -> HT.Query
-mkQueryList (QListId lid) =  [("list_id", toMaybeByteString lid)]
-mkQueryList (QListName listname) =
-  [("slug", Just . B8.pack $ lstName),
-   ("owner_screen_name", Just . B8.pack $ screenName)]
-  where
-    (screenName, ln) = span (/= '/') listname
-    lstName = drop 1 ln
 
 friendsIds, followersIds :: QueryUser -> Enumerator UserId TW a
 friendsIds q = apiCursor (endpoint ++ "friends/ids.json") (mkQueryUser q) "ids" (-1)
