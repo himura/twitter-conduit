@@ -5,8 +5,11 @@ module Web.Twitter.Enumerator.Utils
        , debugEE
        , fromJSON'
        , toMaybeByteString
+       , handleParseError
        )
        where
+
+import Web.Twitter.Enumerator.Types
 
 import Data.Aeson hiding (Error)
 import Data.Aeson.Types (parseMaybe)
@@ -37,3 +40,11 @@ enumJSON = E.sequence $ iterParser json
 
 toMaybeByteString :: Show a => a -> Maybe ByteString
 toMaybeByteString = Just . B8.pack . show
+
+handleParseError :: Monad m => Iteratee ByteString m b -> Iteratee ByteString m b
+handleParseError iter = iter `catchError` hndl
+  where
+    getChunk = continue return
+    hndl e = getChunk >>= \x -> case x of
+      Chunks xs -> throwError $ ParserException e xs
+      _ -> throwError $ ParserException e []

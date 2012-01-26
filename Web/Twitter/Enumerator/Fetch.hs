@@ -193,14 +193,6 @@ iterCursor' key = do
 iterCursor :: (Monad m, FromJSON a) => T.Text -> Iteratee ByteString m (Maybe (Cursor a))
 iterCursor key = enumLine =$ handleParseError (enumJSON =$ iterCursor' key)
 
-handleParseError :: Monad m => Iteratee ByteString m b -> Iteratee ByteString m b
-handleParseError iter = iter `catchError` hndl
-  where
-    getChunk = continue return
-    hndl e = getChunk >>= \x -> case x of
-      Chunks xs -> throwError $ ParserException e xs
-      _ -> throwError $ ParserException e []
-
 parseCursor :: FromJSON a => T.Text -> Value -> AE.Parser (Cursor a)
 parseCursor key (Object o) =
   checkError o
