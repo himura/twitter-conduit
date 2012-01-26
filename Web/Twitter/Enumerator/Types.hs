@@ -30,7 +30,7 @@ import Control.Monad
 import Control.Exception
 
 data TwitterException = HTTPStatusCodeException HT.Status
-                      | PerserException SomeException [ByteString]
+                      | ParserException SomeException [ByteString]
                       | TwitterErrorMessage T.Text Value
                       deriving (Show, Typeable)
 instance Exception TwitterException

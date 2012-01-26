@@ -219,8 +219,8 @@ handleParseError iter = iter `catchError` hndl
   where
     getChunk = continue return
     hndl e = getChunk >>= \x -> case x of
-      Chunks xs -> throwError $ PerserException e xs
-      _ -> throwError $ PerserException e []
+      Chunks xs -> throwError $ ParserException e xs
+      _ -> throwError $ ParserException e []
 
 parseCursor :: FromJSON a => T.Text -> Value -> AE.Parser (Cursor a)
 parseCursor key (Object o) =
