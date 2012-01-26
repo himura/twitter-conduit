@@ -263,6 +263,3 @@ userstream = api "GET" "https://userstream.twitter.com/2/user.json" [] . apiIter
 
 statusesFilter :: HT.Query -> Iteratee StreamingAPI IO a -> Iteratee ByteString TW a
 statusesFilter query = api "GET" "https://stream.twitter.com/1/statuses/filter.json" query . apiIter
-
-toMaybeByteString :: Show a => a -> Maybe ByteString
-toMaybeByteString = Just . B8.pack . show

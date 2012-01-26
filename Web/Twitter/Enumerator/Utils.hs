@@ -4,6 +4,7 @@ module Web.Twitter.Enumerator.Utils
        , skipNothing
        , debugEE
        , fromJSON'
+       , toMaybeByteString
        )
        where
 
@@ -14,6 +15,7 @@ import Data.Enumerator as E
 import qualified Data.Enumerator.List as EL
 import qualified Data.Enumerator.Binary as EB
 import Data.ByteString (ByteString)
+import qualified Data.ByteString.Char8 as B8
 import Data.Maybe
 import Control.Monad.IO.Class (MonadIO (liftIO))
 
@@ -33,3 +35,5 @@ fromJSON' = parseMaybe parseJSON
 enumJSON :: Monad m => E.Enumeratee ByteString Value m a
 enumJSON = E.sequence $ iterParser json
 
+toMaybeByteString :: Show a => a -> Maybe ByteString
+toMaybeByteString = Just . B8.pack . show
