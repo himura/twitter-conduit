@@ -7,29 +7,23 @@ module Web.Twitter.Enumerator.Utils
        )
        where
 
+import Control.Monad.Trans
 import Data.Aeson hiding (Error)
 import Data.Aeson.Types (parseMaybe)
-import Data.Attoparsec.Enumerator (iterParser)
-import Data.Enumerator as E
-import qualified Data.Enumerator.List as EL
-import qualified Data.Enumerator.Binary as EB
+import qualified Data.Conduit as C
 import Data.ByteString (ByteString)
-import Data.Maybe
-import Control.Monad.IO.Class (MonadIO (liftIO))
 
-enumLine :: Monad m => E.Enumeratee ByteString ByteString m a
-enumLine = EB.splitWhen newline
-  where newline x = (x == 10) || (x == 13)
+enumLine :: Monad m => C.Conduit ByteString m ByteString
+enumLine = undefined
 
-skipNothing :: Monad m => E.Enumeratee (Maybe a) a m r
-skipNothing = EL.concatMap (\x -> [fromJust x | isJust x])
+skipNothing :: Monad m => C.Conduit (Maybe a) m a
+skipNothing = undefined -- EL.concatMap (\x -> [fromJust x | isJust x])
 
-debugEE :: (MonadIO m, Show a) => E.Enumeratee a a m r
-debugEE = EL.mapM $ \x -> (liftIO . putStrLn . show) x >> return x
+debugEE :: (MonadIO m, Show a) => C.Conduit a m a
+debugEE = undefined -- EL.mapM $ \x -> (liftIO . putStrLn . show) x >> return x
 
 fromJSON' :: FromJSON a => Value -> Maybe a
 fromJSON' = parseMaybe parseJSON
 
-enumJSON :: Monad m => E.Enumeratee ByteString Value m a
-enumJSON = E.sequence $ iterParser json
-
+enumJSON :: Monad m => C.Conduit ByteString m Value
+enumJSON = undefined -- E.sequence $ iterParser json

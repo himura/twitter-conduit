@@ -7,7 +7,7 @@ import Web.Twitter.Enumerator
 import Web.Authenticate.OAuth (OAuth(..), Credential(..))
 import qualified Web.Authenticate.OAuth as OA
 import qualified Network.URI as URI
-import Network.HTTP.Enumerator
+import Network.HTTP.Conduit
 import Data.Aeson hiding (Error)
 import Data.Aeson.Types (parseMaybe)
 import qualified Data.Map as M
@@ -26,10 +26,11 @@ tokens = OAuth { oauthServerName = "twitter"
                , oauthRequestUri = "http://twitter.com/oauth/request_token"
                , oauthAccessTokenUri = "http://twitter.com/oauth/access_token"
                , oauthAuthorizeUri = "http://twitter.com/oauth/authorize"
-               , oauthConsumerKey = "<consumer key>"
-               , oauthConsumerSecret = "<consumer secret>"
+               , oauthConsumerKey = "K6fxaUunNsxMTNmFYhg"
+               , oauthConsumerSecret = "nNFw21METyA0J5yuAYeeQxlB7ZXPgJFoFVoKI97Kk"
                , oauthSignatureMethod = OA.HMACSHA1
                , oauthCallback = Nothing
+               , oauthRealm = Nothing
                }
 
 ensureDirectoryExist :: FilePath -> IO FilePath

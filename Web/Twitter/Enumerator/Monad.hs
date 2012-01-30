@@ -13,7 +13,7 @@ module Web.Twitter.Enumerator.Monad
        where
 
 import Web.Authenticate.OAuth
-import Network.HTTP.Enumerator
+import Network.HTTP.Conduit
 import Control.Monad.Trans.Reader
 import Control.Monad.IO.Class (MonadIO (liftIO))
 
@@ -32,7 +32,7 @@ runTW' = flip runReaderT
 runTW :: TWEnv -> TW a -> IO a
 runTW env st =
   case twManager env of
-    Nothing -> withManager $ \mgr -> runTWManager env mgr st
+    Nothing -> withManager $ \mgr -> liftIO $ runTWManager env mgr st
     Just _ -> runTW' env st
 
 runTWManager :: TWEnv -> Manager -> TW a -> IO a

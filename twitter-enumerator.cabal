@@ -8,7 +8,7 @@ synopsis:          Twitter API package with enumerator interface and Streaming A
 description:       This package uses enumerator package for access Twitter API.
 category:          Web, Enumerator
 stability:         Experimental
-cabal-version:     >= 1.6
+cabal-version:     >= 1.8
 build-type:        Simple
 homepage:          https://github.com/himura/twitter-enumerator
 
@@ -26,14 +26,15 @@ library
 
   build-depends:
       base >= 4 && < 5
+    , mtl >= 2
     , transformers >= 0.2 && < 0.3
-    , authenticate >= 0.9 && < 0.11
-    , enumerator >= 0.4.14 && < 0.5
+    , authenticate >= 0.11 && < 0.12
+    , conduit >= 0.0 && < 0.2
     , http-types
-    , http-enumerator >= 0.6.6
+    , http-conduit >= 1.1 && < 1.3
     , aeson >= 0.3.2.2
     , attoparsec >= 0.8.6.1
-    , attoparsec-enumerator
+    , attoparsec-conduit
     , bytestring
     , text
     , containers
@@ -48,3 +49,22 @@ library
 
   other-modules:
     Web.Twitter.Enumerator.Utils
+
+executable oslist
+  main-is: oslist.hs
+  hs-source-dirs: sample
+
+  build-depends: base >= 4 && < 5
+               , mtl >= 2
+               , containers
+               , conduit >= 0.0
+               , directory >= 1.1 && < 1.2
+               , filepath >= 1.2 && < 1.3
+               , attoparsec >= 0.10 && < 0.11
+               , bytestring >= 0.9 && < 0.10
+               , case-insensitive >= 0.4 && < 0.5
+               , aeson >= 0.6 && < 0.7
+               , http-conduit >= 1.1
+               , network >= 2.3 && < 2.4
+               , authenticate >= 0.11 && < 0.12
+               , twitter-enumerator

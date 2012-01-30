@@ -1,15 +1,24 @@
+{-# LANGUAGE OverloadedStrings #-}
 module Main where
 
 import Common
 import Web.Twitter.Enumerator
 
-import Data.Enumerator hiding (map, filter)
-import qualified Data.Enumerator.List as EL
+import qualified Data.Conduit as C
+import qualified Data.Conduit.List as CL
 import qualified Data.Map as M
-import Control.Monad.IO.Class
 import Control.Monad
+import Control.Monad.Trans
+import Control.Monad.Trans.Resource
 import System.Environment
+import System.IO
 
+main :: IO ()
+main = withCF $ C.runResourceT $ do
+  src <- userstream
+  transResourceT lift $ src C.$$ CL.mapM_ print
+
+{-
 main :: IO ()
 main = withCF $ do
   (screenName:ln:_) <- liftIO getArgs
@@ -29,8 +38,9 @@ main = withCF $ do
 
   liftIO . putStrLn $ "both following:"
   forM_ bothfollow $ liftIO . showUser
-  where consumeRun f = run_ $ f $$ EL.consume
+  where consumeRun f = C.runResourceT $ f C.$$ CL.consume
         showUser usr = do
           putStr . show . userId $ usr
           putStr ":"
           putStrLn . userScreenName $ usr
+-}
