@@ -14,8 +14,8 @@ module Web.Twitter.Enumerator.Monad
 
 import Web.Authenticate.OAuth
 import Network.HTTP.Conduit
-import Control.Monad.Trans.Reader
-import Control.Monad.IO.Class (MonadIO (liftIO))
+import Control.Monad.Trans
+import Control.Monad.Reader
 
 type TW = ReaderT TWEnv IO
 

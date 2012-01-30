@@ -7,17 +7,15 @@ module Web.Twitter.Enumerator.Api
 import Web.Twitter.Enumerator.Types
 import Web.Twitter.Enumerator.Monad
 
-import qualified Data.Conduit as C
-import qualified Data.Conduit.Binary as CB
-import Network.HTTP.Conduit
-import qualified Network.HTTP.Types as HT
-
-import Data.ByteString (ByteString)
-
 import Control.Applicative
 import Control.Monad
 import Control.Monad.Trans
 import Control.Monad.Trans.Resource
+import Data.ByteString (ByteString)
+import qualified Data.Conduit as C
+import qualified Data.Conduit.Binary as CB
+import Network.HTTP.Conduit
+import qualified Network.HTTP.Types as HT
 import System.IO
 
 endpoint :: String
