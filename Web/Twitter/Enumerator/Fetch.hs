@@ -1,11 +1,9 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 module Web.Twitter.Enumerator.Fetch
-       ( QueryUser(..)
-       , QueryList(..)
-
+       (
        -- * Timelines
-       , statusesHomeTimeline
+       statusesHomeTimeline
        , statusesMentions
        , statusesPublicTimeline
        , statusesRetweetedByMe
@@ -94,12 +92,6 @@ import Control.Applicative
 
 import qualified Data.Map as M
 
-data QueryUser = QUserId UserId | QScreenName String
-               deriving (Show, Eq)
-data QueryList = QListId Integer | QListName String
-               deriving (Show, Eq)
-
-
 apiGet :: FromJSON a => String -> HT.Query -> Iteratee a IO b -> TW b
 apiGet uri query iter = run_ $ api "GET" uri query (handleParseError iter')
   where iter' = enumJSON =$ EL.map fromJSON' =$ skipNothing =$ iter
@@ -171,19 +163,6 @@ statusesRetweetsId status_id query = apiGet uri query EL.head_
 statusesShowId :: StatusId -> HT.Query -> TW Status
 statusesShowId status_id query = apiGet (endpoint ++ "statuses/show/" ++ show status_id ++ ".json") query EL.head_
 
-mkQueryUser :: QueryUser -> HT.Query
-mkQueryUser (QUserId uid) =  [("user_id", toMaybeByteString uid)]
-mkQueryUser (QScreenName sn) = [("screen_name", Just . B8.pack $ sn)]
-
-mkQueryList :: QueryList -> HT.Query
-mkQueryList (QListId lid) =  [("list_id", toMaybeByteString lid)]
-mkQueryList (QListName listname) =
-  [("slug", Just . B8.pack $ lstName),
-   ("owner_screen_name", Just . B8.pack $ screenName)]
-  where
-    (screenName, ln) = span (/= '/') listname
-    lstName = drop 1 ln
-
 friendsIds, followersIds :: QueryUser -> Enumerator UserId TW a
 friendsIds q = apiCursor (endpoint ++ "friends/ids.json") (mkQueryUser q) "ids" (-1)
 followersIds q = apiCursor (endpoint ++ "followers/ids.json") (mkQueryUser q) "ids" (-1)
@@ -213,14 +192,6 @@ iterCursor' key = do
 
 iterCursor :: (Monad m, FromJSON a) => T.Text -> Iteratee ByteString m (Maybe (Cursor a))
 iterCursor key = enumLine =$ handleParseError (enumJSON =$ iterCursor' key)
-
-handleParseError :: Monad m => Iteratee ByteString m b -> Iteratee ByteString m b
-handleParseError iter = iter `catchError` hndl
-  where
-    getChunk = continue return
-    hndl e = getChunk >>= \x -> case x of
-      Chunks xs -> throwError $ ParserException e xs
-      _ -> throwError $ ParserException e []
 
 parseCursor :: FromJSON a => T.Text -> Value -> AE.Parser (Cursor a)
 parseCursor key (Object o) =
@@ -263,6 +234,3 @@ userstream = api "GET" "https://userstream.twitter.com/2/user.json" [] . apiIter
 
 statusesFilter :: HT.Query -> Iteratee StreamingAPI IO a -> Iteratee ByteString TW a
 statusesFilter query = api "GET" "https://stream.twitter.com/1/statuses/filter.json" query . apiIter
-
-toMaybeByteString :: Show a => a -> Maybe ByteString
-toMaybeByteString = Just . B8.pack . show
