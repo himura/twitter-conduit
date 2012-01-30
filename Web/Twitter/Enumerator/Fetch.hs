@@ -88,6 +88,7 @@ import qualified Data.Conduit.List as CL
 import qualified Data.Text as T
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as B8
+import Data.Maybe
 import Control.Monad.Trans.Class
 import Control.Monad.IO.Class (MonadIO (liftIO))
 import Control.Applicative
@@ -215,7 +216,7 @@ iterCursor' key = do
     Nothing -> return Nothing
 
 iterCursor :: (C.Resource m, Monad m, FromJSON a) => T.Text -> C.Sink ByteString m (Maybe (Cursor a))
-iterCursor key = enumLine C.=$ handleParseError (enumJSON C.=$ iterCursor' key)
+iterCursor key = undefined -- enumLine C.=$ handleParseError (enumJSON C.=$ iterCursor' key)
 
 handleParseError :: Monad m => C.Sink ByteString m b -> C.Sink ByteString m b
 handleParseError iter = undefined {- iter `catchError` hndl
@@ -259,19 +260,18 @@ apiCursor uri query cursorKey initCur = undefined {-
         Nothing -> k EOF
 -}
 
-{-# SPECIALIZE apiIter ::  C.Sink StreamingAPI IO b -> C.Sink ByteString IO b #-}
-apiIter :: (C.Resource m, FromJSON a, Monad m) => C.Sink a m b -> C.Sink ByteString m b
-apiIter iter = enumLine C.=$ handleParseError (enumJSON C.=$ CL.map fromJSON' C.=$ skipNothing C.=$ iter)
+streamingConduit :: C.ResourceThrow m => C.Conduit ByteString m StreamingAPI
+streamingConduit = conduitParser json C.=$= CL.concatMap (maybeToList . fromJSON')
 
 userstream :: C.ResourceT TW (C.Source IO StreamingAPI)
 userstream = do
   src <- api "GET" "https://userstream.twitter.com/2/user.json" ""
-  return $ src C.$= undefined
+  return $ src C.$= streamingConduit
 
 statusesFilter :: HT.Ascii -> C.ResourceT TW (C.Source IO StreamingAPI)
 statusesFilter query = do
   src <- api "GET" "https://stream.twitter.com/1/statuses/filter.json" query
-  return $ src C.$= undefined
+  return $ src C.$= streamingConduit
 
 toMaybeByteString :: Show a => a -> Maybe ByteString
 toMaybeByteString = Just . B8.pack . show
