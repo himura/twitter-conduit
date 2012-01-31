@@ -1,5 +1,6 @@
 module Web.Twitter.Enumerator.Utils
        ( enumJSON
+       , sinkJSON
        , conduitParser
        , skipNothing
        , debugEE
@@ -26,6 +27,9 @@ fromJSON' = parseMaybe parseJSON
 
 enumJSON :: Monad m => C.Conduit ByteString m Value
 enumJSON = undefined -- E.sequence $ iterParser json
+
+sinkJSON :: C.ResourceThrow m => C.Sink ByteString m Value
+sinkJSON = CA.sinkParser json
 
 conduitParser :: (CA.AttoparsecInput a, C.ResourceThrow m) => A.Parser a b -> C.Conduit a m b
 conduitParser p =

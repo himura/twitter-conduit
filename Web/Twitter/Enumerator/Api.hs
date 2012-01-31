@@ -23,16 +23,13 @@ endpoint = "https://api.twitter.com/1/"
 
 api :: ByteString -- ^ HTTP request method (GET or POST)
     -> String -- ^ API Resource URL
-    -> HT.Ascii -- ^ Query
+    -> HT.Query -- ^ Query
     -> C.ResourceT TW (C.BufferedSource IO ByteString)
 api m url query = do
-  req <- lift $ apiRequest m url query
-  mgr <- lift getManager
+  (req, mgr) <- lift $ do
+    p    <- getProxy
+    req  <- liftIO $ parseUrl url
+    req' <- signOAuthTW $ req { method = m, queryString = HT.renderQuery False query, proxy = p }
+    mgr  <- getManager
+    return (req', mgr)
   transResourceT lift $ responseBody <$> http req mgr
-
-apiRequest :: ByteString -> String -> HT.Ascii -> TW (Request IO)
-apiRequest m uri query = do
-  p <- getProxy
-  req <- liftIO $ parseUrl uri >>= \r ->
-    return $ r { method = m, queryString = query, proxy = p }
-  signOAuthTW req

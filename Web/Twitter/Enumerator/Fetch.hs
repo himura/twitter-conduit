@@ -79,6 +79,7 @@ import Web.Twitter.Enumerator.Utils
 import Web.Twitter.Enumerator.Api
 
 import Control.Monad.Trans
+import Control.Monad.Trans.Resource
 import Control.Applicative
 import Data.Aeson hiding (Error)
 import qualified Data.Aeson.Types as AE
@@ -88,6 +89,7 @@ import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as B8
 import qualified Data.Map as M
 import Data.Maybe
+import Data.Monoid
 import qualified Data.Text as T
 import qualified Network.HTTP.Types as HT
 
@@ -95,7 +97,6 @@ data QueryUser = QUserId UserId | QScreenName String
                deriving (Show, Eq)
 data QueryList = QListId Integer | QListName String
                deriving (Show, Eq)
-
 
 apiGet :: FromJSON a => String -> HT.Query -> C.Sink a IO b -> TW b
 apiGet uri query iter = undefined -- run_ $ api "GET" uri query (handleParseError iter')
@@ -184,18 +185,18 @@ mkQueryList (QListName listname) =
     (screenName, ln) = span (/= '/') listname
     lstName = drop 1 ln
 
-friendsIds, followersIds :: QueryUser -> C.Source TW UserId
-friendsIds q = apiCursor (endpoint ++ "friends/ids.json") (mkQueryUser q) "ids" (-1)
-followersIds q = apiCursor (endpoint ++ "followers/ids.json") (mkQueryUser q) "ids" (-1)
+friendsIds, followersIds :: QueryUser -> C.ResourceT TW (C.Source IO UserId)
+friendsIds   q = apiCursor (endpoint ++ "friends/ids.json")   (mkQueryUser q) "ids"
+followersIds q = apiCursor (endpoint ++ "followers/ids.json") (mkQueryUser q) "ids"
 
 usersShow :: QueryUser -> TW User
 usersShow q = undefined -- apiGet (endpoint ++ "users/show.json") (mkQueryUser q) CL.head_
 
 listsAll :: QueryUser -> C.Source TW List
-listsAll q = apiCursor (endpoint ++ "lists/all.json") (mkQueryUser q) "" (-1)
+listsAll q = undefined -- apiCursor (endpoint ++ "lists/all.json") (mkQueryUser q) ""
 
 listsMembers :: QueryList -> C.Source TW User
-listsMembers q = apiCursor (endpoint ++ "lists/members.json") (mkQueryList q) "users" (-1)
+listsMembers q = undefined -- apiCursor (endpoint ++ "lists/members.json") (mkQueryList q) "users"
 
 data Cursor a =
   Cursor
@@ -231,6 +232,7 @@ parseCursor key (Object o) =
 parseCursor _ v@(Array _) = return $ Cursor (maybe [] id $ fromJSON' v) Nothing Nothing
 parseCursor _ o = fail $ "Error at parseCursor: unknown object " ++ show o
 
+{-
 apiCursor
   :: (FromJSON a, Show a) =>
      String
@@ -238,7 +240,7 @@ apiCursor
      -> T.Text
      -> Integer
      -> C.Source TW a
-apiCursor uri query cursorKey initCur = undefined {-
+apiCursor uri query cursorKey initCur = undefined
   checkContinue1 go initCur
   where
     go loop cursor k = do
@@ -256,15 +258,36 @@ apiCursor uri query cursorKey initCur = undefined {-
         Nothing -> k EOF
 -}
 
+apiCursor :: (FromJSON a, C.ResourceThrow m)
+             => String
+             -> HT.Query
+             -> T.Text
+             -> C.ResourceT TW (C.Source m a)
+apiCursor uri query cursorKey = go (-1) where
+  go cursor = do
+    let query' = insertQuery "cursor" (toMaybeByteString (cursor :: Int)) query
+    res <- api "GET" uri query'
+    j <- transResourceT lift $ res C.$$ sinkJSON
+    case AE.parseMaybe p j of
+      Nothing ->
+        return CL.sourceNull
+      Just (res, 0) ->
+        return $ CL.sourceList res
+      Just (res, nextCursor) ->
+        mappend (CL.sourceList res) <$> go nextCursor
+
+  p (Object v) = (,) <$> v .: cursorKey <*> v .: "next_cursor"
+  p _ = mempty
+
 streamingConduit :: C.ResourceThrow m => C.Conduit ByteString m StreamingAPI
 streamingConduit = conduitParser json C.=$= CL.concatMap (maybeToList . fromJSON')
 
 userstream :: C.ResourceT TW (C.Source IO StreamingAPI)
 userstream = do
-  src <- api "GET" "https://userstream.twitter.com/2/user.json" ""
+  src <- api "GET" "https://userstream.twitter.com/2/user.json" []
   return $ src C.$= streamingConduit
 
-statusesFilter :: HT.Ascii -> C.ResourceT TW (C.Source IO StreamingAPI)
+statusesFilter :: HT.Query -> C.ResourceT TW (C.Source IO StreamingAPI)
 statusesFilter query = do
   src <- api "GET" "https://stream.twitter.com/1/statuses/filter.json" query
   return $ src C.$= streamingConduit

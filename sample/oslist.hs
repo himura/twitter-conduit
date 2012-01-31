@@ -14,33 +14,22 @@ import System.Environment
 import System.IO
 
 main :: IO ()
-main = withCF $ C.runResourceT $ do
-  src <- userstream
-  transResourceT lift $ src C.$$ CL.mapM_ print
-
-{-
-main :: IO ()
 main = withCF $ do
-  (screenName:ln:_) <- liftIO getArgs
+  (screenName:_) <- liftIO getArgs
   let sn = QScreenName screenName
-  onesideList <- consumeRun $ listsMembers $ QListName ln
-  folids <- consumeRun $ followersIds sn
-  friids <- consumeRun $ friendsIds sn
-  let oslstmap = M.fromList $ map (flip (,) True . userId) onesideList
-      folmap = M.fromList $ map (flip (,) True) folids
-      os = filter (\uid -> M.notMember uid folmap && M.notMember uid oslstmap) friids
-      bothfollow = filter (\usr -> M.member (userId usr) folmap) onesideList
+  folids <- runResourceT $ do
+    src <- followersIds sn
+    transResourceT lift $ src C.$$ CL.consume
+  friids <- runResourceT $ do
+    src <- friendsIds sn
+    transResourceT lift $ src C.$$ CL.consume
 
-  liftIO . putStrLn $ "one sided:"
-  forM_ os $ \uid -> do
-    usr <- usersShow . QUserId $ uid
-    liftIO . showUser $ usr
+  let folmap = M.fromList $ map (flip (,) True) folids
+      os = filter (\uid -> M.notMember uid folmap) friids
+      bo = filter (\usr -> M.member usr folmap) friids
 
-  liftIO . putStrLn $ "both following:"
-  forM_ bothfollow $ liftIO . showUser
-  where consumeRun f = C.runResourceT $ f C.$$ CL.consume
-        showUser usr = do
-          putStr . show . userId $ usr
-          putStr ":"
-          putStrLn . userScreenName $ usr
--}
+  liftIO $ putStrLn "one sided:"
+  liftIO $ print os
+
+  liftIO $ putStrLn "both following:"
+  liftIO $ print bo
