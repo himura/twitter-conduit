@@ -42,6 +42,7 @@ library
     Web.Twitter.Post
     Web.Twitter.Query
     Web.Twitter.Stream
+    Web.Twitter.Status
     Web.Twitter.Types
 
   other-modules:

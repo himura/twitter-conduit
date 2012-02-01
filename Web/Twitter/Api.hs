@@ -1,19 +1,16 @@
 {-# LANGUAGE RecordWildCards, OverloadedStrings #-}
-module Web.Twitter.Api
-       ( api
-       , apiGet
-       , apiCursor
-       , apiWithPages
-
-       , endpoint
-       ) where
+module Web.Twitter.Api (
+  api,
+  apiGet,
+  apiCursor,
+  apiWithPages,
+  ) where
 
 import Web.Twitter.Monad
 import Web.Twitter.Utils
 
 import Control.Applicative
 import Control.Monad.Trans
-import Control.Monad.Trans.Resource
 import Data.Aeson
 import Data.Aeson.Types
 import Data.ByteString (ByteString)
@@ -27,33 +24,38 @@ import qualified Network.HTTP.Types as HT
 endpoint :: String
 endpoint = "https://api.twitter.com/1/"
 
+join :: C.ResourceIO m => C.ResourceT m (C.Source m a) -> C.Source m a
+join m = C.Source (C.Open <$> m <*> undefined) (return ())
+
 api :: ByteString -- ^ HTTP request method (GET or POST)
     -> String     -- ^ API Resource URL
     -> HT.Query   -- ^ Query
-    -> ResourceT TW (C.Source TW ByteString)
-api m url query = do
+    -> C.Source TW ByteString
+api m url query = join $ do
   (req, mgr) <- lift $ do
     p    <- getProxy
     req  <- parseUrl url
     req' <- signOAuthTW $ req { method = m, queryString = HT.renderQuery False query, proxy = p }
     mgr  <- getManager
-    return (req', mgr)
+    return (req', mgr)  
   responseBody <$> http req mgr
 
 apiGet :: FromJSON a => String -> HT.Query -> TW a
-apiGet uri query = runResourceT $ do
-  src <- api "GET" uri query
-  src C.$$ sinkFromJSON
+apiGet url query =
+  C.runResourceT $ do
+    api "GET" url query C.$$ sinkFromJSON
 
-apiCursor :: (FromJSON a, ResourceThrow m)
+apiCursor :: FromJSON a
              => String
              -> HT.Query
              -> T.Text
-             -> ResourceT TW (C.Source m a)
-apiCursor uri query cursorKey = go (-1 :: Int) where
+             -> C.ResourceT TW (C.Source TW a)
+apiCursor = undefined
+  {-
+apiCursor url query cursorKey = go (-1 :: Int) where
   go cursor = do
     let query' = ("cursor", Just $ showBS cursor) `insertQuery` query
-    res <- api "GET" uri query'
+    res <- api "GET" (endpoint ++ url) query'
     j <- res C.$$ sinkJSON
     case parseMaybe p j of
       Nothing ->
@@ -65,8 +67,9 @@ apiCursor uri query cursorKey = go (-1 :: Int) where
 
   p (Object v) = (,) <$> v .: cursorKey <*> v .: "next_cursor"
   p _ = mempty
-
-apiWithPages :: (FromJSON a, Show a) => String -> HT.Query -> Integer -> C.Source TW a
+-}
+  
+apiWithPages :: (FromJSON a, Show a) => String -> HT.Query -> C.ResourceT TW (C.Source TW a)
 apiWithPages = undefined
 {-
 apiWithPages uri query initPage =
