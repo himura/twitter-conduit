@@ -25,7 +25,9 @@ endpoint :: String
 endpoint = "https://api.twitter.com/1/"
 
 join :: C.ResourceIO m => C.ResourceT m (C.Source m a) -> C.Source m a
-join m = C.Source (C.Open <$> m <*> undefined) (return ())
+join m = C.Source (C.Open <$> n <*> pure []) (return ()) C.$= CL.concatMap id
+  where
+    n = fmap (\a -> [a]) <$> m
 
 api :: ByteString -- ^ HTTP request method (GET or POST)
     -> String     -- ^ API Resource URL
@@ -42,21 +44,17 @@ api m url query = join $ do
 
 apiGet :: FromJSON a => String -> HT.Query -> TW a
 apiGet url query =
-  C.runResourceT $ do
-    api "GET" url query C.$$ sinkFromJSON
+  C.runResourceT $ api "GET" url query C.$$ sinkFromJSON
 
 apiCursor :: FromJSON a
              => String
              -> HT.Query
              -> T.Text
-             -> C.ResourceT TW (C.Source TW a)
-apiCursor = undefined
-  {-
-apiCursor url query cursorKey = go (-1 :: Int) where
+             -> C.Source TW a
+apiCursor url query cursorKey = join $ go (-1 :: Int) where
   go cursor = do
     let query' = ("cursor", Just $ showBS cursor) `insertQuery` query
-    res <- api "GET" (endpoint ++ url) query'
-    j <- res C.$$ sinkJSON
+    j <- api "GET" (endpoint ++ url) query' C.$$ sinkJSON
     case parseMaybe p j of
       Nothing ->
         return CL.sourceNull
@@ -67,9 +65,8 @@ apiCursor url query cursorKey = go (-1 :: Int) where
 
   p (Object v) = (,) <$> v .: cursorKey <*> v .: "next_cursor"
   p _ = mempty
--}
   
-apiWithPages :: (FromJSON a, Show a) => String -> HT.Query -> C.ResourceT TW (C.Source TW a)
+apiWithPages :: (FromJSON a, Show a) => String -> HT.Query -> C.Source TW a
 apiWithPages = undefined
 {-
 apiWithPages uri query initPage =

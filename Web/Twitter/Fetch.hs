@@ -72,15 +72,15 @@ mkQueryList (QListName listname) =
     (screenName, ln) = span (/= '/') listname
     lstName = drop 1 ln
 
-friendsIds, followersIds :: QueryUser -> C.ResourceT TW (C.Source TW UserId)
+friendsIds, followersIds :: QueryUser -> C.Source TW UserId
 friendsIds   q = apiCursor "friends/ids.json"   (mkQueryUser q) "ids"
 followersIds q = apiCursor "followers/ids.json" (mkQueryUser q) "ids"
 
 usersShow :: QueryUser -> TW User
 usersShow q = apiGet "users/show.json" (mkQueryUser q)
 
-listsAll :: QueryUser -> C.ResourceT TW (C.Source TW List)
+listsAll :: QueryUser -> C.Source TW List
 listsAll q = apiCursor "lists/all.json" (mkQueryUser q) ""
 
-listsMembers :: QueryList -> C.ResourceT TW (C.Source TW User)
+listsMembers :: QueryList -> C.Source TW User
 listsMembers q = apiCursor "lists/members.json" (mkQueryList q) "users"

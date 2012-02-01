@@ -17,11 +17,9 @@ main = withCF $ do
   [screenName] <- liftIO getArgs
   let sn = QScreenName screenName
   folids <- C.runResourceT $ do
-    src <- followersIds sn
-    src C.$$ CL.consume
+    followersIds sn C.$$ CL.consume
   friids <- C.runResourceT $ do
-    src <- friendsIds sn
-    src C.$$ CL.consume
+    friendsIds sn C.$$ CL.consume
 
   let folmap = M.fromList $ map (flip (,) True) folids
       os = filter (\uid -> M.notMember uid folmap) friids

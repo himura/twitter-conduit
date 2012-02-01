@@ -19,12 +19,12 @@ import qualified Network.HTTP.Types as HT
 streamingConduit :: ResourceThrow m => C.Conduit ByteString m StreamingAPI
 streamingConduit = conduitParser parseFromJSON
 
-userstream :: C.ResourceT TW (C.Source TW StreamingAPI)
-userstream = do
-  src <- api "GET" "https://userstream.twitter.com/2/user.json" []
-  return $ src C.$= streamingConduit
+userstream :: C.Source TW StreamingAPI
+userstream =
+  api "GET" "https://userstream.twitter.com/2/user.json" []
+    C.$= streamingConduit
 
-statusesFilter :: HT.Query -> C.ResourceT TW (C.Source TW StreamingAPI)
-statusesFilter query = do
-  src <- api "GET" "https://stream.twitter.com/1/statuses/filter.json" query
-  return $ src C.$= streamingConduit
+statusesFilter :: HT.Query -> C.Source TW StreamingAPI
+statusesFilter query =
+  api "GET" "https://stream.twitter.com/1/statuses/filter.json" query
+    C.$= streamingConduit
