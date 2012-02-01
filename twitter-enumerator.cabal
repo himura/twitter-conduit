@@ -35,15 +35,15 @@ library
     , containers
 
   exposed-modules:
-    Web.Twitter.Enumerator
-    Web.Twitter.Enumerator.Types
-    Web.Twitter.Enumerator.Monad
-    Web.Twitter.Enumerator.Api
-    Web.Twitter.Enumerator.Fetch
-    Web.Twitter.Enumerator.Post
+    Web.Twitter
+    Web.Twitter.Types
+    Web.Twitter.Monad
+    Web.Twitter.Api
+    Web.Twitter.Fetch
+    Web.Twitter.Post
 
   other-modules:
-    Web.Twitter.Enumerator.Utils
+    Web.Twitter.Utils
 
 executable oslist
   main-is: oslist.hs

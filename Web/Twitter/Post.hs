@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Web.Twitter.Enumerator.Post
+module Web.Twitter.Post
        ( statusesUpdate
 
          -- * Friendship
@@ -20,8 +20,8 @@ module Web.Twitter.Enumerator.Post
        )
        where
 
-import Web.Twitter.Enumerator.Monad
-import Web.Twitter.Enumerator.Api
+import Web.Twitter.Monad
+import Web.Twitter.Api
 
 import Data.ByteString (ByteString)
 

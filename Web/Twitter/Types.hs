@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings, DeriveDataTypeable #-}
 
-module Web.Twitter.Enumerator.Types
+module Web.Twitter.Types
        ( TwitterException(..)
        , DateString
        , UserId

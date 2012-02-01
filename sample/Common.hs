@@ -2,7 +2,7 @@
 
 module Common where
 
-import Web.Twitter.Enumerator
+import Web.Twitter
 
 import Web.Authenticate.OAuth (OAuth(..), Credential(..))
 import qualified Web.Authenticate.OAuth as OA

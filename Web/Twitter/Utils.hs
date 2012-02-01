@@ -1,4 +1,4 @@
-module Web.Twitter.Enumerator.Utils
+module Web.Twitter.Utils
        ( enumJSON
        , sinkJSON
        , conduitParser

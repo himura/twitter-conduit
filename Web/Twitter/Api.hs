@@ -1,11 +1,11 @@
 {-# LANGUAGE RecordWildCards #-}
-module Web.Twitter.Enumerator.Api
+module Web.Twitter.Api
        ( api
        , endpoint
        ) where
 
-import Web.Twitter.Enumerator.Types
-import Web.Twitter.Enumerator.Monad
+import Web.Twitter.Types
+import Web.Twitter.Monad
 
 import Control.Applicative
 import Control.Monad

@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Web.Twitter.Enumerator.Fetch
+module Web.Twitter.Fetch
        ( QueryUser(..)
        , QueryList(..)
 
@@ -73,11 +73,6 @@ module Web.Twitter.Enumerator.Fetch
        )
        where
 
-import Web.Twitter.Enumerator.Types
-import Web.Twitter.Enumerator.Monad
-import Web.Twitter.Enumerator.Utils
-import Web.Twitter.Enumerator.Api
-
 import Control.Monad.Trans
 import Control.Monad.Trans.Resource
 import Control.Applicative
@@ -92,6 +87,11 @@ import Data.Maybe
 import Data.Monoid
 import qualified Data.Text as T
 import qualified Network.HTTP.Types as HT
+
+import Web.Twitter.Types
+import Web.Twitter.Monad
+import Web.Twitter.Utils
+import Web.Twitter.Api
 
 data QueryUser = QUserId UserId | QScreenName String
                deriving (Show, Eq)

@@ -2,7 +2,7 @@
 module Main where
 
 import Common
-import Web.Twitter.Enumerator
+import Web.Twitter
 
 import qualified Data.Conduit as C
 import qualified Data.Conduit.List as CL
