@@ -2,19 +2,19 @@ name:              twitter-conduit
 version:           0.0.0
 license:           BSD3
 license-file:      LICENSE
-author:            Takahiro HIMURA
-maintainer:        taka@himura.jp
+author:            Hideyuki Tanaka, Takahiro HIMURA
+maintainer:        Hideyuki Tanaka <tanaka.hideyuki@gmail.com>
 synopsis:          Twitter API package with conduit interface and Streaming API support.
 description:       This package uses conduit package for access Twitter API.
 category:          Web, Conduit
 stability:         Experimental
 cabal-version:     >= 1.8
 build-type:        Simple
-homepage:          https://github.com/himura/twitter-enumerator
+homepage:          https://github.com/tanakh/twitter-conduit
 
 source-repository head
   type: git
-  location: git://github.com/himura/twitter-enumerator.git
+  location: git://github.com/tanakh/twitter-conduit.git
 
 library
   ghc-options: -Wall
