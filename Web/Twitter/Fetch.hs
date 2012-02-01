@@ -48,7 +48,6 @@ module Web.Twitter.Fetch (
   -- , listsSubscriptions
   ) where
 
-import Data.Aeson hiding (Error)
 import qualified Data.Conduit as C
 import qualified Data.ByteString.Char8 as B8
 import qualified Network.HTTP.Types as HT

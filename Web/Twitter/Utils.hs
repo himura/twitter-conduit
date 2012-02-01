@@ -3,6 +3,8 @@
 module Web.Twitter.Utils (
   sinkJSON,
   sinkFromJSON,
+  conduitJSON,
+  conduitFromJSON,
   parseFromJSON,
   conduitParser,
   showBS,
@@ -51,6 +53,12 @@ sinkFromJSON = do
   case fromJSON v of
     AT.Error err -> lift $ liftIO $ throwIO $ TwitterError err
     AT.Success r -> return r
+
+conduitJSON :: C.ResourceThrow m => C.Conduit ByteString m Value
+conduitJSON = conduitParser json
+
+conduitFromJSON :: (FromJSON a, C.ResourceThrow m) => C.Conduit ByteString m a
+conduitFromJSON = conduitParser parseFromJSON
 
 showBS :: Show a => a -> ByteString
 showBS = B8.pack . show
