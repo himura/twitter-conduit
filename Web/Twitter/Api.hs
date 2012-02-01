@@ -43,7 +43,7 @@ api m url query = do
 apiGet :: FromJSON a => String -> HT.Query -> TW a
 apiGet uri query = runResourceT $ do
   src <- api "GET" uri query
-  src C.$$ sinkJSON'
+  src C.$$ sinkFromJSON
 
 apiCursor :: (FromJSON a, ResourceThrow m)
              => String
