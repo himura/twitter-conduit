@@ -36,11 +36,13 @@ library
 
   exposed-modules:
     Web.Twitter
-    Web.Twitter.Types
-    Web.Twitter.Monad
     Web.Twitter.Api
     Web.Twitter.Fetch
+    Web.Twitter.Monad
     Web.Twitter.Post
+    Web.Twitter.Query
+    Web.Twitter.Stream
+    Web.Twitter.Types
 
   other-modules:
     Web.Twitter.Utils

@@ -5,6 +5,8 @@ module Web.Twitter.Utils
        , sinkJSON'
        , parseFromJSON
        , conduitParser
+       , showBS
+       , insertQuery
        , debugEE
        )
        where
@@ -15,10 +17,13 @@ import Control.Monad.Trans
 import Data.Aeson hiding (Error)
 import qualified Data.Aeson.Types as AT
 import qualified Data.Attoparsec.Types as A
+import Data.ByteString (ByteString)
+import qualified Data.ByteString.Char8 as B8
 import qualified Data.Conduit as C
 import qualified Data.Conduit.Attoparsec as CA
-import Data.ByteString (ByteString)
 import Data.Data
+import qualified Network.HTTP.Types as HT
+import qualified Data.Map as M
 
 data TwitterError
   = TwitterError String
@@ -48,6 +53,16 @@ sinkJSON' = do
   case fromJSON v of
     AT.Error err -> lift $ liftIO $ throwIO $ TwitterError err
     AT.Success r -> return r
+
+-- toMaybeByteString :: Show a => a -> Maybe ByteString
+-- toMaybeByteString = Just . B8.pack . show
+
+showBS :: Show a => a -> ByteString
+showBS = B8.pack . show
+
+insertQuery :: (ByteString, Maybe ByteString) -> HT.Query -> HT.Query
+insertQuery (key, value) = mk
+  where mk = M.toList . M.insert key value . M.fromList
 
 debugEE :: (MonadIO m, Show a) => C.Conduit a m a
 debugEE = undefined -- EL.mapM $ \x -> (liftIO . putStrLn . show) x >> return x
