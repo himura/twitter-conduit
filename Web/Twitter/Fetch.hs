@@ -115,12 +115,12 @@ statusesIdRetweetedByIds :: StatusId -> HT.Query -> C.Source TW UserId
 statusesIdRetweetedByIds status_id = statuses (show status_id ++ "/retweeted_by/ids.json")
 
 statusesRetweetsId :: StatusId -> HT.Query -> TW [RetweetedStatus]
-statusesRetweetsId status_id query = undefined -- apiGet uri query CL.head_
-  -- where uri = endpoint ++ "statuses/retweets/" ++ show status_id ++ ".json"
+statusesRetweetsId status_id query = apiGet uri query
+  where uri = endpoint ++ "statuses/retweets/" ++ show status_id ++ ".json"
 
 statusesShowId :: StatusId -> HT.Query -> TW Status
-statusesShowId status_id query = undefined
-  -- apiGet (endpoint ++ "statuses/show/" ++ show status_id ++ ".json") query CL.head_
+statusesShowId status_id query =
+  apiGet (endpoint ++ "statuses/show/" ++ show status_id ++ ".json") query
 
 mkQueryUser :: QueryUser -> HT.Query
 mkQueryUser (QUserId uid) =  [("user_id", Just $ showBS uid)]
@@ -140,10 +140,10 @@ friendsIds   q = apiCursor (endpoint ++ "friends/ids.json")   (mkQueryUser q) "i
 followersIds q = apiCursor (endpoint ++ "followers/ids.json") (mkQueryUser q) "ids"
 
 usersShow :: QueryUser -> TW User
-usersShow q = undefined -- apiGet (endpoint ++ "users/show.json") (mkQueryUser q) CL.head_
+usersShow q = apiGet (endpoint ++ "users/show.json") (mkQueryUser q)
 
-listsAll :: QueryUser -> C.Source TW List
-listsAll q = undefined -- apiCursor (endpoint ++ "lists/all.json") (mkQueryUser q) ""
+listsAll :: QueryUser -> C.ResourceT TW (C.Source TW List)
+listsAll q = apiCursor (endpoint ++ "lists/all.json") (mkQueryUser q) ""
 
-listsMembers :: QueryList -> C.Source TW User
-listsMembers q = undefined -- apiCursor (endpoint ++ "lists/members.json") (mkQueryList q) "users"
+listsMembers :: QueryList -> C.ResourceT TW (C.Source TW User)
+listsMembers q = apiCursor (endpoint ++ "lists/members.json") (mkQueryList q) "users"

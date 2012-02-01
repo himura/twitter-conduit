@@ -1,15 +1,13 @@
 {-# LANGUAGE DeriveDataTypeable #-}
 
-module Web.Twitter.Utils
-       ( sinkJSON
-       , sinkJSON'
-       , parseFromJSON
-       , conduitParser
-       , showBS
-       , insertQuery
-       , debugEE
-       )
-       where
+module Web.Twitter.Utils (
+  sinkJSON,
+  sinkJSON',
+  parseFromJSON,
+  conduitParser,
+  showBS,
+  insertQuery,
+  ) where
 
 import Control.Applicative
 import Control.Exception
@@ -63,6 +61,3 @@ showBS = B8.pack . show
 insertQuery :: (ByteString, Maybe ByteString) -> HT.Query -> HT.Query
 insertQuery (key, value) = mk
   where mk = M.toList . M.insert key value . M.fromList
-
-debugEE :: (MonadIO m, Show a) => C.Conduit a m a
-debugEE = undefined -- EL.mapM $ \x -> (liftIO . putStrLn . show) x >> return x

@@ -30,7 +30,7 @@ endpoint = "https://api.twitter.com/1/"
 api :: ByteString -- ^ HTTP request method (GET or POST)
     -> String     -- ^ API Resource URL
     -> HT.Query   -- ^ Query
-    -> C.ResourceT TW (C.Source TW ByteString)
+    -> ResourceT TW (C.Source TW ByteString)
 api m url query = do
   (req, mgr) <- lift $ do
     p    <- getProxy
@@ -49,7 +49,7 @@ apiCursor :: (FromJSON a, ResourceThrow m)
              => String
              -> HT.Query
              -> T.Text
-             -> C.ResourceT TW (C.Source m a)
+             -> ResourceT TW (C.Source m a)
 apiCursor uri query cursorKey = go (-1 :: Int) where
   go cursor = do
     let query' = ("cursor", Just $ showBS cursor) `insertQuery` query
