@@ -1,3 +1,5 @@
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+
 module Web.Twitter.Monad
        ( TW
        , TWEnv (..)
@@ -28,7 +30,7 @@ data TWEnv = TWEnv
              }
 
 runTW' :: TWEnv -> TW a -> IO a
-runTW' = flip runReaderT
+runTW' env m = runReaderT m env
 
 runTW :: TWEnv -> TW a -> IO a
 runTW env st =
@@ -64,8 +66,8 @@ getManager = do
     Just m -> return m
     Nothing -> error "manager is not initialized"
 
-signOAuthTW :: Request IO -> TW (Request IO)
+signOAuthTW :: Request TW -> TW (Request TW)
 signOAuthTW req = do
   oa <- getOAuth
   cred <- getCredential
-  liftIO $ runResourceT $ signOAuth oa cred req
+  runResourceT $ signOAuth oa cred req

@@ -101,7 +101,7 @@ data QueryList = QListId Integer | QListName String
 apiGet :: FromJSON a => String -> HT.Query -> TW a
 apiGet uri query = runResourceT $ do
   src <- api "GET" uri query    
-  transResourceT lift $ src C.$$ sinkJSON'
+  src C.$$ sinkJSON'
 
 statuses :: (FromJSON a, Show a) => String -> HT.Query -> C.Source TW a
 statuses uri query = apiWithPages furi query 1
@@ -210,7 +210,7 @@ apiCursor uri query cursorKey = go (-1) where
   go cursor = do
     let query' = insertQuery "cursor" (toMaybeByteString (cursor :: Int)) query
     res <- api "GET" uri query'
-    j <- transResourceT lift $ res C.$$ sinkJSON
+    j <- res C.$$ sinkJSON
     case AE.parseMaybe p j of
       Nothing ->
         return CL.sourceNull
@@ -225,12 +225,12 @@ apiCursor uri query cursorKey = go (-1) where
 streamingConduit :: C.ResourceThrow m => C.Conduit ByteString m StreamingAPI
 streamingConduit = conduitParser parseFromJSON
 
-userstream :: C.ResourceT TW (C.Source IO StreamingAPI)
+userstream :: C.ResourceT TW (C.Source TW StreamingAPI)
 userstream = do
   src <- api "GET" "https://userstream.twitter.com/2/user.json" []
   return $ src C.$= streamingConduit
 
-statusesFilter :: HT.Query -> C.ResourceT TW (C.Source IO StreamingAPI)
+statusesFilter :: HT.Query -> C.ResourceT TW (C.Source TW StreamingAPI)
 statusesFilter query = do
   src <- api "GET" "https://stream.twitter.com/1/statuses/filter.json" query
   return $ src C.$= streamingConduit
