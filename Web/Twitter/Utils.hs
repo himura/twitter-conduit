@@ -1,16 +1,15 @@
 {-# LANGUAGE DeriveDataTypeable #-}
 
 module Web.Twitter.Utils
-       ( enumJSON
-       , sinkJSON
+       ( sinkJSON
        , sinkJSON'
+       , parseFromJSON
        , conduitParser
-       , skipNothing
        , debugEE
-       , fromJSON'
        )
        where
 
+import Control.Applicative
 import Control.Exception
 import Control.Monad.Trans
 import Data.Aeson hiding (Error)
@@ -27,17 +26,18 @@ data TwitterError
 
 instance Exception TwitterError
  
-skipNothing :: Monad m => C.Conduit (Maybe a) m a
-skipNothing = undefined -- EL.concatMap (\x -> [fromJust x | isJust x])
+parseFromJSON :: FromJSON a => A.Parser ByteString a
+parseFromJSON = do
+  v <- json
+  case fromJSON v of
+    AT.Error _ -> empty
+    AT.Success r -> return r
 
-debugEE :: (MonadIO m, Show a) => C.Conduit a m a
-debugEE = undefined -- EL.mapM $ \x -> (liftIO . putStrLn . show) x >> return x
-
-fromJSON' :: FromJSON a => Value -> Maybe a
-fromJSON' = AT.parseMaybe parseJSON
-
-enumJSON :: Monad m => C.Conduit ByteString m Value
-enumJSON = undefined -- E.sequence $ iterParser json
+conduitParser :: (CA.AttoparsecInput a, C.ResourceThrow m) => A.Parser a b -> C.Conduit a m b
+conduitParser p =
+  C.sequenceSink () $ \() -> do
+    ret <- CA.sinkParser p
+    return $ C.Emit () [ret]
 
 sinkJSON :: C.ResourceThrow m => C.Sink ByteString m Value
 sinkJSON = CA.sinkParser json
@@ -49,8 +49,5 @@ sinkJSON' = do
     AT.Error err -> lift $ liftIO $ throwIO $ TwitterError err
     AT.Success r -> return r
 
-conduitParser :: (CA.AttoparsecInput a, C.ResourceThrow m) => A.Parser a b -> C.Conduit a m b
-conduitParser p =
-  C.sequenceSink () $ \() -> do
-    ret <- CA.sinkParser p
-    return $ C.Emit () [ret]
+debugEE :: (MonadIO m, Show a) => C.Conduit a m a
+debugEE = undefined -- EL.mapM $ \x -> (liftIO . putStrLn . show) x >> return x

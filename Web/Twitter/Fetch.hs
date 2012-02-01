@@ -101,8 +101,7 @@ data QueryList = QListId Integer | QListName String
 apiGet :: FromJSON a => String -> HT.Query -> TW a
 apiGet uri query = runResourceT $ do
   src <- api "GET" uri query    
-  js <- transResourceT lift $ src C.$$ sinkJSON
-  return $ fromJust $ fromJSON' js
+  transResourceT lift $ src C.$$ sinkJSON'
 
 statuses :: (FromJSON a, Show a) => String -> HT.Query -> C.Source TW a
 statuses uri query = apiWithPages furi query 1
@@ -121,7 +120,6 @@ apiWithPages uri query initPage =
         Just [] -> k EOF
         Just xs -> k (Chunks xs) >>== loop (page + 1)
         Nothing -> k EOF
--}
 
 iterPageC :: (C.Resource m, Monad m, FromJSON a) => C.Sink Value m (Maybe [a])
 iterPageC = do
@@ -129,10 +127,13 @@ iterPageC = do
   case ret of
     Just v -> return . fromJSON' $ v
     Nothing -> return Nothing
+-}
 
 insertQuery :: ByteString -> Maybe ByteString -> HT.Query -> HT.Query
 insertQuery key value = mk
   where mk = M.toList . M.insert key value . M.fromList
+
+--
 
 statusesHomeTimeline :: HT.Query -> C.Source TW Status
 statusesHomeTimeline = statuses "home_timeline.json"
@@ -222,7 +223,7 @@ apiCursor uri query cursorKey = go (-1) where
   p _ = mempty
 
 streamingConduit :: C.ResourceThrow m => C.Conduit ByteString m StreamingAPI
-streamingConduit = conduitParser json C.=$= CL.concatMap (maybeToList . fromJSON')
+streamingConduit = conduitParser parseFromJSON
 
 userstream :: C.ResourceT TW (C.Source IO StreamingAPI)
 userstream = do
