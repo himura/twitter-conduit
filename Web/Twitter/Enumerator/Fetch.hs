@@ -98,9 +98,11 @@ data QueryUser = QUserId UserId | QScreenName String
 data QueryList = QListId Integer | QListName String
                deriving (Show, Eq)
 
-apiGet :: FromJSON a => String -> HT.Query -> C.Sink a IO b -> TW b
-apiGet uri query iter = undefined -- run_ $ api "GET" uri query (handleParseError iter')
-  -- where iter' = enumJSON =$ EL.map fromJSON' =$ skipNothing =$ iter
+apiGet :: FromJSON a => String -> HT.Query -> TW a
+apiGet uri query = runResourceT $ do
+  src <- api "GET" uri query    
+  js <- transResourceT lift $ src C.$$ sinkJSON
+  return $ fromJust $ fromJSON' js
 
 statuses :: (FromJSON a, Show a) => String -> HT.Query -> C.Source TW a
 statuses uri query = apiWithPages furi query 1
@@ -197,66 +199,6 @@ listsAll q = undefined -- apiCursor (endpoint ++ "lists/all.json") (mkQueryUser 
 
 listsMembers :: QueryList -> C.Source TW User
 listsMembers q = undefined -- apiCursor (endpoint ++ "lists/members.json") (mkQueryList q) "users"
-
-data Cursor a =
-  Cursor
-  { cursorCurrent :: [a]
-  , cursorPrev :: Maybe Integer
-  , cursorNext :: Maybe Integer
-  } deriving (Show, Eq)
-
-iterCursor' :: (C.Resource m, Monad m, FromJSON a) => T.Text -> C.Sink Value m (Maybe (Cursor a))
-iterCursor' key = do
-  ret <- CL.head
-  case ret of
-    Just v -> return . AE.parseMaybe (parseCursor key) $ v
-    Nothing -> return Nothing
-
-iterCursor :: (C.Resource m, Monad m, FromJSON a) => T.Text -> C.Sink ByteString m (Maybe (Cursor a))
-iterCursor key = undefined -- enumLine C.=$ handleParseError (enumJSON C.=$ iterCursor' key)
-
-handleParseError :: Monad m => C.Sink ByteString m b -> C.Sink ByteString m b
-handleParseError iter = undefined {- iter `catchError` hndl
-  where
-    getChunk = continue return
-    hndl e = getChunk >>= \x -> case x of
-      Chunks xs -> throwError $ ParserException e xs
-      _ -> throwError $ ParserException e []
--}
-
-parseCursor :: FromJSON a => T.Text -> Value -> AE.Parser (Cursor a)
-parseCursor key (Object o) =
-  checkError o
-  <|>
-  Cursor <$> o .: key <*> o .:? "previous_cursor" <*> o .:? "next_cursor"
-parseCursor _ v@(Array _) = return $ Cursor (maybe [] id $ fromJSON' v) Nothing Nothing
-parseCursor _ o = fail $ "Error at parseCursor: unknown object " ++ show o
-
-{-
-apiCursor
-  :: (FromJSON a, Show a) =>
-     String
-     -> HT.Query
-     -> T.Text
-     -> Integer
-     -> C.Source TW a
-apiCursor uri query cursorKey initCur = undefined
-  checkContinue1 go initCur
-  where
-    go loop cursor k = do
-      let query' = insertQuery "cursor" (toMaybeByteString cursor) query
-      res <- lift $ run_ $ api "GET" uri query' (iterCursor cursorKey)
-      case res of
-        Just r -> do
-          let nextCur = cursorNext r
-              chunks = Chunks . cursorCurrent $ r
-          case nextCur of
-            -- TODO: clean up
-            Just 0  -> k chunks
-            Just nc -> k chunks >>== loop nc
-            Nothing -> k chunks
-        Nothing -> k EOF
--}
 
 apiCursor :: (FromJSON a, C.ResourceThrow m)
              => String

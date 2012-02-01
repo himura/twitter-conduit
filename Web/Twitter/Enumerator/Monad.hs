@@ -15,6 +15,7 @@ module Web.Twitter.Enumerator.Monad
 import Web.Authenticate.OAuth
 import Network.HTTP.Conduit
 import Control.Monad.Trans
+import Control.Monad.Trans.Resource
 import Control.Monad.Reader
 
 type TW = ReaderT TWEnv IO
@@ -67,4 +68,4 @@ signOAuthTW :: Request IO -> TW (Request IO)
 signOAuthTW req = do
   oa <- getOAuth
   cred <- getCredential
-  liftIO $ signOAuth oa cred req
+  liftIO $ runResourceT $ signOAuth oa cred req

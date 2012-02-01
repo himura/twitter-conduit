@@ -31,6 +31,13 @@ enumJSON = undefined -- E.sequence $ iterParser json
 sinkJSON :: C.ResourceThrow m => C.Sink ByteString m Value
 sinkJSON = CA.sinkParser json
 
+sinkJSON' :: (FromJSON a, C.ResourceThrow m) => C.Sink ByteString m a
+sinkJSON' = do
+  v <- sinkJSON
+  case fromJSON' v of
+    -- Nothing -> C.resourceThrow $ ParseException v []
+    Just r -> return r
+
 conduitParser :: (CA.AttoparsecInput a, C.ResourceThrow m) => A.Parser a b -> C.Conduit a m b
 conduitParser p =
   C.sequenceSink () $ \() -> do

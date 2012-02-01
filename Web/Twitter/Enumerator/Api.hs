@@ -24,7 +24,7 @@ endpoint = "https://api.twitter.com/1/"
 api :: ByteString -- ^ HTTP request method (GET or POST)
     -> String -- ^ API Resource URL
     -> HT.Query -- ^ Query
-    -> C.ResourceT TW (C.BufferedSource IO ByteString)
+    -> C.ResourceT TW (C.Source IO ByteString)
 api m url query = do
   (req, mgr) <- lift $ do
     p    <- getProxy

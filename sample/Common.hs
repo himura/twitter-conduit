@@ -16,6 +16,8 @@ import qualified Data.ByteString.Char8 as B
 import qualified Data.CaseInsensitive as CI
 import Data.Attoparsec
 import Control.Applicative
+import Control.Monad.Trans
+import Control.Monad.Trans.Resource
 import System.IO
 import System.FilePath
 import System.Directory
@@ -63,7 +65,8 @@ saveCredential file cred = LB.writeFile file $ encode . unCredential $ cred
 withCredentialFile :: FilePath -> TW a -> IO a
 withCredentialFile file task = do
   pr <- getProxyEnv
-  cred <- maybe (authorize pr tokens getPIN) return =<< loadCredential file
+  cred <- withManager $ \mng -> do
+    liftIO $ maybe (authorize pr tokens getPIN mng) return =<< loadCredential file
   saveCredential file cred
   let env = newEnv tokens
   runTW env { twCredential = cred, twProxy = pr } $ task
@@ -87,9 +90,9 @@ getProxyEnv = do
     parsePort (':':xs) = read xs
     parsePort xs       = error $ "port number parse failed " ++ xs
 
-authorize :: Maybe Proxy -> OAuth -> (String -> IO String) -> IO Credential
-authorize pr oauth getPIN = do
-  cred <- OA.getTemporaryCredentialProxy pr oauth
+authorize :: Maybe Proxy -> OAuth -> (String -> IO String) -> Manager -> IO Credential
+authorize pr oauth getPIN mng = runResourceT $ do
+  cred <- OA.getTemporaryCredentialProxy pr oauth mng
   let url = OA.authorizeUrl oauth cred
-  pin <- getPIN url
-  OA.getAccessTokenProxy pr oauth $ OA.insert "oauth_verifier" (B.pack pin) cred
+  pin <- liftIO $ getPIN url
+  OA.getAccessTokenProxy pr oauth (OA.insert "oauth_verifier" (B.pack pin) cred) mng
