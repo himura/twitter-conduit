@@ -66,18 +66,9 @@ module Web.Twitter.Fetch
        )
        where
 
-import Control.Monad.Trans
-import Control.Monad.Trans.Resource
-import Control.Applicative
 import Data.Aeson hiding (Error)
-import qualified Data.Aeson.Types as AE
 import qualified Data.Conduit as C
-import qualified Data.Conduit.List as CL
-import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as B8
-import Data.Maybe
-import Data.Monoid
-import qualified Data.Text as T
 import qualified Network.HTTP.Types as HT
 
 import Web.Twitter.Types

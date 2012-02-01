@@ -1,31 +1,28 @@
 {-# LANGUAGE RecordWildCards, OverloadedStrings #-}
 module Web.Twitter.Api
        ( api
+       , apiGet
        , apiCursor
        , apiWithPages
 
        , endpoint
        ) where
 
-import Web.Twitter.Types
 import Web.Twitter.Monad
 import Web.Twitter.Utils
 
 import Control.Applicative
-import Control.Monad
 import Control.Monad.Trans
 import Control.Monad.Trans.Resource
 import Data.Aeson
 import Data.Aeson.Types
 import Data.ByteString (ByteString)
 import qualified Data.Conduit as C
-import qualified Data.Conduit.Binary as CB
 import qualified Data.Conduit.List as CL
 import Data.Monoid
 import qualified Data.Text as T
 import Network.HTTP.Conduit
 import qualified Network.HTTP.Types as HT
-import System.IO
 
 endpoint :: String
 endpoint = "https://api.twitter.com/1/"
@@ -42,6 +39,11 @@ api m url query = do
     mgr  <- getManager
     return (req', mgr)
   responseBody <$> http req mgr
+
+apiGet :: FromJSON a => String -> HT.Query -> TW a
+apiGet uri query = runResourceT $ do
+  src <- api "GET" uri query
+  src C.$$ sinkJSON'
 
 apiCursor :: (FromJSON a, ResourceThrow m)
              => String
@@ -64,13 +66,8 @@ apiCursor uri query cursorKey = go (-1 :: Int) where
   p (Object v) = (,) <$> v .: cursorKey <*> v .: "next_cursor"
   p _ = mempty
 
-apiGet :: FromJSON a => String -> HT.Query -> TW a
-apiGet uri query = runResourceT $ do
-  src <- api "GET" uri query    
-  src C.$$ sinkJSON'
-
 apiWithPages :: (FromJSON a, Show a) => String -> HT.Query -> Integer -> C.Source TW a
-apiWithPages uri query initPage = undefined
+apiWithPages = undefined
 {-
 apiWithPages uri query initPage =
   checkContinue1 go initPage
