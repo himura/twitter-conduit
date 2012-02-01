@@ -1,12 +1,12 @@
-name:              twitter-enumerator
-version:           0.0.2
+name:              twitter-conduit
+version:           0.0.0
 license:           BSD3
 license-file:      LICENSE
 author:            Takahiro HIMURA
 maintainer:        taka@himura.jp
-synopsis:          Twitter API package with enumerator interface and Streaming API support.
-description:       This package uses enumerator package for access Twitter API.
-category:          Web, Enumerator
+synopsis:          Twitter API package with conduit interface and Streaming API support.
+description:       This package uses conduit package for access Twitter API.
+category:          Web, Conduit
 stability:         Experimental
 cabal-version:     >= 1.8
 build-type:        Simple
@@ -64,4 +64,4 @@ executable oslist
     , network >= 2.3 && < 2.4
     , authenticate >= 1.0 && < 1.1
     , authenticate-oauth >= 1.0 && < 1.1
-    , twitter-enumerator
+    , twitter-conduit
