@@ -65,25 +65,13 @@ apiCursor url query cursorKey = join $ go (-1 :: Int) where
 
   p (Object v) = (,) <$> v .: cursorKey <*> v .: "next_cursor"
   p _ = mempty
-  
-apiWithPages :: (FromJSON a, Show a) => String -> HT.Query -> C.Source TW a
-apiWithPages = undefined
-{-
-apiWithPages uri query initPage =
-  checkContinue1 go initPage
-  where
-    go loop page k = do
-      let query' = insertQuery "page" (toMaybeByteString page) query
-      res <- lift $ run_ $ api "GET" uri query' (handleParseError (enumJSON =$ iterPageC))
-      case res of
-        Just [] -> k EOF
-        Just xs -> k (Chunks xs) >>== loop (page + 1)
-        Nothing -> k EOF
 
-iterPageC :: (C.Resource m, Monad m, FromJSON a) => C.Sink Value m (Maybe [a])
-iterPageC = do
-  ret <- CL.head
-  case ret of
-    Just v -> return . fromJSON' $ v
-    Nothing -> return Nothing
--}
+
+apiWithPages :: (FromJSON a, Show a) => String -> HT.Query -> C.Source TW a
+apiWithPages url query = C.sourceState 1 pull C.$= CL.concatMap id where
+  pull page = do
+    let query' = ("page", Just $ showBS page) `insertQuery` query
+    rs <- api "GET" (endpoint ++ url) query' C.$$ sinkFromJSON
+    case rs of
+      [] -> return C.StateClosed
+      _ -> return $ C.StateOpen (page + 1) rs
