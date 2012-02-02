@@ -68,7 +68,7 @@ apiCursor url query cursorKey = join $ go (-1 :: Int) where
 
 
 apiWithPages :: (FromJSON a, Show a) => String -> HT.Query -> C.Source TW a
-apiWithPages url query = C.sourceState 1 pull C.$= CL.concatMap id where
+apiWithPages url query = C.sourceState (1 :: Int) pull C.$= CL.concatMap id where
   pull page = do
     let query' = ("page", Just $ showBS page) `insertQuery` query
     rs <- api "GET" (endpoint ++ url) query' C.$$ sinkFromJSON

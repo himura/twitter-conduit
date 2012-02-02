@@ -22,7 +22,7 @@ import Web.Twitter.Monad
 import Web.Twitter.Types
 
 statuses :: (FromJSON a, Show a) => String -> HT.Query -> C.Source TW a
-statuses url query = undefined -- apiWithPages ("statuses/" ++ url) query
+statuses url query = apiWithPages ("statuses/" ++ url) query
 
 homeTimeline :: HT.Query -> C.Source TW Status
 homeTimeline = statuses "home_timeline.json"
