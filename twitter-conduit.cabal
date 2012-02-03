@@ -21,8 +21,7 @@ library
 
   build-depends:
       base >= 4 && < 5
-    , mtl >= 2
-    , authenticate >= 1.0 && < 1.1
+    , mtl >= 2.0 && < 2.1
     , authenticate-oauth >= 1.0 && < 1.1
     , conduit >= 0.2 && < 0.3
     , http-types
@@ -52,11 +51,13 @@ executable oslist
   main-is: oslist.hs
   hs-source-dirs: sample
 
+  ghc-options: -Wall
+
   build-depends:
       base >= 4 && < 5
-    , mtl >= 2
-    , containers
-    , conduit >= 0.0
+    , mtl >= 2.0 && < 2.1
+    , containers >= 0.4 && < 0.5
+    , conduit >= 0.2 && < 0.3
     , directory >= 1.1 && < 1.2
     , filepath >= 1.2 && < 1.4
     , attoparsec >= 0.10 && < 0.11
@@ -65,7 +66,6 @@ executable oslist
     , aeson >= 0.6 && < 0.7
     , http-conduit >= 1.1
     , network >= 2.3 && < 2.4
-    , authenticate >= 1.0 && < 1.1
     , authenticate-oauth >= 1.0 && < 1.1
     , twitter-conduit
 
@@ -73,11 +73,13 @@ executable userstream
   main-is: userstream.hs
   hs-source-dirs: sample
 
+  ghc-options: -Wall
+
   build-depends:
       base >= 4 && < 5
-    , mtl >= 2
-    , containers
-    , conduit >= 0.0
+    , mtl >= 2 && < 2.1
+    , containers >= 0.4 && < 0.5
+    , conduit >= 0.2 && < 0.3
     , directory >= 1.1 && < 1.2
     , filepath >= 1.2 && < 1.4
     , attoparsec >= 0.10 && < 0.11
@@ -86,6 +88,5 @@ executable userstream
     , aeson >= 0.6 && < 0.7
     , http-conduit >= 1.1
     , network >= 2.3 && < 2.4
-    , authenticate >= 1.0 && < 1.1
     , authenticate-oauth >= 1.0 && < 1.1
     , twitter-conduit
