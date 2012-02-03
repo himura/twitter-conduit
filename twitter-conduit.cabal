@@ -58,7 +58,7 @@ executable oslist
     , containers
     , conduit >= 0.0
     , directory >= 1.1 && < 1.2
-    , filepath >= 1.2 && < 1.3
+    , filepath >= 1.2 && < 1.4
     , attoparsec >= 0.10 && < 0.11
     , bytestring >= 0.9 && < 0.10
     , case-insensitive >= 0.4 && < 0.5
@@ -79,7 +79,7 @@ executable userstream
     , containers
     , conduit >= 0.0
     , directory >= 1.1 && < 1.2
-    , filepath >= 1.2 && < 1.3
+    , filepath >= 1.2 && < 1.4
     , attoparsec >= 0.10 && < 0.11
     , bytestring >= 0.9 && < 0.10
     , case-insensitive >= 0.4 && < 0.5

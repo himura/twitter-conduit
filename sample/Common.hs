@@ -24,16 +24,14 @@ import System.Directory
 import System.Environment
 
 tokens :: OAuth
-tokens = OAuth { oauthServerName = "twitter"
-               , oauthRequestUri = "http://twitter.com/oauth/request_token"
-               , oauthAccessTokenUri = "http://twitter.com/oauth/access_token"
-               , oauthAuthorizeUri = "http://twitter.com/oauth/authorize"
-               , oauthConsumerKey = "K6fxaUunNsxMTNmFYhg"
-               , oauthConsumerSecret = "nNFw21METyA0J5yuAYeeQxlB7ZXPgJFoFVoKI97Kk"
-               , oauthSignatureMethod = OA.HMACSHA1
-               , oauthCallback = Nothing
-               , oauthRealm = Nothing
-               }
+tokens = OA.newOAuth
+  { oauthServerName = "twitter"
+  , oauthRequestUri = "http://twitter.com/oauth/request_token"
+  , oauthAccessTokenUri = "http://twitter.com/oauth/access_token"
+  , oauthAuthorizeUri = "http://twitter.com/oauth/authorize"
+  , oauthConsumerKey = "K6fxaUunNsxMTNmFYhg"
+  , oauthConsumerSecret = "nNFw21METyA0J5yuAYeeQxlB7ZXPgJFoFVoKI97Kk"
+  }
 
 ensureDirectoryExist :: FilePath -> IO FilePath
 ensureDirectoryExist dir = do
