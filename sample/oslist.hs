@@ -4,10 +4,8 @@ module Main where
 import qualified Data.Conduit as C
 import qualified Data.Conduit.List as CL
 import qualified Data.Map as M
-import Control.Monad
 import Control.Monad.Trans
 import System.Environment
-import System.IO
 
 import Web.Twitter
 import Common
