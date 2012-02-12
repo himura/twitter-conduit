@@ -1,6 +1,7 @@
 module Web.Twitter.Enumerator.Api
        ( api
        , endpoint
+       , endpointSearch
        ) where
 
 import Web.Twitter.Enumerator.Types
@@ -18,13 +19,17 @@ import Control.Monad.IO.Class (MonadIO (liftIO))
 endpoint :: String
 endpoint = "https://api.twitter.com/1/"
 
-api :: ByteString -- ^ HTTP request method (GET or POST)
+endpointSearch :: String
+endpointSearch = "http://search.twitter.com/"
+
+api :: Bool -- ^ OAuth required?
+    -> ByteString -- ^ HTTP request method (GET or POST)
     -> String -- ^ API Resource URL
     -> HT.Query -- ^ Query
     -> Iteratee ByteString IO a
     -> Iteratee ByteString TW a
-api m url query iter = do
-  req <- lift $ apiRequest m url query
+api toOAuth m url query iter = do
+  req <- lift $ apiRequest toOAuth m url query
   httpMgr req (handleError iter)
   where
     handleError iter' st@(HT.Status sc _) _ =
@@ -42,9 +47,10 @@ httpMgr req iterf = do
   liftTrans $ http req iterf mgr
 
 
-apiRequest :: ByteString -> String -> HT.Query -> TW (Request IO)
-apiRequest m uri query = do
+apiRequest :: Bool -> ByteString -> String -> HT.Query -> TW (Request IO)
+apiRequest toOAuth m uri query = do
   p <- getProxy
   req <- liftIO $ parseUrl uri >>= \r ->
     return $ r { method = m, queryString = query, proxy = p }
-  signOAuthTW req
+  if toOAuth then signOAuthTW req
+             else return req

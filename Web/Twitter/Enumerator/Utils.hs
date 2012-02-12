@@ -1,9 +1,12 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 module Web.Twitter.Enumerator.Utils
        ( enumLine
        , enumJSON
        , skipNothing
        , debugEE
        , fromJSON'
+       , fromJSONSearch'
        )
        where
 
@@ -29,6 +32,10 @@ debugEE = EL.mapM $ \x -> (liftIO . putStrLn . show) x >> return x
 
 fromJSON' :: FromJSON a => Value -> Maybe a
 fromJSON' = parseMaybe parseJSON
+
+fromJSONSearch' :: FromJSON a => Value -> Maybe a
+fromJSONSearch' (Object o) = parseMaybe (.: "results") o
+fromJSONSearch' _          = Nothing
 
 enumJSON :: Monad m => E.Enumeratee ByteString Value m a
 enumJSON = E.sequence $ iterParser json

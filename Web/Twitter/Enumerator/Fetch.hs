@@ -22,7 +22,7 @@ module Web.Twitter.Enumerator.Fetch
        , statusesShowId
 
        -- * Search
-       -- , search
+       , search
 
        -- * Direct Messages
        -- , directMessages
@@ -101,20 +101,22 @@ data QueryList = QListId Integer | QListName String
 
 
 apiGet :: FromJSON a => String -> HT.Query -> Iteratee a IO b -> TW b
-apiGet uri query iter = run_ $ api "GET" uri query (handleParseError iter')
+apiGet uri query iter = run_ $ api True "GET" uri query (handleParseError iter')
   where iter' = enumJSON =$ EL.map fromJSON' =$ skipNothing =$ iter
 
 statuses :: (FromJSON a, Show a) => String -> HT.Query -> Enumerator a TW b
-statuses uri query = apiWithPages furi query 1
+statuses uri query = apiWithPages True furi query 1
   where furi = endpoint ++ "statuses/" ++ uri
 
-apiWithPages :: (FromJSON a, Show a) => String -> HT.Query -> Integer -> Enumerator a TW b
-apiWithPages uri query initPage =
+apiWithPages :: (FromJSON a, Show a) => Bool -> String -> HT.Query -> Integer -> Enumerator a TW b
+apiWithPages isStatuses uri query initPage =
+-- isStatuses = True:  normal GET/statuses APIs with OAuth
+-- isStatuses = False: search API
   checkContinue1 go initPage
   where
     go loop page k = do
       let query' = insertQuery "page" (toMaybeByteString page) query
-      res <- lift $ run_ $ api "GET" uri query' (handleParseError (enumJSON =$ iterPageC))
+      res <- lift $ run_ $ api isStatuses "GET" uri query' (handleParseError (enumJSON =$ (if isStatuses then iterPageC else iterPageCSearch)))
       case res of
         Just [] -> k EOF
         Just xs -> k (Chunks xs) >>== loop (page + 1)
@@ -125,6 +127,13 @@ iterPageC = do
   ret <- EL.head
   case ret of
     Just v -> return . fromJSON' $ v
+    Nothing -> return Nothing
+
+iterPageCSearch :: (Monad m, FromJSON a) => Iteratee Value m (Maybe [a])
+iterPageCSearch = do
+  ret <- EL.head
+  case ret of
+    Just v -> return . fromJSONSearch' $ v
     Nothing -> return Nothing
 
 insertQuery :: ByteString -> Maybe ByteString -> HT.Query -> HT.Query
@@ -170,6 +179,10 @@ statusesRetweetsId status_id query = apiGet uri query EL.head_
 
 statusesShowId :: StatusId -> HT.Query -> TW Status
 statusesShowId status_id query = apiGet (endpoint ++ "statuses/show/" ++ show status_id ++ ".json") query EL.head_
+
+search :: String -> Enumerator SearchStatus TW a
+search q = apiWithPages False (endpointSearch ++ "search.json") query 1
+  where query = [("q", Just . B8.pack $ q)]
 
 mkQueryUser :: QueryUser -> HT.Query
 mkQueryUser (QUserId uid) =  [("user_id", toMaybeByteString uid)]
@@ -242,7 +255,7 @@ apiCursor uri query cursorKey initCur =
   where
     go loop cursor k = do
       let query' = insertQuery "cursor" (toMaybeByteString cursor) query
-      res <- lift $ run_ $ api "GET" uri query' (iterCursor cursorKey)
+      res <- lift $ run_ $ api True "GET" uri query' (iterCursor cursorKey)
       case res of
         Just r -> do
           let nextCur = cursorNext r
@@ -259,10 +272,10 @@ apiIter :: (FromJSON a, Monad m) => Iteratee a m b -> Iteratee ByteString m b
 apiIter iter = enumLine =$ handleParseError (enumJSON =$ EL.map fromJSON' =$ skipNothing =$ iter)
 
 userstream :: Iteratee StreamingAPI IO a -> Iteratee ByteString TW a
-userstream = api "GET" "https://userstream.twitter.com/2/user.json" [] . apiIter
+userstream = api True "GET" "https://userstream.twitter.com/2/user.json" [] . apiIter
 
 statusesFilter :: HT.Query -> Iteratee StreamingAPI IO a -> Iteratee ByteString TW a
-statusesFilter query = api "GET" "https://stream.twitter.com/1/statuses/filter.json" query . apiIter
+statusesFilter query = api True "GET" "https://stream.twitter.com/1/statuses/filter.json" query . apiIter
 
 toMaybeByteString :: Show a => a -> Maybe ByteString
 toMaybeByteString = Just . B8.pack . show
