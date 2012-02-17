@@ -193,7 +193,6 @@ listsMembers q = apiCursor (endpoint ++ "lists/members.json") (mkQueryList q) "u
 data Cursor a =
   Cursor
   { cursorCurrent :: [a]
-  , cursorPrev :: Maybe Integer
   , cursorNext :: Maybe Integer
   } deriving (Show, Eq)
 
@@ -211,8 +210,8 @@ parseCursor :: FromJSON a => T.Text -> Value -> AE.Parser (Cursor a)
 parseCursor key (Object o) =
   checkError o
   <|>
-  Cursor <$> o .: key <*> o .:? "previous_cursor" <*> o .:? "next_cursor"
-parseCursor _ v@(Array _) = return $ Cursor (maybe [] id $ fromJSON' v) Nothing Nothing
+  Cursor <$> o .: key <*> o .:? "next_cursor"
+parseCursor _ v@(Array _) = return $ Cursor (maybe [] id $ fromJSON' v) Nothing
 parseCursor _ o = fail $ "Error at parseCursor: unknown object " ++ show o
 
 apiCursor
