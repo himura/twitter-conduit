@@ -89,8 +89,9 @@ showTL _ = return ()
 
 showEventTarget :: EventTarget -> IO ()
 showEventTarget (ETUser u) =
-  B.putStrLn $ B.concat ["@", screenName, " (followers:", fol, ", description:", T.encodeUtf8 . userDescription $ u, ")"]
+  B.putStrLn $ B.concat ["@", screenName, " (followers:", fol, ", description:", des, ")"]
     where screenName = B.pack . userScreenName $ u
+          des = maybe "" T.encodeUtf8 $ userDescription u
           fol = B.pack . maybe "" show $ userFollowers u
 showEventTarget (ETStatus s) =
   B.putStrLn $ B.concat [user, ": ", T.encodeUtf8 text]
