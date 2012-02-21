@@ -21,6 +21,7 @@ import Data.Enumerator (Iteratee, throwError, liftTrans)
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as B8
 
+import Control.Monad.Trans.Reader
 import Control.Monad.Trans.Class
 import Control.Monad.IO.Class (MonadIO (liftIO))
 
@@ -30,14 +31,14 @@ endpoint = "https://api.twitter.com/1/"
 endpointSearch :: String
 endpointSearch = "http://search.twitter.com/"
 
-api :: Bool -- ^ OAuth required?
+api :: RequireAuth -- ^ OAuth required?
     -> ByteString -- ^ HTTP request method (GET or POST)
     -> String -- ^ API Resource URL
     -> HT.Query -- ^ Query
     -> Iteratee ByteString IO a
     -> Iteratee ByteString TW a
-api toOAuth m url query iter = do
-  req <- lift $ apiRequest toOAuth m url query
+api authp m url query iter = do
+  req <- lift $ apiRequest authp m url query
   httpMgr req (handleError iter)
   where
     handleError iter' st@(HT.Status sc _) _ =
@@ -54,14 +55,12 @@ httpMgr req iterf = do
   mgr <- lift getManager
   liftTrans $ http req iterf mgr
 
-
-apiRequest :: Bool -> ByteString -> String -> HT.Query -> TW (Request IO)
-apiRequest toOAuth m uri query = do
-  p <- getProxy
+apiRequest :: RequireAuth -> ByteString -> String -> HT.Query -> TW (Request IO)
+apiRequest authp m uri query = do
+  p <- asks twProxy
   req <- liftIO $ parseUrl uri >>= \r ->
     return $ r { method = m, queryString = query, proxy = p }
-  if toOAuth then signOAuthTW req
-             else return req
+  signOAuthTW authp req
 
 data QueryUser = QUserId UserId | QScreenName String
                deriving (Show, Eq)

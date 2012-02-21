@@ -64,8 +64,7 @@ withCredentialFile file task = do
   pr <- getProxyEnv
   cred <- maybe (authorize pr tokens getPIN) return =<< loadCredential file
   saveCredential file cred
-  let env = newEnv tokens
-  runTW env { twCredential = cred, twProxy = pr } $ task
+  runTW def { twOAuth = Just tokens, twCredential = cred, twProxy = pr } $ task
   where
     getPIN url = do
       putStrLn $ "browse URL: " ++ url
