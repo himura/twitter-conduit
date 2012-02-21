@@ -136,7 +136,6 @@ instance FromJSON Status where
            <*> o .:  "entities"
            <*> o .:? "in_reply_to_status_id"
            <*> o .:? "in_reply_to_user_id"
-           -- <*> o .:? "favorite" -- TODO: check whether it should be favorite or favorited
            <*> o .:? "favorited"
            <*> o .:? "retweet_count"
            <*> o .:  "user"
