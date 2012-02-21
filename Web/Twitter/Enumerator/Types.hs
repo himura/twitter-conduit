@@ -53,20 +53,19 @@ type StatusId     = Integer
 type LanguageCode = String
 
 -- | The re-tweeted count appears to be limited to 100;
---   any values larger than this are listed as a string
---   as \"100+\". It is not clear from the documentation
---   whether you can get a 100 and 100+ or just the latter.
+-- any values larger than this are listed as a string
+-- as \"100+\". It is not clear from the documentation
+-- whether you can get a 100 and 100+ or just the latter.
 --
---   For now we treat the re-tweet cound as a bounded value
---   between 0 and 100 inclusive, but this is an
---   /experimental/ change.
---
+-- For now we treat the re-tweet cound as a bounded value
+-- between 0 and 100 inclusive, but this is an
+-- /experimental/ change.
 newtype RetweetCount = RC Int
                        deriving Eq
-                                
+
 instance Show RetweetCount where
   show (RC i) = show i
-  
+
 instance Bounded RetweetCount where
   minBound = RC 0
   maxBound = RC 100
@@ -156,11 +155,11 @@ data SearchStatus =
 instance FromJSON SearchStatus where
   parseJSON (Object o) = checkError o <|>
     SearchStatus <$> o .:  "created_at"
-           <*> o .:  "id"
-           <*> o .:  "text"
-           <*> o .:  "source"
-           <*> o .:  "from_user_id"
-           <*> o .:  "from_user"
+                 <*> o .:  "id"
+                 <*> o .:  "text"
+                 <*> o .:  "source"
+                 <*> o .:  "from_user_id"
+                 <*> o .:  "from_user"
   parseJSON _ = mzero
 
 data RetweetedStatus =
@@ -177,14 +176,14 @@ data RetweetedStatus =
 
 instance FromJSON RetweetedStatus where
   parseJSON (Object o) = checkError o <|>
-    RetweetedStatus <$> o .: "created_at"
-                    <*> o .: "id"
-                    <*> o .: "text"
-                    <*> o .: "source"
-                    <*> o .: "truncated"
-                    <*> o .: "entities"
-                    <*> o .: "user"
-                    <*> o .: "retweeted_status"
+    RetweetedStatus <$> o .:  "created_at"
+                    <*> o .:  "id"
+                    <*> o .:  "text"
+                    <*> o .:  "source"
+                    <*> o .:  "truncated"
+                    <*> o .:  "entities"
+                    <*> o .:  "user"
+                    <*> o .:  "retweeted_status"
   parseJSON _ = mzero
 
 data EventType = Favorite | Unfavorite
@@ -281,65 +280,60 @@ data List =
 
 instance FromJSON List where
   parseJSON (Object o) = checkError o <|>
-    List <$> o .: "id"
-         <*> o .: "name"
-         <*> o .: "full_name"
-         <*> o .: "member_count"
-         <*> o .: "subscriber_count"
-         <*> o .: "mode"
-         <*> o .: "user"
+    List <$> o .:  "id"
+         <*> o .:  "name"
+         <*> o .:  "full_name"
+         <*> o .:  "member_count"
+         <*> o .:  "subscriber_count"
+         <*> o .:  "mode"
+         <*> o .:  "user"
   parseJSON _ = mzero
 
 data HashTagEntity = HashTagEntity T.Text
                    deriving (Show, Eq)
-                        
+
 instance FromJSON HashTagEntity where
-  parseJSON (Object o) = 
+  parseJSON (Object o) =
     HashTagEntity <$> o .: "text"
   parseJSON _ = mzero
-  
-{-|
-The 'UserEntity' is just a wrapper around 'User' which is
-a bit wasteful, and should probably be replaced by just
-storing the id, name and screen name here.
--}
+
+-- | The 'UserEntity' is just a wrapper around 'User' which is
+--   a bit wasteful, and should probably be replaced by just
+--   storing the id, name and screen name here.
 data UserEntity = UserEntity User
                 deriving (Show, Eq)
 
 instance FromJSON UserEntity where
   parseJSON = (UserEntity <$>) . parseJSON
-  
-data URLEntity = 
+
+data URLEntity =
   URLEntity
   { ueURL      :: URLString
   , ueExpanded :: URLString
   , ueDisplay  :: T.Text
   } deriving (Show, Eq)
-             
+
 instance FromJSON URLEntity where
-  parseJSON (Object o) = 
+  parseJSON (Object o) =
     URLEntity <$> o .:  "url"
               <*> o .:  "expanded_url"
               <*> o .:  "display_url"
   parseJSON _ = mzero
 
-{-|
-Entity handling. At present the information about where
-in the Tweet the entity was found (the @indices@ information)
-is not retained.
--}
-
-data Entities = 
-  Entities 
+-- | Entity handling. At present the information about where
+-- in the Tweet the entity was found (the @indices@ information)
+-- is not retained.
+data Entities =
+  Entities
   { enHashTags     :: [HashTagEntity]
   , enUserMentions :: [UserEntity]
   , enURLs         :: [URLEntity]
   } deriving (Show, Eq)
-             
+
 instance FromJSON Entities where
-  parseJSON (Object o) = 
+  parseJSON (Object o) =
     Entities <$> o .:  "hashtags"
              <*> o .:  "user_mentions"
              <*> o .:  "urls"
   parseJSON _ = mzero
-             
+
