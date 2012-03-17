@@ -27,6 +27,8 @@ import Web.Twitter.Enumerator.Monad
 import Web.Twitter.Enumerator.Utils
 import Web.Twitter.Enumerator.Api
 
+import Data.Text (Text)
+import qualified Data.Text.Encoding as T
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as B8
 
@@ -38,8 +40,9 @@ apiPost :: FromJSON a => String -> HT.Query -> Iteratee a IO b -> TW b
 apiPost uri query iter = run_ $ api True "POST" uri query (handleParseError iter')
   where iter' = enumJSON =$ EL.map fromJSON' =$ skipNothing =$ iter
 
-statusesUpdate :: ByteString -> Iteratee ByteString IO a -> Iteratee ByteString TW a
-statusesUpdate tweet iter = api True "POST" (endpoint ++ "statuses/update.json") [("status", Just tweet)] iter
+statusesUpdate :: Text -> HT.Query -> TW Status
+statusesUpdate tweet query = apiPost (endpoint ++ "statuses/update.json") q (debugEE =$ EL.head_)
+  where q = ("status", Just . T.encodeUtf8 $ tweet):query
 
 favoritesCreate :: StatusId -> HT.Query -> TW Status
 favoritesCreate sid query = apiPost (endpoint ++ "favorites/create/" ++ show sid ++ ".json") query EL.head_
