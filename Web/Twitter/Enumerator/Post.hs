@@ -2,10 +2,10 @@
 
 module Web.Twitter.Enumerator.Post
        ( statusesUpdate
-       , retweet
+       , statusesRetweetId
 
-       -- * Friendship
-       , friendshipCreate
+       -- * Friends & Followers
+       , friendshipsCreate
        -- , friendshipDestroy
 
        -- * Favorites
@@ -18,7 +18,12 @@ module Web.Twitter.Enumerator.Post
        -- , listsUpdate
        -- , listsMembersCreate
        -- , listsMembersDestroy
-        ) where
+
+       -- * Deprecated
+       , retweet
+       , friendshipCreate
+
+       ) where
 
 import Data.Aeson hiding (Error)
 
@@ -30,7 +35,6 @@ import Web.Twitter.Enumerator.Api
 import Data.Text (Text)
 import qualified Data.Text.Encoding as T
 import Data.ByteString (ByteString)
-import qualified Data.ByteString.Char8 as B8
 
 import qualified Network.HTTP.Types as HT
 import Data.Enumerator (Iteratee, (=$), run_)
@@ -50,8 +54,17 @@ favoritesCreate sid query = apiPost (endpoint ++ "favorites/create/" ++ show sid
 favoritesDestroy :: StatusId -> HT.Query -> TW Status
 favoritesDestroy sid query = apiPost (endpoint ++ "favorites/destroy/" ++ show sid ++ ".json") query EL.head_
 
-retweet :: Integer -> Iteratee ByteString IO a -> Iteratee ByteString TW a
-retweet tweetId iter = api True "POST" (endpoint ++ "statuses/retweet/" ++ (show tweetId) ++ ".json") [] iter
+statusesRetweetId :: Integer -> HT.Query -> TW RetweetedStatus
+statusesRetweetId tweetId query = apiPost (endpoint ++ "statuses/retweet/" ++ show tweetId ++ ".json") query EL.head_
 
+friendshipsCreate :: UserParam -> HT.Query -> TW User
+friendshipsCreate user query = apiPost (endpoint ++ "friendships/create.json") q EL.head_
+  where q = mkUserParam user ++ query
+
+{-# DEPRECATED retweet "'retweet' will be removed in future releases. Use 'statusesRetweetId' instead" #-}
+retweet :: Integer -> Iteratee ByteString IO a -> Iteratee ByteString TW a
+retweet tweetId = api True "POST" (endpoint ++ "statuses/retweet/" ++ show tweetId ++ ".json") []
+
+{-# DEPRECATED friendshipCreate "'friendshipCreate' will be removed in future releases. Use 'friendshipsCreate' instead" #-}
 friendshipCreate :: UserId -> Iteratee ByteString IO a -> Iteratee ByteString TW a
-friendshipCreate uid iter = api True "POST" (endpoint ++ "friendships/create.json") [("user_id", Just $ B8.pack $ show uid)] iter
+friendshipCreate uid = api True "POST" (endpoint ++ "friendships/create.json") [("user_id", toMaybeByteString uid)]

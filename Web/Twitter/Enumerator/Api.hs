@@ -4,10 +4,10 @@ module Web.Twitter.Enumerator.Api
        ( api
        , endpoint
        , endpointSearch
-       , QueryUser(..)
-       , QueryList(..)
-       , mkQueryUser
-       , mkQueryList
+       , UserParam(..)
+       , ListParam(..)
+       , mkUserParam
+       , mkListParam
        ) where
 
 import Web.Twitter.Enumerator.Types
@@ -54,7 +54,6 @@ httpMgr req iterf = do
   mgr <- lift getManager
   liftTrans $ http req iterf mgr
 
-
 apiRequest :: Bool -> ByteString -> String -> HT.Query -> TW (Request IO)
 apiRequest toOAuth m uri query = do
   p <- getProxy
@@ -63,18 +62,18 @@ apiRequest toOAuth m uri query = do
   if toOAuth then signOAuthTW req
              else return req
 
-data QueryUser = QUserId UserId | QScreenName String
+data UserParam = UserIdParam UserId | ScreenNameParam String
                deriving (Show, Eq)
-data QueryList = QListId Integer | QListName String
+data ListParam = ListIdParam Integer | ListNameParam String
                deriving (Show, Eq)
 
-mkQueryUser :: QueryUser -> HT.Query
-mkQueryUser (QUserId uid) =  [("user_id", toMaybeByteString uid)]
-mkQueryUser (QScreenName sn) = [("screen_name", Just . B8.pack $ sn)]
+mkUserParam :: UserParam -> HT.Query
+mkUserParam (UserIdParam uid) =  [("user_id", toMaybeByteString uid)]
+mkUserParam (ScreenNameParam sn) = [("screen_name", Just . B8.pack $ sn)]
 
-mkQueryList :: QueryList -> HT.Query
-mkQueryList (QListId lid) =  [("list_id", toMaybeByteString lid)]
-mkQueryList (QListName listname) =
+mkListParam :: ListParam -> HT.Query
+mkListParam (ListIdParam lid) =  [("list_id", toMaybeByteString lid)]
+mkListParam (ListNameParam listname) =
   [("slug", Just . B8.pack $ lstName),
    ("owner_screen_name", Just . B8.pack $ screenName)]
   where
