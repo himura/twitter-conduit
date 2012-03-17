@@ -19,6 +19,7 @@ module Web.Twitter.Enumerator.Types
        , User(..)
        , List(..)
        , Entities(..)
+       , Entity(..)
        , HashTagEntity(..)
        , UserEntity(..)
        , URLEntity(..)
@@ -256,8 +257,10 @@ instance FromJSON List where
          <*> o .:  "user"
   parseJSON _ = mzero
 
-data HashTagEntity = HashTagEntity T.Text
-                   deriving (Show, Eq)
+data HashTagEntity =
+  HashTagEntity
+  { hashTagText :: T.Text -- ^ The Hashtag text
+  } deriving (Show, Eq)
 
 instance FromJSON HashTagEntity where
   parseJSON (Object o) =
@@ -275,9 +278,9 @@ instance FromJSON UserEntity where
 
 data URLEntity =
   URLEntity
-  { ueURL      :: URLString
-  , ueExpanded :: URLString
-  , ueDisplay  :: T.Text
+  { ueURL      :: URLString -- ^ The URL that was extracted
+  , ueExpanded :: URLString -- ^ The fully resolved URL (only for t.co links)
+  , ueDisplay  :: T.Text    -- ^ Not a URL but a string to display instead of the URL (only for t.co links)
   } deriving (Show, Eq)
 
 instance FromJSON URLEntity where
@@ -287,14 +290,12 @@ instance FromJSON URLEntity where
               <*> o .:  "display_url"
   parseJSON _ = mzero
 
--- | Entity handling. At present the information about where
--- in the Tweet the entity was found (the @indices@ information)
--- is not retained.
+-- | Entity handling.
 data Entities =
   Entities
-  { enHashTags     :: [HashTagEntity]
-  , enUserMentions :: [UserEntity]
-  , enURLs         :: [URLEntity]
+  { enHashTags     :: [Entity HashTagEntity]
+  , enUserMentions :: [Entity UserEntity]
+  , enURLs         :: [Entity URLEntity]
   } deriving (Show, Eq)
 
 instance FromJSON Entities where
@@ -302,5 +303,23 @@ instance FromJSON Entities where
     Entities <$> o .:  "hashtags"
              <*> o .:  "user_mentions"
              <*> o .:  "urls"
+  parseJSON _ = mzero
+
+-- | The character positions the Entity was extracted from
+--
+--   This is experimental implementation.
+--   This may be replaced by more definite types.
+type EntityIndices = [Int]
+
+data Entity a =
+  Entity
+  { entityBody    :: a             -- ^ The detail information of the specific entity types (HashTag, URL, User)
+  , entityIndices :: EntityIndices -- ^ The character positions the Entity was extracted from
+  } deriving (Show, Eq)
+
+instance FromJSON a => FromJSON (Entity a) where
+  parseJSON v@(Object o) =
+    Entity <$> parseJSON v
+           <*> o .: "indices"
   parseJSON _ = mzero
 
