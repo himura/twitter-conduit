@@ -118,7 +118,7 @@ data Status =
   , statusText          :: T.Text
   , statusSource        :: String
   , statusTruncated     :: Bool
-  , statusEntities      :: Entities
+  , statusEntities      :: Maybe Entities
   , statusInReplyTo     :: Maybe StatusId
   , statusInReplyToUser :: Maybe UserId
   , statusFavorite      :: Maybe Bool
@@ -133,7 +133,7 @@ instance FromJSON Status where
            <*> o .:  "text"
            <*> o .:  "source"
            <*> o .:  "truncated"
-           <*> o .:  "entities"
+           <*> o .:? "entities"
            <*> o .:? "in_reply_to_status_id"
            <*> o .:? "in_reply_to_user_id"
            <*> o .:? "favorited"
@@ -168,7 +168,7 @@ data RetweetedStatus =
   , rsText            :: T.Text
   , rsSource          :: String
   , rsTruncated       :: Bool
-  , rsEntities        :: Entities
+  , rsEntities        :: Maybe Entities
   , rsUser            :: User
   , rsRetweetedStatus :: Status
   } deriving (Show, Eq)
@@ -180,7 +180,7 @@ instance FromJSON RetweetedStatus where
                     <*> o .:  "text"
                     <*> o .:  "source"
                     <*> o .:  "truncated"
-                    <*> o .:  "entities"
+                    <*> o .:? "entities"
                     <*> o .:  "user"
                     <*> o .:  "retweeted_status"
   parseJSON _ = mzero
