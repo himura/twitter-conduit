@@ -26,8 +26,8 @@ main = withCF $ do
   curious <- fetchListAll ln
   let cid = map userId curious
   run_ $ userstream (EL.mapM (\x -> showTL x >> return x) =$ EL.filter (filterUsers cid) =$ iterNotify)
-  where fetchListAll str = run_ $ listsMembers (QListName str) $$ EL.consume
-        filterUsers ulist (SStatus s) = (\uid -> any (== uid) ulist) . userId . statusUser $ s
+  where fetchListAll str = run_ $ listsMembers (ListNameParam str) $$ EL.consume
+        filterUsers ulist (SStatus s) = (`elem` ulist) . userId . statusUser $ s
         filterUsers _ _ = False
 
 iconPath :: IO FilePath
@@ -60,7 +60,7 @@ iterNotify = do
           cnt = B.unpack . T.encodeUtf8 $ statusText s
       icon <- case userProfileImageURL user of
         Nothing -> return Nothing
-        Just url -> liftIO $ fetchIcon sn url >>= return . Just
+        Just url -> liftIO $ Just <$> fetchIcon sn url
       liftIO $ notifySend sn cnt icon
       iterNotify
     Just _ -> iterNotify
@@ -89,8 +89,9 @@ showTL _ = return ()
 
 showEventTarget :: EventTarget -> IO ()
 showEventTarget (ETUser u) =
-  B.putStrLn $ B.concat ["@", screenName, " (followers:", fol, ", description:", T.encodeUtf8 . userDescription $ u, ")"]
+  B.putStrLn $ B.concat ["@", screenName, " (followers:", fol, ", description:", des, ")"]
     where screenName = B.pack . userScreenName $ u
+          des = maybe "" T.encodeUtf8 $ userDescription u
           fol = B.pack . maybe "" show $ userFollowers u
 showEventTarget (ETStatus s) =
   B.putStrLn $ B.concat [user, ": ", T.encodeUtf8 text]

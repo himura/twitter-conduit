@@ -13,8 +13,8 @@ import System.Environment
 main :: IO ()
 main = withCF $ do
   (screenName:ln:_) <- liftIO getArgs
-  let sn = QScreenName screenName
-  onesideList <- consumeRun $ listsMembers $ QListName ln
+  let sn = ScreenNameParam screenName
+  onesideList <- consumeRun $ listsMembers $ ListNameParam ln
   folids <- consumeRun $ followersIds sn
   friids <- consumeRun $ friendsIds sn
   let oslstmap = M.fromList $ map (flip (,) True . userId) onesideList
@@ -24,7 +24,7 @@ main = withCF $ do
 
   liftIO . putStrLn $ "one sided:"
   forM_ os $ \uid -> do
-    usr <- usersShow . QUserId $ uid
+    usr <- usersShow . UserIdParam $ uid
     liftIO . showUser $ usr
 
   liftIO . putStrLn $ "both following:"

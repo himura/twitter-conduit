@@ -25,6 +25,7 @@ library
     , network
   exposed-modules:
       Common
+      Secret
 
 executable Twitter2Notify
   main-is: Twitter2Notify.hs
@@ -35,9 +36,11 @@ executable Twitter2Notify
     , process
   other-modules:
       Common
+      Secret
 
 executable oslist
   main-is: oslist.hs
   ghc-options: -Wall -O2
   other-modules:
       Common
+      Secret

@@ -2,8 +2,8 @@
 
 module Web.Twitter.Enumerator.Fetch
        (
-         QueryUser (..)
-       , QueryList (..)
+         UserParam (..)
+       , ListParam (..)
        -- * Timelines
        , statusesHomeTimeline
        , statusesMentions
@@ -88,6 +88,7 @@ import qualified Data.Enumerator.List as EL
 import qualified Data.Text as T
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as B8
+import Data.Maybe
 import Control.Monad.Trans.Class
 import Control.Applicative
 
@@ -177,18 +178,18 @@ search :: String -> Enumerator SearchStatus TW a
 search q = apiWithPages False (endpointSearch ++ "search.json") query 1
   where query = [("q", Just . B8.pack $ q)]
 
-friendsIds, followersIds :: QueryUser -> Enumerator UserId TW a
-friendsIds q = apiCursor (endpoint ++ "friends/ids.json") (mkQueryUser q) "ids" (-1)
-followersIds q = apiCursor (endpoint ++ "followers/ids.json") (mkQueryUser q) "ids" (-1)
+friendsIds, followersIds :: UserParam -> Enumerator UserId TW a
+friendsIds q = apiCursor (endpoint ++ "friends/ids.json") (mkUserParam q) "ids" (-1)
+followersIds q = apiCursor (endpoint ++ "followers/ids.json") (mkUserParam q) "ids" (-1)
 
-usersShow :: QueryUser -> TW User
-usersShow q = apiGet (endpoint ++ "users/show.json") (mkQueryUser q) EL.head_
+usersShow :: UserParam -> TW User
+usersShow q = apiGet (endpoint ++ "users/show.json") (mkUserParam q) EL.head_
 
-listsAll :: QueryUser -> Enumerator List TW a
-listsAll q = apiCursor (endpoint ++ "lists/all.json") (mkQueryUser q) "" (-1)
+listsAll :: UserParam -> Enumerator List TW a
+listsAll q = apiCursor (endpoint ++ "lists/all.json") (mkUserParam q) "" (-1)
 
-listsMembers :: QueryList -> Enumerator User TW a
-listsMembers q = apiCursor (endpoint ++ "lists/members.json") (mkQueryList q) "users" (-1)
+listsMembers :: ListParam -> Enumerator User TW a
+listsMembers q = apiCursor (endpoint ++ "lists/members.json") (mkListParam q) "users" (-1)
 
 data Cursor a =
   Cursor
@@ -211,7 +212,7 @@ parseCursor key (Object o) =
   checkError o
   <|>
   Cursor <$> o .: key <*> o .:? "next_cursor"
-parseCursor _ v@(Array _) = return $ Cursor (maybe [] id $ fromJSON' v) Nothing
+parseCursor _ v@(Array _) = return $ Cursor (fromMaybe [] $ fromJSON' v) Nothing
 parseCursor _ o = fail $ "Error at parseCursor: unknown object " ++ show o
 
 apiCursor

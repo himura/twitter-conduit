@@ -2,6 +2,7 @@
 
 module Common where
 
+import Secret (tokens)
 import Web.Twitter.Enumerator
 
 import Web.Authenticate.OAuth (OAuth(..), Credential(..))
@@ -15,22 +16,12 @@ import qualified Data.ByteString.Lazy.Char8 as LB
 import qualified Data.ByteString.Char8 as B
 import qualified Data.CaseInsensitive as CI
 import Data.Attoparsec
+import Control.Arrow (first)
 import Control.Applicative
 import System.IO
 import System.FilePath
 import System.Directory
 import System.Environment
-
-tokens :: OAuth
-tokens = OAuth { oauthServerName = "twitter"
-               , oauthRequestUri = "http://twitter.com/oauth/request_token"
-               , oauthAccessTokenUri = "http://twitter.com/oauth/access_token"
-               , oauthAuthorizeUri = "http://twitter.com/oauth/authorize"
-               , oauthConsumerKey = "<consumer key>"
-               , oauthConsumerSecret = "<consumer secret>"
-               , oauthSignatureMethod = OA.HMACSHA1
-               , oauthCallback = Nothing
-               }
 
 ensureDirectoryExist :: FilePath -> IO FilePath
 ensureDirectoryExist dir = do
@@ -53,7 +44,7 @@ loadCredential file = do
     then
     do
       content <- B.readFile file
-      return $ (maybeResult . parse json) content >>= parseMaybe parseJSON >>= return . Credential
+      return $ Credential <$> ((maybeResult . parse json) content >>= parseMaybe parseJSON)
     else return Nothing
 
 saveCredential :: FilePath -> Credential -> IO ()
@@ -65,7 +56,7 @@ withCredentialFile file task = do
   cred <- maybe (authorize pr tokens getPIN) return =<< loadCredential file
   saveCredential file cred
   let env = newEnv tokens
-  runTW env { twCredential = cred, twProxy = pr } $ task
+  runTW env { twCredential = cred, twProxy = pr } task
   where
     getPIN url = do
       putStrLn $ "browse URL: " ++ url
@@ -75,7 +66,7 @@ withCredentialFile file task = do
 
 getProxyEnv :: IO (Maybe Proxy)
 getProxyEnv = do
-  env <- M.fromList <$> map (\(k,v) -> (CI.mk k, v)) <$> getEnvironment
+  env <- M.fromList <$> map (first CI.mk) <$> getEnvironment
   let u = M.lookup "https_proxy" env <|>
           M.lookup "http_proxy" env <|>
           M.lookup "proxy" env >>= URI.parseURI >>= URI.uriAuthority
