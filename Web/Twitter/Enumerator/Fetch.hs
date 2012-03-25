@@ -94,23 +94,36 @@ import Control.Applicative
 
 import qualified Data.Map as M
 
-apiGet :: FromJSON a => String -> HT.Query -> Iteratee a IO b -> TW b
-apiGet uri query iter = run_ $ api True "GET" uri query (handleParseError iter')
+apiGet :: FromJSON a
+       => RequireAuth -- ^ OAuth required?
+       -> String -- ^ Resource URL
+       -> HT.Query -- ^ Query
+       -> Iteratee a IO b
+       -> TW b
+apiGet authp uri query iter = run_ $ api authp "GET" uri query (handleParseError iter')
   where iter' = enumJSON =$ EL.map fromJSON' =$ skipNothing =$ iter
 
-statuses :: (FromJSON a, Show a) => String -> HT.Query -> Enumerator a TW b
-statuses uri query = apiWithPages True furi query 1
+statuses :: (FromJSON a, Show a)
+         => RequireAuth -- ^ OAuth required?
+         -> String -- ^ Resource URL
+         -> HT.Query -- ^ Query
+         -> Enumerator a TW b
+statuses authp uri query = apiWithPages authp iterPageC furi query 1
   where furi = endpoint ++ "statuses/" ++ uri
 
-apiWithPages :: (FromJSON a, Show a) => Bool -> String -> HT.Query -> Integer -> Enumerator a TW b
-apiWithPages isStatuses uri query initPage =
--- isStatuses = True:  normal GET/statuses APIs with OAuth
--- isStatuses = False: search API
+apiWithPages :: (FromJSON a, Show a)
+             => RequireAuth
+             -> Iteratee Value IO (Maybe [a])
+             -> String
+             -> HT.Query
+             -> Integer
+             -> Enumerator a TW b
+apiWithPages authp iter uri query initPage =
   checkContinue1 go initPage
   where
     go loop page k = do
       let query' = insertQuery "page" (toMaybeByteString page) query
-      res <- lift $ run_ $ api isStatuses "GET" uri query' (handleParseError (enumJSON =$ (if isStatuses then iterPageC else iterPageCSearch)))
+      res <- lift $ run_ $ api authp "GET" uri query' (handleParseError (enumJSON =$ iter))
       case res of
         Just [] -> k EOF
         Just xs -> k (Chunks xs) >>== loop (page + 1)
@@ -135,61 +148,61 @@ insertQuery key value = mk
   where mk = M.toList . M.insert key value . M.fromList
 
 statusesHomeTimeline :: HT.Query -> Enumerator Status TW a
-statusesHomeTimeline = statuses "home_timeline.json"
+statusesHomeTimeline = statuses AuthRequired "home_timeline.json"
 
 statusesMentions :: HT.Query -> Enumerator Status TW a
-statusesMentions = statuses "mentions.json"
+statusesMentions = statuses AuthRequired "mentions.json"
 
 statusesPublicTimeline :: HT.Query -> Enumerator Status TW a
-statusesPublicTimeline = statuses "public_timeline.json"
+statusesPublicTimeline = statuses NoAuth "public_timeline.json"
 
 statusesRetweetedByMe :: HT.Query -> Enumerator Status TW a
-statusesRetweetedByMe = statuses "retweeted_by_me.json"
+statusesRetweetedByMe = statuses AuthRequired "retweeted_by_me.json"
 
 statusesRetweetedToMe :: HT.Query -> Enumerator Status TW a
-statusesRetweetedToMe = statuses "retweeted_to_me.json"
+statusesRetweetedToMe = statuses AuthRequired "retweeted_to_me.json"
 
 statusesRetweetsOfMe :: HT.Query -> Enumerator Status TW a
-statusesRetweetsOfMe = statuses "retweeted_of_me.json"
+statusesRetweetsOfMe = statuses AuthRequired "retweeted_of_me.json"
 
 statusesUserTimeline :: HT.Query -> Enumerator Status TW a
-statusesUserTimeline = statuses "user_timeline.json"
+statusesUserTimeline = statuses AuthSupported "user_timeline.json"
 
 statusesRetweetedToUser :: HT.Query -> Enumerator Status TW a
-statusesRetweetedToUser = statuses "retweeted_to_user.json"
+statusesRetweetedToUser = statuses AuthSupported "retweeted_to_user.json"
 
 statusesRetweetedByUser :: HT.Query -> Enumerator Status TW a
-statusesRetweetedByUser = statuses "retweeted_by_user.json"
+statusesRetweetedByUser = statuses AuthSupported "retweeted_by_user.json"
 
 statusesIdRetweetedBy :: StatusId -> HT.Query -> Enumerator User TW a
-statusesIdRetweetedBy status_id = statuses (show status_id ++ "/retweeted_by.json")
+statusesIdRetweetedBy status_id = statuses AuthSupported (show status_id ++ "/retweeted_by.json")
 
 statusesIdRetweetedByIds :: StatusId -> HT.Query -> Enumerator UserId TW a
-statusesIdRetweetedByIds status_id = statuses (show status_id ++ "/retweeted_by/ids.json")
+statusesIdRetweetedByIds status_id = statuses AuthRequired (show status_id ++ "/retweeted_by/ids.json")
 
 statusesRetweetsId :: StatusId -> HT.Query -> TW [RetweetedStatus]
-statusesRetweetsId status_id query = apiGet uri query EL.head_
+statusesRetweetsId status_id query = apiGet AuthRequired uri query EL.head_
   where uri = endpoint ++ "statuses/retweets/" ++ show status_id ++ ".json"
 
 statusesShowId :: StatusId -> HT.Query -> TW Status
-statusesShowId status_id query = apiGet (endpoint ++ "statuses/show/" ++ show status_id ++ ".json") query EL.head_
+statusesShowId status_id query = apiGet AuthSupported (endpoint ++ "statuses/show/" ++ show status_id ++ ".json") query EL.head_
 
 search :: String -> Enumerator SearchStatus TW a
-search q = apiWithPages False (endpointSearch ++ "search.json") query 1
+search q = apiWithPages NoAuth iterPageCSearch (endpointSearch ++ "search.json") query 1
   where query = [("q", Just . B8.pack $ q)]
 
 friendsIds, followersIds :: UserParam -> Enumerator UserId TW a
-friendsIds q = apiCursor (endpoint ++ "friends/ids.json") (mkUserParam q) "ids" (-1)
-followersIds q = apiCursor (endpoint ++ "followers/ids.json") (mkUserParam q) "ids" (-1)
+friendsIds q = apiCursor AuthSupported (endpoint ++ "friends/ids.json") (mkUserParam q) "ids" (-1)
+followersIds q = apiCursor AuthSupported (endpoint ++ "followers/ids.json") (mkUserParam q) "ids" (-1)
 
 usersShow :: UserParam -> TW User
-usersShow q = apiGet (endpoint ++ "users/show.json") (mkUserParam q) EL.head_
+usersShow q = apiGet AuthSupported (endpoint ++ "users/show.json") (mkUserParam q) EL.head_
 
 listsAll :: UserParam -> Enumerator List TW a
-listsAll q = apiCursor (endpoint ++ "lists/all.json") (mkUserParam q) "" (-1)
+listsAll q = apiCursor AuthSupported (endpoint ++ "lists/all.json") (mkUserParam q) "" (-1)
 
 listsMembers :: ListParam -> Enumerator User TW a
-listsMembers q = apiCursor (endpoint ++ "lists/members.json") (mkListParam q) "users" (-1)
+listsMembers q = apiCursor AuthSupported (endpoint ++ "lists/members.json") (mkListParam q) "users" (-1)
 
 data Cursor a =
   Cursor
@@ -215,19 +228,19 @@ parseCursor key (Object o) =
 parseCursor _ v@(Array _) = return $ Cursor (fromMaybe [] $ fromJSON' v) Nothing
 parseCursor _ o = fail $ "Error at parseCursor: unknown object " ++ show o
 
-apiCursor
-  :: (FromJSON a, Show a) =>
-     String
-     -> HT.Query
-     -> T.Text
-     -> Integer
-     -> Enumerator a TW b
-apiCursor uri query cursorKey initCur =
+apiCursor :: (FromJSON a, Show a)
+          => RequireAuth
+          -> String
+          -> HT.Query
+          -> T.Text
+          -> Integer
+          -> Enumerator a TW b
+apiCursor authp uri query cursorKey initCur =
   checkContinue1 go initCur
   where
     go loop cursor k = do
       let query' = insertQuery "cursor" (toMaybeByteString cursor) query
-      res <- lift $ run_ $ api True "GET" uri query' (iterCursor cursorKey)
+      res <- lift $ run_ $ api authp "GET" uri query' (iterCursor cursorKey)
       case res of
         Just r -> do
           let nextCur = cursorNext r
@@ -244,7 +257,7 @@ apiIter :: (FromJSON a, Monad m) => Iteratee a m b -> Iteratee ByteString m b
 apiIter iter = enumLine =$ handleParseError (enumJSON =$ EL.map fromJSON' =$ skipNothing =$ iter)
 
 userstream :: Iteratee StreamingAPI IO a -> Iteratee ByteString TW a
-userstream = api True "GET" "https://userstream.twitter.com/2/user.json" [] . apiIter
+userstream = api AuthRequired "GET" "https://userstream.twitter.com/2/user.json" [] . apiIter
 
 statusesFilter :: HT.Query -> Iteratee StreamingAPI IO a -> Iteratee ByteString TW a
-statusesFilter query = api True "GET" "https://stream.twitter.com/1/statuses/filter.json" query . apiIter
+statusesFilter query = api AuthRequired "GET" "https://stream.twitter.com/1/statuses/filter.json" query . apiIter

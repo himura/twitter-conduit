@@ -40,6 +40,7 @@ import Control.Exception
 data TwitterException = HTTPStatusCodeException HT.Status
                       | ParserException SomeException [ByteString]
                       | TwitterErrorMessage T.Text Value
+                      | MissingCredential
                       deriving (Show, Typeable)
 instance Exception TwitterException
 

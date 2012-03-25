@@ -41,11 +41,11 @@ import Data.Enumerator (Iteratee, (=$), run_)
 import qualified Data.Enumerator.List as EL
 
 apiPost :: FromJSON a => String -> HT.Query -> Iteratee a IO b -> TW b
-apiPost uri query iter = run_ $ api True "POST" uri query (handleParseError iter')
+apiPost uri query iter = run_ $ api AuthRequired "POST" uri query (handleParseError iter')
   where iter' = enumJSON =$ EL.map fromJSON' =$ skipNothing =$ iter
 
 statusesUpdate :: Text -> HT.Query -> TW Status
-statusesUpdate tweet query = apiPost (endpoint ++ "statuses/update.json") q (debugEE =$ EL.head_)
+statusesUpdate tweet query = api AuthRequired "POST" (endpoint ++ "statuses/update.json") q (debugEE =$ EL.head_)
   where q = ("status", Just . T.encodeUtf8 $ tweet):query
 
 favoritesCreate :: StatusId -> HT.Query -> TW Status
@@ -63,8 +63,8 @@ friendshipsCreate user query = apiPost (endpoint ++ "friendships/create.json") q
 
 {-# DEPRECATED retweet "'retweet' will be removed in future releases. Use 'statusesRetweetId' instead" #-}
 retweet :: Integer -> Iteratee ByteString IO a -> Iteratee ByteString TW a
-retweet tweetId = api True "POST" (endpoint ++ "statuses/retweet/" ++ show tweetId ++ ".json") []
+retweet tweetId = api AuthRequired "POST" (endpoint ++ "statuses/retweet/" ++ show tweetId ++ ".json") []
 
 {-# DEPRECATED friendshipCreate "'friendshipCreate' will be removed in future releases. Use 'friendshipsCreate' instead" #-}
 friendshipCreate :: UserId -> Iteratee ByteString IO a -> Iteratee ByteString TW a
-friendshipCreate uid = api True "POST" (endpoint ++ "friendships/create.json") [("user_id", toMaybeByteString uid)]
+friendshipCreate uid = api AuthRequired "POST" (endpoint ++ "friendships/create.json") [("user_id", toMaybeByteString uid)]
