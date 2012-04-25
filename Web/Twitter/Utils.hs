@@ -38,26 +38,26 @@ parseFromJSON = do
     AT.Error _ -> empty
     AT.Success r -> return r
 
-conduitParser :: (CA.AttoparsecInput a, C.ResourceThrow m) => A.Parser a b -> C.Conduit a m b
+conduitParser :: (CA.AttoparsecInput a, C.MonadResource m) => A.Parser a b -> C.Conduit a m b
 conduitParser p =
   C.sequenceSink () $ \() -> do
     ret <- CA.sinkParser p
     return $ C.Emit () [ret]
 
-sinkJSON :: C.ResourceThrow m => C.Sink ByteString m Value
+sinkJSON :: C.MonadResource m => C.Sink ByteString m Value
 sinkJSON = CA.sinkParser json
 
-sinkFromJSON :: (FromJSON a, C.ResourceIO m) => C.Sink ByteString m a
+sinkFromJSON :: (FromJSON a, C.MonadResource m) => C.Sink ByteString m a
 sinkFromJSON = do
   v <- sinkJSON
   case fromJSON v of
     AT.Error err -> lift $ liftIO $ throwIO $ TwitterError err
     AT.Success r -> return r
 
-conduitJSON :: C.ResourceThrow m => C.Conduit ByteString m Value
+conduitJSON :: C.MonadResource m => C.Conduit ByteString m Value
 conduitJSON = conduitParser json
 
-conduitFromJSON :: (FromJSON a, C.ResourceThrow m) => C.Conduit ByteString m a
+conduitFromJSON :: (FromJSON a, C.MonadResource m) => C.Conduit ByteString m a
 conduitFromJSON = conduitParser parseFromJSON
 
 showBS :: Show a => a -> ByteString

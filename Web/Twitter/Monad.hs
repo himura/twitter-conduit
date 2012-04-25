@@ -20,7 +20,7 @@ import Control.Monad.Trans
 import Control.Monad.Trans.Resource
 import Control.Monad.Reader
 
-type TW = ReaderT TWEnv IO
+type TW = ReaderT TWEnv (ResourceT IO)
 
 data TWEnv = TWEnv
              { twOAuth :: OAuth
@@ -30,7 +30,7 @@ data TWEnv = TWEnv
              }
 
 runTW' :: TWEnv -> TW a -> IO a
-runTW' env m = runReaderT m env
+runTW' env m = runResourceT $ runReaderT m env
 
 runTW :: TWEnv -> TW a -> IO a
 runTW env st =
@@ -70,4 +70,5 @@ signOAuthTW :: Request TW -> TW (Request TW)
 signOAuthTW req = do
   oa <- getOAuth
   cred <- getCredential
-  runResourceT $ signOAuth oa cred req
+  signOAuth oa cred req
+

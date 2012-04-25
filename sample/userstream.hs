@@ -7,4 +7,4 @@ import Common
 
 main :: IO ()
 main = withCF $ do
-  C.runResourceT $ userstream C.$$ CL.mapM_ (lift . print)
+  userstream C.$$ CL.mapM_ (lift . lift . print)

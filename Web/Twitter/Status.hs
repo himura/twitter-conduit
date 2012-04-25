@@ -11,6 +11,9 @@ module Web.Twitter.Status (
   userTimeline,
   retweetedToUser,
   retweetedByUser,
+  idRetweetedBy,
+  idRetweetedByIds,
+  retweetsId
   ) where
 
 import Data.Aeson

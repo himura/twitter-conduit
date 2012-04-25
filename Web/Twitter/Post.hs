@@ -30,5 +30,4 @@ import qualified Data.Conduit.List as CL
 
 statusesUpdate :: ByteString -> TW ()
 statusesUpdate tweet =
-  C.runResourceT $
     api "POST" "statuses/update.json" [("status", Just tweet)] C.$$ CL.sinkNull
