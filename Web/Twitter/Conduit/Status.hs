@@ -1,4 +1,4 @@
-module Web.Twitter.Status (
+module Web.Twitter.Conduit.Status (
   statuses,
   
   -- * Timelines
@@ -20,9 +20,9 @@ import Data.Aeson
 import qualified Data.Conduit as C
 import qualified Network.HTTP.Types as HT
 
-import Web.Twitter.Api
-import Web.Twitter.Monad
-import Web.Twitter.Types
+import Web.Twitter.Conduit.Api
+import Web.Twitter.Conduit.Monad
+import Web.Twitter.Conduit.Types
 
 statuses :: (FromJSON a, Show a) => String -> HT.Query -> C.Source TW a
 statuses url query = apiWithPages ("statuses/" ++ url) query

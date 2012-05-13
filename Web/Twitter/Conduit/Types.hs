@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings, DeriveDataTypeable #-}
 
-module Web.Twitter.Types
+module Web.Twitter.Conduit.Types
        ( TwitterException(..)
        , DateString
        , UserId

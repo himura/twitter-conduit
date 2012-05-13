@@ -1,13 +1,13 @@
 {-# LANGUAGE RecordWildCards, OverloadedStrings,FlexibleContexts #-}
-module Web.Twitter.Api (
+module Web.Twitter.Conduit.Api (
   api,
   apiGet,
   apiCursor,
   apiWithPages,
   ) where
 
-import Web.Twitter.Monad
-import Web.Twitter.Utils
+import Web.Twitter.Conduit.Monad
+import Web.Twitter.Conduit.Utils
 
 import Control.Applicative
 import qualified Data.Aeson as A

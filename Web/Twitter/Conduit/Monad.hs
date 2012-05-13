@@ -1,6 +1,6 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 
-module Web.Twitter.Monad
+module Web.Twitter.Conduit.Monad
        ( TW
        , TWEnv (..)
        , runTW

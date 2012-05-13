@@ -1,15 +1,15 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Web.Twitter.Stream (
+module Web.Twitter.Conduit.Stream (
   -- * StreamingAPI
   userstream,
   statusesFilter,
   ) where
 
-import Web.Twitter.Api
-import Web.Twitter.Monad
-import Web.Twitter.Types
-import Web.Twitter.Utils
+import Web.Twitter.Conduit.Api
+import Web.Twitter.Conduit.Monad
+import Web.Twitter.Conduit.Types
+import Web.Twitter.Conduit.Utils
 
 import qualified Data.Conduit as C
 import qualified Network.HTTP.Types as HT

@@ -1,9 +1,9 @@
-module Web.Twitter.Query (
+module Web.Twitter.Conduit.Query (
   QueryUser(..),
   QueryList(..),
   ) where
 
-import Web.Twitter.Types
+import Web.Twitter.Conduit.Types
 
 data QueryUser
   = QUserId UserId 

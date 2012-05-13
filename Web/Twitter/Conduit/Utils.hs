@@ -1,6 +1,6 @@
 {-# LANGUAGE DeriveDataTypeable #-}
 
-module Web.Twitter.Utils (
+module Web.Twitter.Conduit.Utils (
   sinkJSON,
   sinkFromJSON,
   conduitJSON,

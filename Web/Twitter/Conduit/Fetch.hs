@@ -1,17 +1,34 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Web.Twitter.Fetch (
-  -- * Search
-  -- , search
+module Web.Twitter.Conduit.Fetch (
+       -- * Timelines
+       , statusesHomeTimeline
+       , statusesMentions
+       , statusesPublicTimeline
+       , statusesRetweetedByMe
+       , statusesRetweetedToMe
+       , statusesRetweetsOfMe
+       , statusesUserTimeline
+       , statusesRetweetedToUser
+       , statusesRetweetedByUser
+
+       -- * Tweets
+       , statusesIdRetweetedBy
+       , statusesIdRetweetedByIds
+       , statusesRetweetsId
+       , statusesShowId
+
+        -- * Search
+       , search
   
   -- * Direct Messages
   -- , directMessages
   -- , directMessagesSent
   -- , directMessagesShowId
-    
+    qwass            
   -- * Friends & Followers
-  friendsIds,
-  followersIds,
+       , friendsIds
+       , followersIds
   -- , friendshipsExists
   -- , friendshipsIncoming
   -- , friendshipsOutgoing
@@ -23,7 +40,7 @@ module Web.Twitter.Fetch (
   -- , usersLookup
   -- , usersProfileImageScreenName
   -- , usersSearch
-  usersShow,
+       , usersShow
   -- , usersContributees
   -- , usersContributors
   
@@ -36,13 +53,13 @@ module Web.Twitter.Fetch (
   -- , favorites
   
   -- * Lists
-  listsAll,
+      , listsAll
   -- , listsStatuses
   -- , listsMemberships
   -- , listsSubscribers
   -- , listsSubscribersShow
   -- , listsMembersShow
-  listsMembers,
+      , listsMembers
   -- , lists
   -- , listsShow
   -- , listsSubscriptions
@@ -52,11 +69,11 @@ import qualified Data.Conduit as C
 import qualified Data.ByteString.Char8 as B8
 import qualified Network.HTTP.Types as HT
 
-import Web.Twitter.Types
-import Web.Twitter.Monad
-import Web.Twitter.Utils
-import Web.Twitter.Query
-import Web.Twitter.Api
+import Web.Twitter.Conduit.Types
+import Web.Twitter.Conduit.Monad
+import Web.Twitter.Conduit.Utils
+import Web.Twitter.Conduit.Query
+import Web.Twitter.Conduit.Api
 
 mkQueryUser :: QueryUser -> HT.Query
 mkQueryUser (QUserId uid) =  [("user_id", Just $ showBS uid)]
@@ -83,3 +100,4 @@ listsAll q = apiCursor "lists/all.json" (mkQueryUser q) ""
 
 listsMembers :: QueryList -> C.Source TW User
 listsMembers q = apiCursor "lists/members.json" (mkQueryList q) "users"
+
