@@ -7,6 +7,8 @@ module Web.Twitter.Conduit.Types
        , URLString
        , UserName
        , StatusId
+       , SearchStatus(..)
+       , LanguageCode
        , StreamingAPI(..)
        , Status(..)
        , RetweetedStatus(..)
@@ -40,6 +42,7 @@ type UserId      = Integer
 type URLString   = String
 type UserName    = T.Text
 type StatusId    = Integer
+type LanguageCode = String
 
 data StreamingAPI = SStatus Status
                   | SRetweetedStatus RetweetedStatus
@@ -213,4 +216,24 @@ instance FromJSON List where
          <*> o .: "subscriber_count"
          <*> o .: "mode"
          <*> o .: "user"
+  parseJSON _ = mzero
+
+data SearchStatus =
+  SearchStatus
+  { searchStatusCreatedAt     :: DateString
+  , searchStatusId            :: StatusId
+  , searchStatusText          :: T.Text
+  , searchStatusSource        :: String
+  , searchStatusUserId        :: UserId
+  , searchStatusUserName      :: UserName
+  } deriving (Show, Eq)
+
+instance FromJSON SearchStatus where
+  parseJSON (Object o) = checkError o <|>
+    SearchStatus <$> o .:  "created_at"
+                 <*> o .:  "id"
+                 <*> o .:  "text"
+                 <*> o .:  "source"
+                 <*> o .:  "from_user_id"
+                 <*> o .:  "from_user"
   parseJSON _ = mzero

@@ -64,6 +64,3 @@ retweetsId :: StatusId -> HT.Query -> TW [RetweetedStatus]
 retweetsId status_id query = apiGet uri query
   where uri = "statuses/retweets/" ++ show status_id ++ ".json"
 
-showId :: StatusId -> HT.Query -> TW Status
-showId status_id query =
-  apiGet ("statuses/show/" ++ show status_id ++ ".json") query

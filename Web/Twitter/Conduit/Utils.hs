@@ -9,6 +9,8 @@ module Web.Twitter.Conduit.Utils (
   conduitParser,
   showBS,
   insertQuery,
+  fromJSON',
+  toMaybeByteString,
   ) where
 
 import Control.Applicative
@@ -66,3 +68,17 @@ showBS = B8.pack . show
 insertQuery :: (ByteString, Maybe ByteString) -> HT.Query -> HT.Query
 insertQuery (key, value) = mk
   where mk = M.toList . M.insert key value . M.fromList
+
+
+fromJSON' :: FromJSON a => Value -> Maybe a
+fromJSON' = AT.parseMaybe parseJSON
+
+--fromJSONSearch' :: FromJSON a => Value -> Maybe a
+--fromJSONSearch' (Object o) = AT.parseMaybe (.: "results") o
+--fromJSONSearch' _          = Nothing
+
+--enumJSON :: Monad m => C.Pipe ByteString Value m a
+--enumJSON = C.sequence $ CA.iterParser json
+
+toMaybeByteString :: Show a => a -> Maybe ByteString
+toMaybeByteString = Just . B8.pack . show
