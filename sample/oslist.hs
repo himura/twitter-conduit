@@ -7,7 +7,7 @@ import qualified Data.Map as M
 import Control.Monad.Trans
 import System.Environment
 
-import Web.Twitter
+import Web.Twitter.Conduit
 import Common
 
 main :: IO ()
