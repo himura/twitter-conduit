@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings, DeriveDataTypeable #-}
 
-module Web.Twitter.Enumerator.Types
+module Web.Twitter.Conduit.Types
        ( TwitterException(..)
        , DateString
        , UserId
@@ -323,4 +323,3 @@ instance FromJSON a => FromJSON (Entity a) where
     Entity <$> parseJSON v
            <*> o .: "indices"
   parseJSON _ = mzero
-

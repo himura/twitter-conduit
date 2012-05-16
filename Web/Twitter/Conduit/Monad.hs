@@ -1,4 +1,6 @@
-module Web.Twitter.Enumerator.Monad
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+
+module Web.Twitter.Conduit.Monad
        ( TW
        , TWEnv (..)
        , RequireAuth (..)
@@ -13,16 +15,17 @@ module Web.Twitter.Enumerator.Monad
        )
        where
 
-import Web.Twitter.Enumerator.Types
+import Web.Twitter.Conduit.Types
 import Web.Authenticate.OAuth
-import Network.HTTP.Enumerator
+import Network.HTTP.Conduit
 import Data.Default
-import Control.Monad.Trans.Reader
-import Control.Monad.IO.Class (MonadIO (liftIO))
-import Control.Exception.Lifted (throwIO)
+import Control.Monad.Trans
+import Control.Monad.Trans.Resource
+import Control.Monad.Reader
+import qualified Control.Exception.Lifted as E
 import Control.Applicative
 
-type TW = ReaderT TWEnv IO
+type TW = ReaderT TWEnv (ResourceT IO)
 
 data TWEnv = TWEnv
              { twOAuth :: Maybe OAuth
@@ -42,12 +45,12 @@ instance Default TWEnv where
 data RequireAuth = NoAuth | AuthSupported | AuthRequired
 
 runTW' :: TWEnv -> TW a -> IO a
-runTW' = flip runReaderT
+runTW' env m = runResourceT $ runReaderT m env
 
 runTW :: TWEnv -> TW a -> IO a
 runTW env st =
   case twManager env of
-    Nothing -> withManager $ \mgr -> runTWManager env mgr st
+    Nothing -> withManager $ \mgr -> liftIO $ runTWManager env mgr st
     Just _ -> runTW' env st
 
 runTWManager :: TWEnv -> Manager -> TW a -> IO a
@@ -69,7 +72,7 @@ getOAuth = do
   oa' <- asks twOAuth
   case oa' of
     Just oa -> return oa
-    Nothing -> throwIO MissingCredential
+    Nothing -> E.throwIO MissingCredential
 
 getCredential :: TW Credential
 getCredential = asks twCredential
@@ -84,7 +87,7 @@ getManager = do
     Just m -> return m
     Nothing -> error "getManager: manager is not initialized, should not be happen."
 
-signOAuthTW :: RequireAuth -> Request IO -> TW (Request IO)
+signOAuthTW :: RequireAuth -> Request TW -> TW (Request TW)
 signOAuthTW authp req =
   case authp of
     NoAuth -> return req
@@ -102,10 +105,10 @@ haveCredential = do
     Nothing -> return False
     Just _ -> not . null . unCredential <$> asks twCredential
 
-signOAuthTW' :: Request IO -> TW (Request IO)
+signOAuthTW' :: Request TW -> TW (Request TW)
 signOAuthTW' req = do
   oa' <- asks twOAuth
   cred <- asks twCredential
   case oa' of
-    Nothing -> throwIO MissingCredential
-    Just oa -> liftIO $ signOAuth oa cred req
+    Nothing -> E.throwIO MissingCredential
+    Just oa -> signOAuth oa cred req

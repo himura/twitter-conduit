@@ -1,36 +1,28 @@
+{-# LANGUAGE OverloadedStrings #-}
 module Main where
 
-import Common
-import Web.Twitter.Enumerator
-
-import Data.Enumerator hiding (map, filter)
-import qualified Data.Enumerator.List as EL
+import qualified Data.Conduit as C
+import qualified Data.Conduit.List as CL
 import qualified Data.Map as M
-import Control.Monad.IO.Class
-import Control.Monad
+import Control.Monad.Trans
 import System.Environment
+
+import Web.Twitter
+import Common
 
 main :: IO ()
 main = withCF $ do
-  (screenName:ln:_) <- liftIO getArgs
-  let sn = ScreenNameParam screenName
-  onesideList <- consumeRun $ listsMembers $ ListNameParam ln
-  folids <- consumeRun $ followersIds sn
-  friids <- consumeRun $ friendsIds sn
-  let oslstmap = M.fromList $ map (flip (,) True . userId) onesideList
-      folmap = M.fromList $ map (flip (,) True) folids
-      os = filter (\uid -> M.notMember uid folmap && M.notMember uid oslstmap) friids
-      bothfollow = filter (\usr -> M.member (userId usr) folmap) onesideList
+  [screenName] <- liftIO getArgs
+  let sn = QScreenName screenName
+  folids <- followersIds sn C.$$ CL.consume
+  friids <- friendsIds sn C.$$ CL.consume
 
-  liftIO . putStrLn $ "one sided:"
-  forM_ os $ \uid -> do
-    usr <- usersShow . UserIdParam $ uid
-    liftIO . showUser $ usr
+  let folmap = M.fromList $ map (flip (,) True) folids
+      os = filter (\uid -> M.notMember uid folmap) friids
+      bo = filter (\usr -> M.member usr folmap) friids
 
-  liftIO . putStrLn $ "both following:"
-  forM_ bothfollow $ liftIO . showUser
-  where consumeRun f = run_ $ f $$ EL.consume
-        showUser usr = do
-          putStr . show . userId $ usr
-          putStr ":"
-          putStrLn . userScreenName $ usr
+  liftIO $ putStrLn "one sided:"
+  liftIO $ print os
+
+  liftIO $ putStrLn "both following:"
+  liftIO $ print bo
