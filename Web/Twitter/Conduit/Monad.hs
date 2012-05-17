@@ -1,114 +1,110 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE GADTs #-}
+{-# LANGUAGE EmptyDataDecls #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE FlexibleContexts #-}
 
 module Web.Twitter.Conduit.Monad
        ( TW
        , TWEnv (..)
-       , RequireAuth (..)
+       , setCredential
        , runTW
        , runTWManager
-       , newEnv
        , getOAuth
        , getCredential
        , getProxy
        , getManager
        , signOAuthTW
+       , signOAuthIfExistTW
        )
        where
 
-import Web.Twitter.Conduit.Types
 import Web.Authenticate.OAuth
 import Network.HTTP.Conduit
 import Data.Default
 import Control.Monad.Trans
 import Control.Monad.Trans.Resource
 import Control.Monad.Reader
-import qualified Control.Exception.Lifted as E
-import Control.Applicative
 
-type TW = ReaderT TWEnv (ResourceT IO)
+type TW cred m = ReaderT (TWEnv cred) (ResourceT m)
 
-data TWEnv = TWEnv
-             { twOAuth :: Maybe OAuth
-             , twCredential :: Credential
-             , twProxy :: Maybe Proxy
-             , twManager :: Maybe Manager
-             }
+data NoToken
+data WithToken
 
-instance Default TWEnv where
-  def = TWEnv
-    { twOAuth = Nothing
-    , twCredential = Credential []
-    , twProxy = Nothing
-    , twManager = Nothing
+data AuthType a where
+  NoAuth :: AuthType NoToken
+  UseOAuth :: OAuth -> Credential -> AuthType WithToken
+
+data TWEnv cred
+  = TWEnv
+    { twToken :: AuthType cred
+    , twProxy :: Maybe Proxy
+    , twManager :: Maybe Manager
     }
 
-data RequireAuth = NoAuth | AuthSupported | AuthRequired
+instance Default (TWEnv NoToken) where
+  def = TWEnv
+        { twToken = NoAuth
+        , twProxy = Nothing
+        , twManager = Nothing
+        }
 
-runTW' :: TWEnv -> TW a -> IO a
-runTW' env m = runResourceT $ runReaderT m env
+setCredential :: OAuth -> Credential -> TWEnv NoToken -> TWEnv WithToken
+setCredential oa cred env
+  = TWEnv
+    { twToken = UseOAuth oa cred
+    , twProxy = twProxy env
+    , twManager = twManager env
+    }
 
-runTW :: TWEnv -> TW a -> IO a
+runTW' :: MonadBaseControl IO m => TWEnv cred -> TW cred m a -> ResourceT m a
+runTW' env m = runReaderT m env
+
+runTW :: ( MonadIO m
+         , MonadBaseControl IO m
+         , MonadThrow m
+         , MonadUnsafeIO m )
+      => TWEnv cred
+      -> TW cred m a
+      -> m a
 runTW env st =
   case twManager env of
-    Nothing -> withManager $ \mgr -> liftIO $ runTWManager env mgr st
-    Just _ -> runTW' env st
+    Nothing -> withManager $ \mgr -> runTWManager env mgr st
+    Just _ -> undefined -- runTW' env st
 
-runTWManager :: TWEnv -> Manager -> TW a -> IO a
+runTWManager :: MonadBaseControl IO m => TWEnv cred -> Manager -> TW cred m a -> ResourceT m a
 runTWManager env mgr st = runTW' env { twManager = Just mgr } st
 
-{-# DEPRECATED newEnv "Use Data.Default.def instead" #-}
--- | DEPRECATED: newEnv Use 'Data.Default.def' instead
-newEnv :: OAuth -> TWEnv
-newEnv tokens
-  = TWEnv
-    { twOAuth = Just tokens
-    , twCredential = Credential []
-    , twProxy = Nothing
-    , twManager = Nothing
-    }
-
-getOAuth :: TW OAuth
+{-# DEPRECATED getOAuth "Use 'asks twToken' instead" #-}
+getOAuth :: Monad m => TW WithToken m OAuth
 getOAuth = do
-  oa' <- asks twOAuth
-  case oa' of
-    Just oa -> return oa
-    Nothing -> E.throwIO MissingCredential
+  UseOAuth oa _ <- asks twToken
+  return oa
 
-getCredential :: TW Credential
-getCredential = asks twCredential
+{-# DEPRECATED getCredential "Use 'asks twToken' instead" #-}
+getCredential :: Monad m => TW WithToken m Credential
+getCredential = do
+  UseOAuth _ cred <- asks twToken
+  return cred
 
-getProxy :: TW (Maybe Proxy)
+getProxy ::Monad m => TW cred m (Maybe Proxy)
 getProxy = asks twProxy
 
-getManager :: TW Manager
+getManager :: Monad m => TW cred m Manager
 getManager = do
   mgr <- asks twManager
   case mgr of
     Just m -> return m
     Nothing -> error "getManager: manager is not initialized, should not be happen."
 
-signOAuthTW :: RequireAuth -> Request TW -> TW (Request TW)
-signOAuthTW authp req =
-  case authp of
+signOAuthTW :: (Monad m, MonadUnsafeIO m) => Request m -> TW WithToken m (Request m)
+signOAuthTW req = do
+  UseOAuth oa cred <- asks twToken
+  lift . lift $ signOAuth oa cred req
+
+signOAuthIfExistTW :: (Monad m, MonadUnsafeIO m) => Request m -> TW cred m (Request m)
+signOAuthIfExistTW req = do
+  token <- asks twToken
+  case token of
+    UseOAuth oa cred -> lift . lift $ signOAuth oa cred req
     NoAuth -> return req
-    AuthSupported -> do
-      credp <- haveCredential
-      if credp
-        then signOAuthTW' req
-        else return req
-    AuthRequired -> signOAuthTW' req
-
-haveCredential :: TW Bool
-haveCredential = do
-  oa <- asks twOAuth
-  case oa of
-    Nothing -> return False
-    Just _ -> not . null . unCredential <$> asks twCredential
-
-signOAuthTW' :: Request TW -> TW (Request TW)
-signOAuthTW' req = do
-  oa' <- asks twOAuth
-  cred <- asks twCredential
-  case oa' of
-    Nothing -> E.throwIO MissingCredential
-    Just oa -> signOAuth oa cred req
