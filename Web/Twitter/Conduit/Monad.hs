@@ -25,9 +25,9 @@ module Web.Twitter.Conduit.Monad
 import Web.Authenticate.OAuth
 import Network.HTTP.Conduit
 import Data.Default
-import Control.Monad.Trans
+import Control.Monad.IO.Class
+import Control.Monad.Trans.Reader
 import Control.Monad.Trans.Resource
-import Control.Monad.Reader
 
 type TW cred m = ReaderT (TWEnv cred) m
 
