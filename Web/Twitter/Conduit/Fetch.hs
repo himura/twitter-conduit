@@ -1,4 +1,9 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE CPP #-}
+#if __GLASGOW_HASKELL__ >= 704
+{-# LANGUAGE ConstraintKinds #-}
+#endif
 
 module Web.Twitter.Conduit.Fetch
        (
@@ -76,86 +81,73 @@ import Data.Aeson hiding (Error)
 
 import Web.Twitter.Conduit.Types
 import Web.Twitter.Conduit.Monad
-import Web.Twitter.Conduit.Utils
-import Web.Twitter.Conduit.Query
+import Web.Twitter.Conduit.Param
 import Web.Twitter.Conduit.Api
 
-mkQueryUser :: QueryUser -> HT.Query
-mkQueryUser (QUserId uid) =  [("user_id", Just $ showBS uid)]
-mkQueryUser (QScreenName sn) = [("screen_name", Just . B8.pack $ sn)]
-
-mkQueryList :: QueryList -> HT.Query
-mkQueryList (QListId lid) =  [("list_id", Just $ showBS lid)]
-mkQueryList (QListName listname) =
-  [("slug", Just . B8.pack $ lstName),
-   ("owner_screen_name", Just . B8.pack $ screenName)]
-  where
-    (screenName, ln) = span (/= '/') listname
-    lstName = drop 1 ln
-
-statuses :: (FromJSON a, Show a)
-         => RequireAuth -- ^ OAuth required?
+statuses :: (TwitterBaseM m, FromJSON a)
+         => AuthHandler cred m -- ^ OAuth required?
          -> String -- ^ Resource URL
          -> HT.Query -- ^ Query
-         -> C.Source TW a
-statuses authp uri query = apiWithPages authp furi query
+         -> C.Source (TW cred m) a
+statuses hndl uri query = apiWithPages hndl furi query
   where furi = endpoint ++ "statuses/" ++ uri
 
-statusesHomeTimeline :: HT.Query -> C.Source TW Status
-statusesHomeTimeline = statuses AuthRequired "home_timeline.json"
+statusesHomeTimeline :: TwitterBaseM m => HT.Query -> C.Source (TW WithToken m) Status
+statusesHomeTimeline = statuses authRequired "home_timeline.json"
 
-statusesMentions :: HT.Query -> C.Source TW Status
-statusesMentions = statuses AuthRequired "mentions.json"
+statusesMentions :: TwitterBaseM m => HT.Query -> C.Source (TW WithToken m) Status
+statusesMentions = statuses authRequired "mentions.json"
 
-statusesPublicTimeline :: HT.Query -> C.Source TW Status
-statusesPublicTimeline = statuses NoAuth "public_timeline.json"
+statusesPublicTimeline :: TwitterBaseM m => HT.Query -> C.Source (TW NoToken m) Status
+statusesPublicTimeline = statuses noAuth "public_timeline.json"
 
-statusesRetweetedByMe :: HT.Query -> C.Source TW Status
-statusesRetweetedByMe = statuses AuthRequired "retweeted_by_me.json"
+statusesRetweetedByMe :: TwitterBaseM m => HT.Query -> C.Source (TW WithToken m) Status
+statusesRetweetedByMe = statuses authRequired "retweeted_by_me.json"
 
-statusesRetweetedToMe :: HT.Query -> C.Source TW Status
-statusesRetweetedToMe = statuses AuthRequired "retweeted_to_me.json"
+statusesRetweetedToMe :: TwitterBaseM m => HT.Query -> C.Source (TW WithToken m) Status
+statusesRetweetedToMe = statuses authRequired "retweeted_to_me.json"
 
-statusesRetweetsOfMe :: HT.Query -> C.Source TW Status
-statusesRetweetsOfMe = statuses AuthRequired "retweeted_of_me.json"
+statusesRetweetsOfMe :: TwitterBaseM m => HT.Query -> C.Source (TW WithToken m) Status
+statusesRetweetsOfMe = statuses authRequired "retweeted_of_me.json"
 
-statusesUserTimeline :: HT.Query -> C.Source TW Status
-statusesUserTimeline = statuses AuthSupported "user_timeline.json"
+statusesUserTimeline :: TwitterBaseM m => HT.Query -> C.Source (TW cred m) Status
+statusesUserTimeline = statuses authSupported "user_timeline.json"
 
-statusesRetweetedToUser :: HT.Query -> C.Source TW Status
-statusesRetweetedToUser = statuses AuthSupported "retweeted_to_user.json"
+statusesRetweetedToUser :: TwitterBaseM m => HT.Query -> C.Source (TW cred m) Status
+statusesRetweetedToUser = statuses authSupported "retweeted_to_user.json"
 
-statusesRetweetedByUser :: HT.Query -> C.Source TW Status
-statusesRetweetedByUser = statuses AuthSupported "retweeted_by_user.json"
+statusesRetweetedByUser :: TwitterBaseM m => HT.Query -> C.Source (TW cred m) Status
+statusesRetweetedByUser = statuses authSupported "retweeted_by_user.json"
 
-statusesIdRetweetedBy :: StatusId -> HT.Query -> C.Source TW User
-statusesIdRetweetedBy status_id = statuses AuthSupported (show status_id ++ "/retweeted_by.json")
+statusesIdRetweetedBy :: TwitterBaseM m => StatusId -> HT.Query -> C.Source (TW cred m) User
+statusesIdRetweetedBy status_id = statuses authSupported (show status_id ++ "/retweeted_by.json")
 
-statusesIdRetweetedByIds :: StatusId -> HT.Query -> C.Source TW UserId
-statusesIdRetweetedByIds status_id = statuses AuthRequired (show status_id ++ "/retweeted_by/ids.json")
+statusesIdRetweetedByIds :: TwitterBaseM m => StatusId -> HT.Query -> C.Source (TW WithToken m) UserId
+statusesIdRetweetedByIds status_id = statuses authRequired (show status_id ++ "/retweeted_by/ids.json")
 
-statusesRetweetsId :: StatusId -> HT.Query -> TW [RetweetedStatus]
-statusesRetweetsId status_id query = apiGet AuthRequired uri query
+statusesRetweetsId :: TwitterBaseM m => StatusId -> HT.Query -> (TW WithToken m) [RetweetedStatus]
+statusesRetweetsId status_id query = apiGet authRequired uri query
   where uri = endpoint ++ "statuses/retweets/" ++ show status_id ++ ".json"
 
-statusesShowId :: StatusId -> HT.Query -> TW Status
-statusesShowId status_id query = apiGet AuthSupported (endpoint ++ "statuses/show/" ++ show status_id ++ ".json") query
+statusesShowId :: TwitterBaseM m => StatusId -> HT.Query -> (TW WithToken m) Status
+statusesShowId status_id query = apiGet authSupported (endpoint ++ "statuses/show/" ++ show status_id ++ ".json") query
 
-search :: String -> C.Source TW SearchStatus
-search q = apiWithPages NoAuth (endpointSearch ++ "search.json") query
+search :: TwitterBaseM m => String -> C.Source (TW NoToken m) SearchStatus
+search q = apiWithPages noAuth (endpointSearch ++ "search.json") query
   where query = [("q", Just . B8.pack $ q)]
 
 
-friendsIds, followersIds :: QueryUser -> C.Source TW UserId
-friendsIds   q = apiCursor AuthSupported "friends/ids.json"   (mkQueryUser q) "ids"
-followersIds q = apiCursor AuthSupported "followers/ids.json" (mkQueryUser q) "ids"
+friendsIds, followersIds
+  :: TwitterBaseM m => UserParam -> C.Source (TW cred m) UserId
+friendsIds   q = apiCursor authSupported "friends/ids.json"   (mkUserParam q) "ids"
+followersIds q = apiCursor authSupported "followers/ids.json" (mkUserParam q) "ids"
 
-usersShow :: QueryUser -> TW User
-usersShow q = apiGet AuthSupported "users/show.json" (mkQueryUser q)
+usersShow :: TwitterBaseM m => UserParam -> (TW cred m) User
+usersShow q = apiGet authSupported "users/show.json" (mkUserParam q)
 
-listsAll :: QueryUser -> C.Source TW List
-listsAll q = apiCursor AuthSupported "lists/all.json" (mkQueryUser q) ""
+listsAll :: TwitterBaseM m => UserParam -> C.Source (TW cred m) List
+listsAll q = apiCursor authSupported "lists/all.json" (mkUserParam q) ""
 
-listsMembers :: QueryList -> C.Source TW User
-listsMembers q = apiCursor AuthSupported "lists/members.json" (mkQueryList q) "users"
+listsMembers :: TwitterBaseM m => ListParam -> C.Source (TW cred m) User
+listsMembers q = apiCursor authSupported "lists/members.json" (mkListParam q) "users"
 

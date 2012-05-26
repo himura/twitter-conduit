@@ -1,66 +1,71 @@
-module Web.Twitter.Conduit.Status (
-  statuses,
-  
-  -- * Timelines
-  homeTimeline,
-  mentions,
-  publicTimeline,
-  retweetedByMe,
-  retweetedToMe,
-  retweetsOfMe,
-  userTimeline,
-  retweetedToUser,
-  retweetedByUser,
-  idRetweetedBy,
-  idRetweetedByIds,
-  retweetsId
-  ) where
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE CPP #-}
+#if __GLASGOW_HASKELL__ >= 704
+{-# LANGUAGE ConstraintKinds #-}
+#endif
 
-import Data.Aeson
-import qualified Data.Conduit as C
-import qualified Network.HTTP.Types as HT
+module Web.Twitter.Conduit.Status
+       ( statuses
+       -- * Timelines
+       , homeTimeline
+       , mentions
+       , publicTimeline
+       , retweetedByMe
+       , retweetedToMe
+       , retweetsOfMe
+       , userTimeline
+       , retweetedToUser
+       , retweetedByUser
+       , idRetweetedBy
+       , idRetweetedByIds
+       , retweetsId
+       ) where
 
 import Web.Twitter.Conduit.Api
 import Web.Twitter.Conduit.Monad
 import Web.Twitter.Conduit.Types
 
-statuses :: (FromJSON a, Show a) => String -> HT.Query -> C.Source TW a
-statuses url query = apiWithPages AuthRequired ("statuses/" ++ url) query
+import qualified Network.HTTP.Types as HT
+import Data.Aeson
+import qualified Data.Conduit as C
 
-homeTimeline :: HT.Query -> C.Source TW Status
+statuses :: (TwitterBaseM m, FromJSON a) => String -> HT.Query -> C.Source (TW WithToken m) a
+statuses url query = apiWithPages authRequired ("statuses/" ++ url) query
+
+homeTimeline :: TwitterBaseM m => HT.Query -> C.Source (TW WithToken m) Status
 homeTimeline = statuses "home_timeline.json"
 
-mentions :: HT.Query -> C.Source TW Status
+mentions :: TwitterBaseM m => HT.Query -> C.Source (TW WithToken m) Status
 mentions = statuses "mentions.json"
 
-publicTimeline :: HT.Query -> C.Source TW Status
+publicTimeline :: TwitterBaseM m => HT.Query -> C.Source (TW WithToken m) Status
 publicTimeline = statuses "public_timeline.json"
 
-retweetedByMe :: HT.Query -> C.Source TW Status
+retweetedByMe :: TwitterBaseM m => HT.Query -> C.Source (TW WithToken m) Status
 retweetedByMe = statuses "retweeted_by_me.json"
 
-retweetedToMe :: HT.Query -> C.Source TW Status
+retweetedToMe :: TwitterBaseM m => HT.Query -> C.Source (TW WithToken m) Status
 retweetedToMe = statuses "retweeted_to_me.json"
 
-retweetsOfMe :: HT.Query -> C.Source TW Status
+retweetsOfMe :: TwitterBaseM m => HT.Query -> C.Source (TW WithToken m) Status
 retweetsOfMe = statuses "retweeted_of_me.json"
 
-userTimeline :: HT.Query -> C.Source TW Status
+userTimeline :: TwitterBaseM m => HT.Query -> C.Source (TW WithToken m) Status
 userTimeline = statuses "user_timeline.json"
 
-retweetedToUser :: HT.Query -> C.Source TW Status
+retweetedToUser :: TwitterBaseM m => HT.Query -> C.Source (TW WithToken m) Status
 retweetedToUser = statuses "retweeted_to_user.json"
 
-retweetedByUser :: HT.Query -> C.Source TW Status
+retweetedByUser :: TwitterBaseM m => HT.Query -> C.Source (TW WithToken m) Status
 retweetedByUser = statuses "retweeted_by_user.json"
 
-idRetweetedBy :: StatusId -> HT.Query -> C.Source TW User
+idRetweetedBy :: TwitterBaseM m => StatusId -> HT.Query -> C.Source (TW WithToken m) User
 idRetweetedBy status_id = statuses (show status_id ++ "/retweeted_by.json")
 
-idRetweetedByIds :: StatusId -> HT.Query -> C.Source TW UserId
+idRetweetedByIds :: TwitterBaseM m => StatusId -> HT.Query -> C.Source (TW WithToken m) UserId
 idRetweetedByIds status_id = statuses (show status_id ++ "/retweeted_by/ids.json")
 
-retweetsId :: StatusId -> HT.Query -> TW [RetweetedStatus]
-retweetsId status_id query = apiGet AuthRequired uri query
+retweetsId :: TwitterBaseM m => StatusId -> HT.Query -> TW WithToken m [RetweetedStatus]
+retweetsId status_id query = apiGet authRequired uri query
   where uri = "statuses/retweets/" ++ show status_id ++ ".json"
 
