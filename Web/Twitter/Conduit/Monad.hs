@@ -6,6 +6,9 @@
 
 module Web.Twitter.Conduit.Monad
        ( TW
+       , NoToken
+       , WithToken
+       , AuthType (..)
        , TWEnv (..)
        , setCredential
        , runTW
@@ -26,7 +29,7 @@ import Control.Monad.Trans
 import Control.Monad.Trans.Resource
 import Control.Monad.Reader
 
-type TW cred m = ReaderT (TWEnv cred) (ResourceT m)
+type TW cred m = ReaderT (TWEnv cred) m
 
 data NoToken
 data WithToken
@@ -57,7 +60,7 @@ setCredential oa cred env
     , twManager = twManager env
     }
 
-runTW' :: MonadBaseControl IO m => TWEnv cred -> TW cred m a -> ResourceT m a
+runTW' :: MonadBaseControl IO m => TWEnv cred -> TW cred m a -> m a
 runTW' env m = runReaderT m env
 
 runTW :: ( MonadIO m
@@ -65,14 +68,11 @@ runTW :: ( MonadIO m
          , MonadThrow m
          , MonadUnsafeIO m )
       => TWEnv cred
-      -> TW cred m a
+      -> TW cred (ResourceT m) a
       -> m a
-runTW env st =
-  case twManager env of
-    Nothing -> withManager $ \mgr -> runTWManager env mgr st
-    Just _ -> undefined -- runTW' env st
+runTW env st = withManager $ \mgr -> runTWManager env mgr st
 
-runTWManager :: MonadBaseControl IO m => TWEnv cred -> Manager -> TW cred m a -> ResourceT m a
+runTWManager :: MonadBaseControl IO m => TWEnv cred -> Manager -> TW cred (ResourceT m) a -> ResourceT m a
 runTWManager env mgr st = runTW' env { twManager = Just mgr } st
 
 {-# DEPRECATED getOAuth "Use 'asks twToken' instead" #-}
@@ -97,14 +97,14 @@ getManager = do
     Just m -> return m
     Nothing -> error "getManager: manager is not initialized, should not be happen."
 
-signOAuthTW :: (Monad m, MonadUnsafeIO m) => Request m -> TW WithToken m (Request m)
+signOAuthTW :: (Monad m, MonadUnsafeIO m) => Request (TW WithToken m) -> TW WithToken m (Request (TW WithToken m))
 signOAuthTW req = do
   UseOAuth oa cred <- asks twToken
-  lift . lift $ signOAuth oa cred req
+  signOAuth oa cred req
 
-signOAuthIfExistTW :: (Monad m, MonadUnsafeIO m) => Request m -> TW cred m (Request m)
+signOAuthIfExistTW :: (Monad m, MonadUnsafeIO m) => Request (TW cred m) -> TW cred m (Request (TW cred m))
 signOAuthIfExistTW req = do
   token <- asks twToken
   case token of
-    UseOAuth oa cred -> lift . lift $ signOAuth oa cred req
+    UseOAuth oa cred -> signOAuth oa cred req
     NoAuth -> return req

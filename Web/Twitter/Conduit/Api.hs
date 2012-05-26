@@ -3,9 +3,11 @@
 
 module Web.Twitter.Conduit.Api
        ( api
-       , apiGet
        , apiCursor
        , apiWithPages
+       , authRequired
+       , authSupported
+       , noAuth
        , endpoint
        , endpointSearch
        , UserParam(..)
@@ -30,6 +32,8 @@ import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as B8
 import Data.Monoid
 import Control.Applicative
+import Control.Failure
+import Control.Monad.Trans.Control
 
 endpoint :: String
 endpoint = "https://api.twitter.com/1/"
@@ -37,57 +41,103 @@ endpoint = "https://api.twitter.com/1/"
 endpointSearch :: String
 endpointSearch = "http://search.twitter.com/"
 
-api :: RequireAuth -- ^ OAuth required?
-    -> ByteString -- ^ HTTP request method (GET or POST)
-    -> String -- ^ API Resource URL
-    -> HT.Query -- ^ Query
-    -> C.Source TW ByteString
-api authp m url query = flip C.PipeM (return ()) $ do
-  p    <- getProxy
+type AuthHandler cred m = Request (TW cred m) -> TW cred m (Request (TW cred m))
+
+api :: ( C.MonadResource m
+       , MonadBaseControl IO m
+       , Failure HttpException m
+       )
+       => AuthHandler cred m
+       -> HT.Method -- ^ HTTP request method (GET or POST)
+       -> String -- ^ API Resource URL
+       -> HT.Query -- ^ Query
+       -> C.Source (TW cred m) ByteString
+api hndl m url query = flip C.PipeM (return ()) $ do
+  p <- getProxy
   req  <- parseUrl url
-  req' <- signOAuthTW authp $ req { method = m, queryString = HT.renderQuery False query, proxy = p }
+  req' <- hndl req { method = m, queryString = HT.renderQuery False query, proxy = p }
   mgr  <- getManager
   responseBody <$> http req' mgr
 
-apiGet :: A.FromJSON a
-       => RequireAuth -- ^ OAuth required?
-       -> String -- ^ API Resource URL
-       -> HT.Query -- ^ Query
-       -> TW a
-apiGet authp url query =
-  api authp "GET" url query C.$$ sinkFromJSON
+authRequired :: C.MonadUnsafeIO m => AuthHandler WithToken m
+authRequired = signOAuthTW
 
-apiCursor :: A.FromJSON a
-          => RequireAuth -- ^ OAuth required?
-          -> String -- ^ API Resource URL
-          -> HT.Query -- ^ Query
-          -> T.Text --
-          -> C.Source TW a
-apiCursor authp url query cursorKey = flip C.PipeM (return ()) $ go (-1 :: Int) where
-  go cursor = do
-    let query' = ("cursor", Just $ showBS cursor) `insertQuery` query
-    j <- api authp "GET" (endpoint ++ url) query' C.$$ sinkJSON
-    case A.parseMaybe p j of
-      Nothing ->
-        return CL.sourceNull
-      Just (res, 0) ->
-        return $ CL.sourceList res
-      Just (res, nextCursor) ->
-        mappend (CL.sourceList res) <$> go nextCursor
-
-  p (A.Object v) = (,) <$> v A..: cursorKey <*> v A..: "next_cursor"
-  p _ = mempty
+apiAuthRequired :: ( C.MonadResource m
+                   , MonadBaseControl IO m
+                   , Failure HttpException m
+                   )
+                => HT.Method -- ^ HTTP request method (GET or POST)
+                -> String -- ^ API Resource URL
+                -> HT.Query -- ^ Query
+                -> C.Source (TW WithToken m) ByteString
+apiAuthRequired = api signOAuthTW
 
 
-apiWithPages :: A.FromJSON a
-             => RequireAuth -- ^ OAuth required?
+authSupported :: C.MonadUnsafeIO m => AuthHandler cred m
+authSupported = signOAuthIfExistTW
+
+apiAuthSupported :: ( C.MonadResource m
+                    , MonadBaseControl IO m
+                    , Failure HttpException m
+                    )
+                 => HT.Method -- ^ HTTP request method (GET or POST)
+                 -> String -- ^ API Resource URL
+                 -> HT.Query -- ^ Query
+                 -> C.Source (TW cred m) ByteString
+apiAuthSupported = api signOAuthIfExistTW
+
+noAuth :: Monad m => AuthHandler NoToken m
+noAuth = return
+
+apiNoAuth :: ( C.MonadResource m
+             , MonadBaseControl IO m
+             , Failure HttpException m
+             )
+             => HT.Method -- ^ HTTP request method (GET or POST)
              -> String -- ^ API Resource URL
              -> HT.Query -- ^ Query
-             -> C.Source TW a
-apiWithPages authp url query = C.sourceState (1 :: Int) pull C.$= CL.concatMap id where
+             -> C.Source (TW NoToken m) ByteString
+apiNoAuth = api return
+
+apiCursor :: ( C.MonadResource m
+             , MonadBaseControl IO m
+             , Failure HttpException m
+             , A.FromJSON a
+             )
+          => AuthHandler cred m
+          -> String -- ^ API Resource URL
+          -> HT.Query -- ^ Query
+          -> T.Text
+          -> C.Source (TW cred m) a
+apiCursor hndl url query cursorKey = C.PipeM (go (-1 :: Int)) (return ())
+  where
+    go cursor = do
+      let query' = ("cursor", Just $ showBS cursor) `insertQuery` query
+      j <- api hndl "GET" (endpoint ++ url) query' C.$$ sinkJSON
+      case A.parseMaybe p j of
+        Nothing ->
+          return CL.sourceNull
+        Just (res, 0) ->
+          return $ CL.sourceList res
+        Just (res, nextCursor) ->
+          mappend (CL.sourceList res) <$> go nextCursor
+
+    p (A.Object v) = (,) <$> v A..: cursorKey <*> v A..: "next_cursor"
+    p _ = mempty
+
+apiWithPages :: ( C.MonadResource m
+                , MonadBaseControl IO m
+                , Failure HttpException m
+                , A.FromJSON a
+                )
+             => AuthHandler cred m
+             -> String -- ^ API Resource URL
+             -> HT.Query -- ^ Query
+             -> C.Source (TW cred m) a
+apiWithPages hndl url query = C.sourceState (1 :: Int) pull C.$= CL.concatMap id where
   pull page = do
     let query' = ("page", Just $ showBS page) `insertQuery` query
-    rs <- api authp "GET" (endpoint ++ url) query' C.$$ sinkFromJSON
+    rs <- api hndl "GET" (endpoint ++ url) query' C.$$ sinkFromJSON
     case rs of
       [] -> return C.StateClosed
       _ -> return $ C.StateOpen (page + 1) rs
