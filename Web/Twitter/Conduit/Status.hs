@@ -43,7 +43,7 @@ homeTimeline = statuses authRequired "home_timeline.json"
 mentions :: TwitterBaseM m => HT.Query -> C.Source (TW WithToken m) Status
 mentions = statuses authRequired "mentions.json"
 
-publicTimeline :: TwitterBaseM m => HT.Query -> C.Source (TW NoToken m) Status
+publicTimeline :: TwitterBaseM m => HT.Query -> C.Source (TW cred m) Status
 publicTimeline = statuses noAuth "public_timeline.json"
 
 retweetedByMe :: TwitterBaseM m => HT.Query -> C.Source (TW WithToken m) Status

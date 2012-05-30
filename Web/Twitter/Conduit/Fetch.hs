@@ -62,7 +62,7 @@ import Web.Twitter.Conduit.Api
 import qualified Data.Conduit as C
 import qualified Data.ByteString.Char8 as B8
 
-search :: TwitterBaseM m => String -> C.Source (TW NoToken m) SearchStatus
+search :: TwitterBaseM m => String -> C.Source (TW cred m) SearchStatus
 search q = apiWithPages' noAuth "http://search.twitter.com/search.json" query
   where query = [("q", Just . B8.pack $ q)]
 

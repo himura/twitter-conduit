@@ -69,7 +69,7 @@ authRequired = signOAuthTW
 authSupported :: C.MonadUnsafeIO m => AuthHandler cred m
 authSupported = signOAuthIfExistTW
 
-noAuth :: Monad m => AuthHandler NoToken m
+noAuth :: Monad m => AuthHandler cred m
 noAuth = return
 
 endpoint :: String
