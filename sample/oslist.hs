@@ -13,7 +13,7 @@ import Common
 main :: IO ()
 main = withCF $ do
   [screenName] <- liftIO getArgs
-  let sn = QScreenName screenName
+  let sn = ScreenNameParam screenName
   folids <- followersIds sn C.$$ CL.consume
   friids <- friendsIds sn C.$$ CL.consume
 

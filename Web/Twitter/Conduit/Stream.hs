@@ -1,4 +1,9 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE CPP #-}
+#if __GLASGOW_HASKELL__ >= 704
+{-# LANGUAGE ConstraintKinds #-}
+#endif
 
 module Web.Twitter.Conduit.Stream (
   -- * StreamingAPI
@@ -14,12 +19,12 @@ import Web.Twitter.Conduit.Utils
 import qualified Data.Conduit as C
 import qualified Network.HTTP.Types as HT
 
-userstream :: C.Source TW StreamingAPI
+userstream :: TwitterBaseM m => C.Source (TW WithToken m) StreamingAPI
 userstream =
-  api AuthRequired "GET" "https://userstream.twitter.com/2/user.json" []
+  api authRequired "GET" "https://userstream.twitter.com/2/user.json" []
     C.$= conduitFromJSON
 
-statusesFilter :: HT.Query -> C.Source TW StreamingAPI
+statusesFilter :: TwitterBaseM m => HT.Query -> C.Source (TW WithToken m) StreamingAPI
 statusesFilter query =
-  api AuthRequired "GET" "https://stream.twitter.com/1/statuses/filter.json" query
+  api authRequired "GET" "https://stream.twitter.com/1/statuses/filter.json" query
     C.$= conduitFromJSON

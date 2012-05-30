@@ -15,7 +15,8 @@ module Web.Twitter.Conduit.Utils (
 
 import Control.Applicative
 import Control.Exception
-import Control.Monad.Trans
+import Control.Monad.IO.Class
+import Control.Monad.Trans.Class
 import Data.Aeson hiding (Error)
 import qualified Data.Aeson.Types as AT
 import qualified Data.Attoparsec.Types as A
