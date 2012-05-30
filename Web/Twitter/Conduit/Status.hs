@@ -19,6 +19,7 @@ module Web.Twitter.Conduit.Status
        , idRetweetedBy
        , idRetweetedByIds
        , retweetsId
+       , showId
        ) where
 
 import Web.Twitter.Conduit.Api
