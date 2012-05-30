@@ -11,15 +11,17 @@
 module Web.Twitter.Conduit.Api
        ( api
        , apiGet
+       , apiGet'
        , apiCursor
+       , apiCursor'
        , apiWithPages
+       , apiWithPages'
        , AuthHandler
        , authRequired
        , authSupported
        , noAuth
        , TwitterBaseM
        , endpoint
-       , endpointSearch
        ) where
 
 import Web.Twitter.Conduit.Monad
@@ -38,12 +40,6 @@ import Data.Monoid
 import Control.Applicative
 import Control.Failure
 import Control.Monad.Trans.Control
-
-endpoint :: String
-endpoint = "https://api.twitter.com/1/"
-
-endpointSearch :: String
-endpointSearch = "http://search.twitter.com/"
 
 type AuthHandler cred m = Request (TW cred m) -> TW cred m (Request (TW cred m))
 
@@ -76,13 +72,24 @@ authSupported = signOAuthIfExistTW
 noAuth :: Monad m => AuthHandler NoToken m
 noAuth = return
 
+endpoint :: String
+endpoint = "https://api.twitter.com/1/"
+
 apiGet :: (TwitterBaseM m, A.FromJSON a)
        => AuthHandler cred m
        -> String -- ^ API Resource URL
        -> HT.Query -- ^ Query
        -> TW cred m a
-apiGet authp url query =
-  api authp "GET" url query C.$$ sinkFromJSON
+apiGet hndl u = apiGet' hndl fu
+  where fu = endpoint ++ u
+
+apiGet' :: (TwitterBaseM m, A.FromJSON a)
+        => AuthHandler cred m
+        -> String -- ^ API Resource URL
+        -> HT.Query -- ^ Query
+        -> TW cred m a
+apiGet' hndl url query =
+  api hndl "GET" url query C.$$ sinkFromJSON
 
 apiCursor :: (TwitterBaseM m, A.FromJSON a)
           => AuthHandler cred m
@@ -90,11 +97,20 @@ apiCursor :: (TwitterBaseM m, A.FromJSON a)
           -> HT.Query -- ^ Query
           -> T.Text
           -> C.Source (TW cred m) a
-apiCursor hndl url query cursorKey = C.PipeM (go (-1 :: Int)) (return ())
+apiCursor hndl u = apiCursor' hndl fu
+  where fu = endpoint ++ u
+
+apiCursor' :: (TwitterBaseM m, A.FromJSON a)
+           => AuthHandler cred m
+           -> String -- ^ API Resource URL
+           -> HT.Query -- ^ Query
+           -> T.Text
+           -> C.Source (TW cred m) a
+apiCursor' hndl url query cursorKey = C.PipeM (go (-1 :: Int)) (return ())
   where
     go cursor = do
       let query' = ("cursor", Just $ showBS cursor) `insertQuery` query
-      j <- api hndl "GET" (endpoint ++ url) query' C.$$ sinkJSON
+      j <- api hndl "GET" url query' C.$$ sinkJSON
       case A.parseMaybe p j of
         Nothing ->
           return CL.sourceNull
@@ -111,10 +127,18 @@ apiWithPages :: (TwitterBaseM m, A.FromJSON a)
              -> String -- ^ API Resource URL
              -> HT.Query -- ^ Query
              -> C.Source (TW cred m) a
-apiWithPages hndl url query = C.sourceState (1 :: Int) pull C.$= CL.concatMap id where
+apiWithPages hndl u = apiWithPages' hndl fu
+  where fu = endpoint ++ u
+
+apiWithPages' :: (TwitterBaseM m, A.FromJSON a)
+              => AuthHandler cred m
+              -> String -- ^ API Resource URL
+              -> HT.Query -- ^ Query
+              -> C.Source (TW cred m) a
+apiWithPages' hndl url query = C.sourceState (1 :: Int) pull C.$= CL.concatMap id where
   pull page = do
     let query' = ("page", Just $ showBS page) `insertQuery` query
-    rs <- api hndl "GET" (endpoint ++ url) query' C.$$ sinkFromJSON
+    rs <- api hndl "GET" url query' C.$$ sinkFromJSON
     case rs of
       [] -> return C.StateClosed
       _ -> return $ C.StateOpen (page + 1) rs
