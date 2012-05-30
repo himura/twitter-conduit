@@ -16,6 +16,7 @@ import qualified Data.ByteString.Lazy.Char8 as LB
 import qualified Data.ByteString.Char8 as B
 import qualified Data.CaseInsensitive as CI
 import Data.Attoparsec
+import Data.Default
 import Control.Arrow (first)
 import Control.Applicative
 import Control.Monad.Trans
@@ -36,7 +37,7 @@ confdir = fmap (</> ".twitter2notify") getHomeDirectory >>= ensureDirectoryExist
 credentialFile :: IO FilePath
 credentialFile = (</> "credential.json") <$> confdir
 
-withCF :: TW a -> IO a
+withCF :: TW WithToken (ResourceT IO) a -> IO a
 withCF t = credentialFile >>= \f -> withCredentialFile f t
 
 loadCredential :: FilePath -> IO (Maybe Credential)
@@ -52,14 +53,14 @@ loadCredential file = do
 saveCredential :: FilePath -> Credential -> IO ()
 saveCredential file cred = LB.writeFile file $ encode . unCredential $ cred
 
-withCredentialFile :: FilePath -> TW a -> IO a
+withCredentialFile :: FilePath -> TW WithToken (ResourceT IO) a -> IO a
 withCredentialFile file task = do
   pr <- getProxyEnv
   cred <- withManager $ \mng -> do
     liftIO $ maybe (authorize pr tokens getPIN mng) return =<< loadCredential file
   saveCredential file cred
-  let env = newEnv tokens
-  runTW env { twCredential = cred, twProxy = pr } task
+  let env = (setCredential tokens cred def) { twProxy = pr }
+  runTW env task
   where
     getPIN url = do
       putStrLn $ "browse URL: " ++ url
