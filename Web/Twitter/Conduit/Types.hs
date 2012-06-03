@@ -11,6 +11,7 @@ module Web.Twitter.Conduit.Types
        , LanguageCode
        , StreamingAPI(..)
        , Status(..)
+       , SearchResult(..)
        , SearchStatus(..)
        , RetweetedStatus(..)
        , EventTarget(..)
@@ -109,6 +110,31 @@ instance FromJSON Status where
            <*> o .:? "favorited"
            <*> o .:? "retweet_count"
            <*> o .:  "user"
+  parseJSON _ = mzero
+
+data SearchResult body =
+  SearchResult
+  { searchResultCompletedIn :: Float
+  , searchResultMaxId :: StatusId
+  , searchResultNextPage :: Maybe String
+  , searchResultQuery :: String
+  , searchResultRefreshUrl :: String
+  , searchResultResults :: body
+  , searchResultResultsPerPage :: Int
+  , searchResultSinceId :: Integer
+  } deriving (Show, Eq)
+
+instance FromJSON body =>
+         FromJSON (SearchResult body) where
+  parseJSON (Object o) = checkError o <|>
+    SearchResult <$> o .:  "completed_in"
+                 <*> o .:  "max_id"
+                 <*> o .:? "next_page"
+                 <*> o .:  "query"
+                 <*> o .:  "refresh_url"
+                 <*> o .:  "results"
+                 <*> o .:  "results_per_page"
+                 <*> o .:  "since_id"
   parseJSON _ = mzero
 
 data SearchStatus =
