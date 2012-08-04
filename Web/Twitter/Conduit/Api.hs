@@ -12,6 +12,8 @@ module Web.Twitter.Conduit.Api
        ( api
        , apiGet
        , apiGet'
+       , apiPost
+       , apiPost'
        , apiCursor
        , apiCursor'
        , apiWithPages
@@ -31,6 +33,7 @@ import Network.HTTP.Conduit
 import qualified Network.HTTP.Types as HT
 import qualified Data.Conduit as C
 import qualified Data.Conduit.List as CL
+import qualified Data.Conduit.Util as CU
 
 import qualified Data.Aeson as A
 import qualified Data.Aeson.Types as A
@@ -55,8 +58,8 @@ api :: TwitterBaseM m
     -> HT.Method -- ^ HTTP request method (GET or POST)
     -> String -- ^ API Resource URL
     -> HT.Query -- ^ Query
-    -> C.Source (TW cred m) ByteString
-api hndl m url query = flip C.PipeM (return ()) $ do
+    -> TW cred m (C.ResumableSource (TW cred m) ByteString)
+api hndl m url query = do
   p <- getProxy
   req  <- parseUrl url
   req' <- hndl req { method = m, queryString = HT.renderQuery False query, proxy = p }
@@ -83,13 +86,31 @@ apiGet :: (TwitterBaseM m, A.FromJSON a)
 apiGet hndl u = apiGet' hndl fu
   where fu = endpoint ++ u
 
+apiPost :: (TwitterBaseM m, A.FromJSON a)
+        => AuthHandler cred m
+        -> String -- ^ API Resource URL
+        -> HT.Query -- ^ Query
+        -> TW cred m a
+apiPost hndl u = apiPost' hndl fu
+  where fu = endpoint ++ u
+
 apiGet' :: (TwitterBaseM m, A.FromJSON a)
         => AuthHandler cred m
         -> String -- ^ API Resource URL
         -> HT.Query -- ^ Query
         -> TW cred m a
-apiGet' hndl url query =
-  api hndl "GET" url query C.$$ sinkFromJSON
+apiGet' hndl url query = do
+  src <- api hndl "GET" url query
+  src C.$$+- sinkFromJSON
+
+apiPost' :: (TwitterBaseM m, A.FromJSON a)
+         => AuthHandler cred m
+         -> String -- ^ API Resource URL
+         -> HT.Query -- ^ Query
+         -> TW cred m a
+apiPost' hndl url query = do
+  src <- api hndl "POST" url query
+  src C.$$+- sinkFromJSON
 
 apiCursor :: (TwitterBaseM m, A.FromJSON a)
           => AuthHandler cred m
@@ -106,18 +127,19 @@ apiCursor' :: (TwitterBaseM m, A.FromJSON a)
            -> HT.Query -- ^ Query
            -> T.Text
            -> C.Source (TW cred m) a
-apiCursor' hndl url query cursorKey = C.PipeM (go (-1 :: Int)) (return ())
+apiCursor' hndl url query cursorKey = CU.sourceState (Just (-1 :: Int)) pull C.$= CL.concatMap id
   where
-    go cursor = do
+    pull (Just cursor) = do
       let query' = ("cursor", Just $ showBS cursor) `insertQuery` query
-      j <- api hndl "GET" url query' C.$$ sinkJSON
+      src <- api hndl "GET" url query'
+      j <- src C.$$+- sinkJSON
       case A.parseMaybe p j of
         Nothing ->
-          return CL.sourceNull
+          return CU.StateClosed
         Just (res, 0) ->
-          return $ CL.sourceList res
-        Just (res, nextCursor) ->
-          mappend (CL.sourceList res) <$> go nextCursor
+          return $ CU.StateOpen Nothing res
+        Just (res, nextCursor) -> return $ CU.StateOpen (Just nextCursor) res
+    pull Nothing = return CU.StateClosed
 
     p (A.Object v) = (,) <$> v A..: cursorKey <*> v A..: "next_cursor"
     p _ = mempty
@@ -135,10 +157,11 @@ apiWithPages' :: (TwitterBaseM m, A.FromJSON a)
               -> String -- ^ API Resource URL
               -> HT.Query -- ^ Query
               -> C.Source (TW cred m) a
-apiWithPages' hndl url query = C.sourceState (1 :: Int) pull C.$= CL.concatMap id where
+apiWithPages' hndl url query = CU.sourceState (1 :: Int) pull C.$= CL.concatMap id where
   pull page = do
     let query' = ("page", Just $ showBS page) `insertQuery` query
-    rs <- api hndl "GET" url query' C.$$ sinkFromJSON
+    src <- api hndl "GET" url query'
+    rs <- src C.$$+- sinkFromJSON
     case rs of
-      [] -> return C.StateClosed
-      _ -> return $ C.StateOpen (page + 1) rs
+      [] -> return CU.StateClosed
+      _ -> return $ CU.StateOpen (page + 1) rs

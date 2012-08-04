@@ -7,4 +7,5 @@ import Common
 
 main :: IO ()
 main = withCF $ do
-  userstream C.$$ CL.mapM_ (lift . lift . print)
+  src <- userstream
+  src C.$$+- CL.mapM_ (lift . lift . print)
