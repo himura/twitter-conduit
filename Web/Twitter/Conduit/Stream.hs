@@ -5,10 +5,11 @@
 {-# LANGUAGE ConstraintKinds #-}
 #endif
 
-module Web.Twitter.Conduit.Stream (
-  -- * StreamingAPI
-  userstream,
-  statusesFilter,
+module Web.Twitter.Conduit.Stream
+       (
+       -- * StreamingAPI
+         userstream
+       , statusesFilter
   ) where
 
 import Web.Twitter.Conduit.Api

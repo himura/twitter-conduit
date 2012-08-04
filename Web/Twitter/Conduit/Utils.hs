@@ -1,17 +1,18 @@
 {-# LANGUAGE DeriveDataTypeable #-}
 
-module Web.Twitter.Conduit.Utils (
-  sinkJSON,
-  sinkFromJSON,
-  conduitJSON,
-  conduitFromJSON,
-  parseFromJSON,
-  conduitParser,
-  showBS,
-  insertQuery,
-  fromJSON',
-  toMaybeByteString,
-  ) where
+module Web.Twitter.Conduit.Utils
+       (
+         sinkJSON
+       , sinkFromJSON
+       , conduitJSON
+       , conduitFromJSON
+       , parseFromJSON
+       , conduitParser
+       , showBS
+       , insertQuery
+       , fromJSON'
+       , toMaybeByteString
+       ) where
 
 import Control.Applicative
 import Control.Exception
