@@ -92,7 +92,7 @@ searchSourceFrom q initPage commonQuery = do
   where
     cqm = M.fromList commonQuery
     pull (Just query) = do
-      let pq = HT.parseSimpleQuery . B8.pack $ query
+      let pq = HT.parseSimpleQuery query
           query' = M.toList $ M.union (M.fromList pq) cqm
       res <- search' query'
       return $ CU.StateOpen (searchResultNextPage res) (searchResultResults res)
