@@ -6,7 +6,7 @@ module Web.Twitter.Conduit
        , module Web.Twitter.Conduit.Post
        , module Web.Twitter.Conduit.Param
        , module Web.Twitter.Conduit.Stream
-       , module Web.Twitter.Conduit.Types
+       , module Web.Twitter.Types -- re-export
        ) where
 
 import Web.Twitter.Conduit.Api
@@ -16,4 +16,4 @@ import Web.Twitter.Conduit.Monad
 import Web.Twitter.Conduit.Post
 import Web.Twitter.Conduit.Param
 import Web.Twitter.Conduit.Stream
-import Web.Twitter.Conduit.Types
+import Web.Twitter.Types

@@ -14,7 +14,7 @@ module Web.Twitter.Conduit.Stream
 
 import Web.Twitter.Conduit.Api
 import Web.Twitter.Conduit.Monad
-import Web.Twitter.Conduit.Types
+import Web.Twitter.Types
 import Web.Twitter.Conduit.Utils
 
 import qualified Data.Conduit as C

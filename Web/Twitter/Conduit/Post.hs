@@ -29,7 +29,7 @@ module Web.Twitter.Conduit.Post
 import qualified Network.HTTP.Types as HT
 import Web.Twitter.Conduit.Monad
 import Web.Twitter.Conduit.Api
-import Web.Twitter.Conduit.Types
+import Web.Twitter.Types
 import Web.Twitter.Conduit.Param
 
 import Data.Text (Text)

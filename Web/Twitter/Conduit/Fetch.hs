@@ -56,7 +56,7 @@ module Web.Twitter.Conduit.Fetch
        -- , listsSubscriptions
        ) where
 
-import Web.Twitter.Conduit.Types
+import Web.Twitter.Types
 import Web.Twitter.Conduit.Monad
 import Web.Twitter.Conduit.Param
 import Web.Twitter.Conduit.Utils

@@ -7,7 +7,7 @@ module Web.Twitter.Conduit.Param
        , mkListParam
        ) where
 
-import Web.Twitter.Conduit.Types
+import Web.Twitter.Types
 import Web.Twitter.Conduit.Utils
 
 import qualified Network.HTTP.Types as HT

@@ -37,6 +37,7 @@ library
     , bytestring >= 0.9
     , text >= 0.11
     , containers
+    , twitter-types
 
   exposed-modules:
     Web.Twitter.Conduit
@@ -47,7 +48,6 @@ library
     Web.Twitter.Conduit.Param
     Web.Twitter.Conduit.Stream
     Web.Twitter.Conduit.Status
-    Web.Twitter.Conduit.Types
 
   other-modules:
     Web.Twitter.Conduit.Utils

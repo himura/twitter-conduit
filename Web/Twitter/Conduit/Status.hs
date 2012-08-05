@@ -24,7 +24,7 @@ module Web.Twitter.Conduit.Status
 
 import Web.Twitter.Conduit.Api
 import Web.Twitter.Conduit.Monad
-import Web.Twitter.Conduit.Types
+import Web.Twitter.Types
 
 import qualified Network.HTTP.Types as HT
 import Data.Aeson
