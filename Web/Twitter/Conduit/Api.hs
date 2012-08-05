@@ -42,7 +42,7 @@ import Data.ByteString (ByteString)
 import Data.Monoid
 import Control.Applicative
 import Control.Monad.Trans.Control
-import Control.Monad.Base
+import Control.Monad.IO.Class
 
 type AuthHandler cred m = Request (TW cred m) -> TW cred m (Request (TW cred m))
 
@@ -61,7 +61,7 @@ api :: (C.MonadResource m, MonadBaseControl IO m)
     -> TW cred m (C.ResumableSource (TW cred m) ByteString)
 api hndl m url query = do
   p <- getProxy
-  req  <- liftBase $ parseUrl url
+  req  <- liftIO $ parseUrl url
   req' <- hndl req { method = m, queryString = HT.renderSimpleQuery False query, proxy = p }
   mgr  <- getManager
   responseBody <$> http req' mgr
