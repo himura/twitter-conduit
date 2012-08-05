@@ -33,48 +33,48 @@ import qualified Data.Conduit as C
 statuses :: (TwitterBaseM m, FromJSON a)
          => AuthHandler cred m -- ^ OAuth required?
          -> String -- ^ Resource URL
-         -> HT.Query -- ^ Query
+         -> HT.SimpleQuery -- ^ Query
          -> C.Source (TW cred m) a
 statuses hndl uri query = apiWithPages hndl u query
   where u = "statuses/" ++ uri
 
-homeTimeline :: TwitterBaseM m => HT.Query -> C.Source (TW WithToken m) Status
+homeTimeline :: TwitterBaseM m => HT.SimpleQuery -> C.Source (TW WithToken m) Status
 homeTimeline = statuses authRequired "home_timeline.json"
 
-mentions :: TwitterBaseM m => HT.Query -> C.Source (TW WithToken m) Status
+mentions :: TwitterBaseM m => HT.SimpleQuery -> C.Source (TW WithToken m) Status
 mentions = statuses authRequired "mentions.json"
 
-publicTimeline :: TwitterBaseM m => HT.Query -> C.Source (TW cred m) Status
+publicTimeline :: TwitterBaseM m => HT.SimpleQuery -> C.Source (TW cred m) Status
 publicTimeline = statuses noAuth "public_timeline.json"
 
-retweetedByMe :: TwitterBaseM m => HT.Query -> C.Source (TW WithToken m) Status
+retweetedByMe :: TwitterBaseM m => HT.SimpleQuery -> C.Source (TW WithToken m) Status
 retweetedByMe = statuses authRequired "retweeted_by_me.json"
 
-retweetedToMe :: TwitterBaseM m => HT.Query -> C.Source (TW WithToken m) Status
+retweetedToMe :: TwitterBaseM m => HT.SimpleQuery -> C.Source (TW WithToken m) Status
 retweetedToMe = statuses authRequired "retweeted_to_me.json"
 
-retweetsOfMe :: TwitterBaseM m => HT.Query -> C.Source (TW WithToken m) Status
+retweetsOfMe :: TwitterBaseM m => HT.SimpleQuery -> C.Source (TW WithToken m) Status
 retweetsOfMe = statuses authRequired "retweeted_of_me.json"
 
-userTimeline :: TwitterBaseM m => HT.Query -> C.Source (TW cred m) Status
+userTimeline :: TwitterBaseM m => HT.SimpleQuery -> C.Source (TW cred m) Status
 userTimeline = statuses authSupported "user_timeline.json"
 
-retweetedToUser :: TwitterBaseM m => HT.Query -> C.Source (TW cred m) Status
+retweetedToUser :: TwitterBaseM m => HT.SimpleQuery -> C.Source (TW cred m) Status
 retweetedToUser = statuses authSupported "retweeted_to_user.json"
 
-retweetedByUser :: TwitterBaseM m => HT.Query -> C.Source (TW cred m) Status
+retweetedByUser :: TwitterBaseM m => HT.SimpleQuery -> C.Source (TW cred m) Status
 retweetedByUser = statuses authSupported "retweeted_by_user.json"
 
-idRetweetedBy :: TwitterBaseM m => StatusId -> HT.Query -> C.Source (TW cred m) User
+idRetweetedBy :: TwitterBaseM m => StatusId -> HT.SimpleQuery -> C.Source (TW cred m) User
 idRetweetedBy status_id = statuses authSupported (show status_id ++ "/retweeted_by.json")
 
-idRetweetedByIds :: TwitterBaseM m => StatusId -> HT.Query -> C.Source (TW WithToken m) UserId
+idRetweetedByIds :: TwitterBaseM m => StatusId -> HT.SimpleQuery -> C.Source (TW WithToken m) UserId
 idRetweetedByIds status_id = statuses authRequired (show status_id ++ "/retweeted_by/ids.json")
 
-retweetsId :: TwitterBaseM m => StatusId -> HT.Query -> (TW WithToken m) [RetweetedStatus]
+retweetsId :: TwitterBaseM m => StatusId -> HT.SimpleQuery -> (TW WithToken m) [RetweetedStatus]
 retweetsId status_id query = apiGet authRequired uri query
   where uri = "statuses/retweets/" ++ show status_id ++ ".json"
 
-showId :: TwitterBaseM m => StatusId -> HT.Query -> (TW WithToken m) Status
+showId :: TwitterBaseM m => StatusId -> HT.SimpleQuery -> (TW WithToken m) Status
 showId status_id query = apiGet authSupported uri query
   where uri = "statuses/show/" ++ show status_id ++ ".json"

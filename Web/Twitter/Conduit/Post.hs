@@ -35,18 +35,18 @@ import Web.Twitter.Conduit.Param
 import Data.Text (Text)
 import Data.Text.Encoding as T
 
-statusesUpdate :: TwitterBaseM m => Text -> HT.Query -> TW WithToken m ()
-statusesUpdate tweet query = apiPost authRequired "statuses/update.json" (("status", Just $ T.encodeUtf8 tweet):query)
+statusesUpdate :: TwitterBaseM m => Text -> HT.SimpleQuery -> TW WithToken m ()
+statusesUpdate tweet query = apiPost authRequired "statuses/update.json" (("status", T.encodeUtf8 tweet):query)
 
-favoritesCreate :: TwitterBaseM m => StatusId -> HT.Query -> TW WithToken m Status
+favoritesCreate :: TwitterBaseM m => StatusId -> HT.SimpleQuery -> TW WithToken m Status
 favoritesCreate sid query = apiPost authRequired ("favorites/create/" ++ show sid ++ ".json") query
 
-favoritesDestroy :: TwitterBaseM m => StatusId -> HT.Query -> TW WithToken m Status
+favoritesDestroy :: TwitterBaseM m => StatusId -> HT.SimpleQuery -> TW WithToken m Status
 favoritesDestroy sid query = apiPost authRequired ("favorites/destroy/" ++ show sid ++ ".json") query
 
-statusesRetweetId :: TwitterBaseM m => Integer -> HT.Query -> TW WithToken m RetweetedStatus
+statusesRetweetId :: TwitterBaseM m => Integer -> HT.SimpleQuery -> TW WithToken m RetweetedStatus
 statusesRetweetId tweetId query = apiPost authRequired ("statuses/retweet/" ++ show tweetId ++ ".json") query
 
-friendshipsCreate :: TwitterBaseM m => UserParam -> HT.Query -> TW WithToken m User
+friendshipsCreate :: TwitterBaseM m => UserParam -> HT.SimpleQuery -> TW WithToken m User
 friendshipsCreate user query = apiPost authRequired "friendships/create.json" q
   where q = mkUserParam user ++ query

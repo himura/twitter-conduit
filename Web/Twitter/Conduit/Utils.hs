@@ -9,7 +9,6 @@ module Web.Twitter.Conduit.Utils
        , showBS
        , insertQuery
        , fromJSON'
-       , toMaybeByteString
        ) where
 
 import Control.Exception
@@ -50,12 +49,11 @@ conduitFromJSON = CL.sequence $ sinkFromJSON
 showBS :: Show a => a -> ByteString
 showBS = B8.pack . show
 
-insertQuery :: (ByteString, Maybe ByteString) -> HT.Query -> HT.Query
+insertQuery :: (ByteString, ByteString) -> HT.SimpleQuery -> HT.SimpleQuery
 insertQuery (key, value) = mk
   where mk = M.toList . M.insert key value . M.fromList
 
 fromJSON' :: FromJSON a => Value -> Maybe a
 fromJSON' = AT.parseMaybe parseJSON
 
-toMaybeByteString :: Show a => a -> Maybe ByteString
-toMaybeByteString = Just . B8.pack . show
+

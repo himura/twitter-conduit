@@ -35,7 +35,7 @@ userstream = do
   rsrc <- api authRequired "GET" "https://userstream.twitter.com/2/user.json" []
   rsrc $=+ conduitFromJSON
 
-statusesFilter :: TwitterBaseM m => HT.Query -> TW WithToken m (C.ResumableSource (TW WithToken m) StreamingAPI)
+statusesFilter :: TwitterBaseM m => HT.SimpleQuery -> TW WithToken m (C.ResumableSource (TW WithToken m) StreamingAPI)
 statusesFilter query = do
   rsrc <- api authRequired "GET" "https://stream.twitter.com/1/statuses/filter.json" query
   rsrc $=+ conduitFromJSON

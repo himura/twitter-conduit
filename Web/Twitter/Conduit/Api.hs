@@ -57,12 +57,12 @@ api :: TwitterBaseM m
     => AuthHandler cred m
     -> HT.Method -- ^ HTTP request method (GET or POST)
     -> String -- ^ API Resource URL
-    -> HT.Query -- ^ Query
+    -> HT.SimpleQuery -- ^ Query
     -> TW cred m (C.ResumableSource (TW cred m) ByteString)
 api hndl m url query = do
   p <- getProxy
   req  <- parseUrl url
-  req' <- hndl req { method = m, queryString = HT.renderQuery False query, proxy = p }
+  req' <- hndl req { method = m, queryString = HT.renderSimpleQuery False query, proxy = p }
   mgr  <- getManager
   responseBody <$> http req' mgr
 
@@ -81,7 +81,7 @@ endpoint = "https://api.twitter.com/1/"
 apiGet :: (TwitterBaseM m, A.FromJSON a)
        => AuthHandler cred m
        -> String -- ^ API Resource URL
-       -> HT.Query -- ^ Query
+       -> HT.SimpleQuery -- ^ Query
        -> TW cred m a
 apiGet hndl u = apiGet' hndl fu
   where fu = endpoint ++ u
@@ -89,7 +89,7 @@ apiGet hndl u = apiGet' hndl fu
 apiPost :: (TwitterBaseM m, A.FromJSON a)
         => AuthHandler cred m
         -> String -- ^ API Resource URL
-        -> HT.Query -- ^ Query
+        -> HT.SimpleQuery -- ^ Query
         -> TW cred m a
 apiPost hndl u = apiPost' hndl fu
   where fu = endpoint ++ u
@@ -97,7 +97,7 @@ apiPost hndl u = apiPost' hndl fu
 apiGet' :: (TwitterBaseM m, A.FromJSON a)
         => AuthHandler cred m
         -> String -- ^ API Resource URL
-        -> HT.Query -- ^ Query
+        -> HT.SimpleQuery -- ^ Query
         -> TW cred m a
 apiGet' hndl url query = do
   src <- api hndl "GET" url query
@@ -106,7 +106,7 @@ apiGet' hndl url query = do
 apiPost' :: (TwitterBaseM m, A.FromJSON a)
          => AuthHandler cred m
          -> String -- ^ API Resource URL
-         -> HT.Query -- ^ Query
+         -> HT.SimpleQuery -- ^ Query
          -> TW cred m a
 apiPost' hndl url query = do
   src <- api hndl "POST" url query
@@ -115,7 +115,7 @@ apiPost' hndl url query = do
 apiCursor :: (TwitterBaseM m, A.FromJSON a)
           => AuthHandler cred m
           -> String -- ^ API Resource URL
-          -> HT.Query -- ^ Query
+          -> HT.SimpleQuery -- ^ Query
           -> T.Text
           -> C.Source (TW cred m) a
 apiCursor hndl u = apiCursor' hndl fu
@@ -124,13 +124,13 @@ apiCursor hndl u = apiCursor' hndl fu
 apiCursor' :: (TwitterBaseM m, A.FromJSON a)
            => AuthHandler cred m
            -> String -- ^ API Resource URL
-           -> HT.Query -- ^ Query
+           -> HT.SimpleQuery -- ^ Query
            -> T.Text
            -> C.Source (TW cred m) a
 apiCursor' hndl url query cursorKey = CU.sourceState (Just (-1 :: Int)) pull C.$= CL.concatMap id
   where
     pull (Just cursor) = do
-      let query' = ("cursor", Just $ showBS cursor) `insertQuery` query
+      let query' = ("cursor", showBS cursor) `insertQuery` query
       src <- api hndl "GET" url query'
       j <- src C.$$+- sinkJSON
       case A.parseMaybe p j of
@@ -147,7 +147,7 @@ apiCursor' hndl url query cursorKey = CU.sourceState (Just (-1 :: Int)) pull C.$
 apiWithPages :: (TwitterBaseM m, A.FromJSON a)
              => AuthHandler cred m
              -> String -- ^ API Resource URL
-             -> HT.Query -- ^ Query
+             -> HT.SimpleQuery -- ^ Query
              -> C.Source (TW cred m) a
 apiWithPages hndl u = apiWithPages' hndl fu
   where fu = endpoint ++ u
@@ -155,11 +155,11 @@ apiWithPages hndl u = apiWithPages' hndl fu
 apiWithPages' :: (TwitterBaseM m, A.FromJSON a)
               => AuthHandler cred m
               -> String -- ^ API Resource URL
-              -> HT.Query -- ^ Query
+              -> HT.SimpleQuery -- ^ Query
               -> C.Source (TW cred m) a
 apiWithPages' hndl url query = CU.sourceState (1 :: Int) pull C.$= CL.concatMap id where
   pull page = do
-    let query' = ("page", Just $ showBS page) `insertQuery` query
+    let query' = ("page", showBS page) `insertQuery` query
     src <- api hndl "GET" url query'
     rs <- src C.$$+- sinkFromJSON
     case rs of

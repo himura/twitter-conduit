@@ -18,15 +18,15 @@ data UserParam = UserIdParam UserId | ScreenNameParam String
 data ListParam = ListIdParam Integer | ListNameParam String
                deriving (Show, Eq)
 
-mkUserParam :: UserParam -> HT.Query
-mkUserParam (UserIdParam uid) =  [("user_id", toMaybeByteString uid)]
-mkUserParam (ScreenNameParam sn) = [("screen_name", Just . B8.pack $ sn)]
+mkUserParam :: UserParam -> HT.SimpleQuery
+mkUserParam (UserIdParam uid) =  [("user_id", showBS uid)]
+mkUserParam (ScreenNameParam sn) = [("screen_name", B8.pack sn)]
 
-mkListParam :: ListParam -> HT.Query
-mkListParam (ListIdParam lid) =  [("list_id", toMaybeByteString lid)]
+mkListParam :: ListParam -> HT.SimpleQuery
+mkListParam (ListIdParam lid) =  [("list_id", showBS lid)]
 mkListParam (ListNameParam listname) =
-  [("slug", Just . B8.pack $ lstName),
-   ("owner_screen_name", Just . B8.pack $ screenName)]
+  [("slug", B8.pack lstName),
+   ("owner_screen_name", B8.pack screenName)]
   where
     (screenName, ln) = span (/= '/') listname
     lstName = drop 1 ln
