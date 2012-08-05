@@ -9,12 +9,10 @@ module Web.Twitter.Conduit.Monad
        , NoToken
        , WithToken
        , AuthType (..)
-       , TWEnv (..)
+       , TWInfo (..)
        , setCredential
        , runTW
        , runTWManager
-       , getOAuth
-       , getCredential
        , getProxy
        , getManager
        , signOAuthTW
@@ -38,73 +36,54 @@ data AuthType a where
   NoAuth :: AuthType NoToken
   UseOAuth :: OAuth -> Credential -> AuthType WithToken
 
-data TWEnv cred
-  = TWEnv
+data TWInfo cred = TWInfo
     { twToken :: AuthType cred
     , twProxy :: Maybe Proxy
-    , twManager :: Maybe Manager
     }
-
-instance Default (TWEnv NoToken) where
-  def = TWEnv
+instance Default (TWInfo NoToken) where
+  def = TWInfo
         { twToken = NoAuth
         , twProxy = Nothing
-        , twManager = Nothing
         }
 
-setCredential :: OAuth -> Credential -> TWEnv NoToken -> TWEnv WithToken
-setCredential oa cred env
-  = TWEnv
-    { twToken = UseOAuth oa cred
-    , twProxy = twProxy env
-    , twManager = twManager env
+data TWEnv cred = TWEnv
+    { twInfo :: TWInfo cred
+    , twManager :: Manager
     }
 
-runTW' :: MonadBaseControl IO m => TWEnv cred -> TW cred m a -> m a
-runTW' env m = runReaderT m env
+setCredential :: OAuth -> Credential -> TWInfo NoToken -> TWInfo WithToken
+setCredential oa cred env
+  = TWInfo
+    { twToken = UseOAuth oa cred
+    , twProxy = twProxy env
+    }
 
 runTW :: ( MonadIO m
          , MonadBaseControl IO m
          , MonadThrow m
          , MonadUnsafeIO m )
-      => TWEnv cred
+      => TWInfo cred
       -> TW cred (ResourceT m) a
       -> m a
-runTW env st = withManager $ \mgr -> runTWManager env mgr st
+runTW info st = withManager $ \mgr -> runTWManager info mgr st
 
-runTWManager :: MonadBaseControl IO m => TWEnv cred -> Manager -> TW cred (ResourceT m) a -> ResourceT m a
-runTWManager env mgr st = runTW' env { twManager = Just mgr } st
-
-{-# DEPRECATED getOAuth "Use 'asks twToken' instead" #-}
-getOAuth :: Monad m => TW WithToken m OAuth
-getOAuth = do
-  UseOAuth oa _ <- asks twToken
-  return oa
-
-{-# DEPRECATED getCredential "Use 'asks twToken' instead" #-}
-getCredential :: Monad m => TW WithToken m Credential
-getCredential = do
-  UseOAuth _ cred <- asks twToken
-  return cred
+runTWManager :: MonadBaseControl IO m => TWInfo cred -> Manager -> TW cred (ResourceT m) a -> ResourceT m a
+runTWManager info mgr st = runReaderT st $ TWEnv info mgr
 
 getProxy ::Monad m => TW cred m (Maybe Proxy)
-getProxy = asks twProxy
+getProxy = asks (twProxy . twInfo)
 
 getManager :: Monad m => TW cred m Manager
-getManager = do
-  mgr <- asks twManager
-  case mgr of
-    Just m -> return m
-    Nothing -> error "getManager: manager is not initialized, should not be happen."
+getManager = asks twManager
 
 signOAuthTW :: (Monad m, MonadUnsafeIO m) => Request (TW WithToken m) -> TW WithToken m (Request (TW WithToken m))
 signOAuthTW req = do
-  UseOAuth oa cred <- asks twToken
+  UseOAuth oa cred <- asks (twToken . twInfo)
   signOAuth oa cred req
 
 signOAuthIfExistTW :: (Monad m, MonadUnsafeIO m) => Request (TW cred m) -> TW cred m (Request (TW cred m))
 signOAuthIfExistTW req = do
-  token <- asks twToken
+  token <- asks (twToken . twInfo)
   case token of
     UseOAuth oa cred -> signOAuth oa cred req
     NoAuth -> return req
