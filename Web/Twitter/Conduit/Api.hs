@@ -41,19 +41,19 @@ import qualified Data.Text as T
 import Data.ByteString (ByteString)
 import Data.Monoid
 import Control.Applicative
-import Control.Failure
 import Control.Monad.Trans.Control
+import Control.Monad.Base
 
 type AuthHandler cred m = Request (TW cred m) -> TW cred m (Request (TW cred m))
 
 #if __GLASGOW_HASKELL__ >= 704
-type TwitterBaseM m = (C.MonadResource m, MonadBaseControl IO m, Failure HttpException m)
+type TwitterBaseM m = (C.MonadResource m, MonadBaseControl IO m)
 #else
-class (C.MonadResource m, MonadBaseControl IO m, Failure HttpException m) => TwitterBaseM m
-instance (C.MonadResource m, MonadBaseControl IO m, Failure HttpException m) => TwitterBaseM m
+class (C.MonadResource m, MonadBaseControl IO m) => TwitterBaseM m
+instance (C.MonadResource m, MonadBaseControl IO m) => TwitterBaseM m
 #endif
 
-api :: TwitterBaseM m
+api :: (C.MonadResource m, MonadBaseControl IO m)
     => AuthHandler cred m
     -> HT.Method -- ^ HTTP request method (GET or POST)
     -> String -- ^ API Resource URL
@@ -61,7 +61,7 @@ api :: TwitterBaseM m
     -> TW cred m (C.ResumableSource (TW cred m) ByteString)
 api hndl m url query = do
   p <- getProxy
-  req  <- parseUrl url
+  req  <- liftBase $ parseUrl url
   req' <- hndl req { method = m, queryString = HT.renderSimpleQuery False query, proxy = p }
   mgr  <- getManager
   responseBody <$> http req' mgr
