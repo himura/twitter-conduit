@@ -13,7 +13,7 @@ module Web.Twitter.Conduit.Fetch
        , searchSourceFrom
 
        -- * Direct Messages
-       -- , directMessages
+       , directMessages
        -- , directMessagesSent
        -- , directMessagesShowId
 
@@ -110,6 +110,11 @@ search' :: TwitterBaseM m
         => HT.SimpleQuery -- ^ query
         -> TW cred m (SearchResult [SearchStatus])
 search' query = apiGet' noAuth endpointSearch query
+
+directMessages :: TwitterBaseM m
+               => HT.SimpleQuery -- ^ query
+               -> C.Source (TW WithToken m) DirectMessage
+directMessages query = apiWithPages authRequired "direct_messages.json" query
 
 friendsIds, followersIds
   :: TwitterBaseM m => UserParam -> C.Source (TW cred m) UserId
