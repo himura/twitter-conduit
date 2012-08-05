@@ -9,6 +9,8 @@ module Web.Twitter.Conduit.Fetch
        (
        -- * Search
          search
+       , searchSource
+       , searchSourceFrom
 
        -- * Direct Messages
        -- , directMessages
@@ -57,18 +59,57 @@ module Web.Twitter.Conduit.Fetch
 import Web.Twitter.Conduit.Types
 import Web.Twitter.Conduit.Monad
 import Web.Twitter.Conduit.Param
+import Web.Twitter.Conduit.Utils
 import Web.Twitter.Conduit.Api
 
+import qualified Network.HTTP.Types as HT
 import qualified Data.Conduit as C
+import qualified Data.Conduit.List as CL
+import qualified Data.Conduit.Util as CU
 import qualified Data.ByteString.Char8 as B8
+import qualified Data.Map as M
+import Data.Monoid
 
-search :: TwitterBaseM m => String -> Int -> TW cred m (SearchResult [SearchStatus])
-search q page = apiGet' noAuth "http://search.twitter.com/search.json" query
-  where query = [("q", B8.pack $ q), ("page", B8.pack . show $ page)]
+endpointSearch :: String
+endpointSearch = "http://search.twitter.com/search.json"
 
--- search' :: TwitterBaseM m => String -> C.Source (TW cred m) (SearchResult [SearchStatus])
--- search' q = apiGet' noAuth "http://search.twitter.com/search.json" query
---   where query = [("q", Just . B8.pack $ q)]
+searchSource :: TwitterBaseM m
+             => String -- ^ search string
+             -> HT.SimpleQuery -- ^ query
+             -> TW cred m (SearchResult (C.Source (TW cred m) SearchStatus))
+searchSource q commonQuery = searchSourceFrom q 1 commonQuery
+
+searchSourceFrom :: TwitterBaseM m
+                 => String -- ^ search string
+                 -> Int -- ^ start page
+                 -> HT.SimpleQuery -- ^ query
+                 -> TW cred m (SearchResult (C.Source (TW cred m) SearchStatus))
+searchSourceFrom q initPage commonQuery = do
+    res <- search q initPage commonQuery
+    let body = CL.sourceList (searchResultResults res) <>
+               (CU.sourceState (searchResultNextPage res) pull C.$= CL.concatMap id)
+    return $ res { searchResultResults = body }
+  where
+    cqm = M.fromList commonQuery
+    pull (Just query) = do
+      let pq = HT.parseSimpleQuery . B8.pack $ query
+          query' = M.toList $ M.union (M.fromList pq) cqm
+      res <- search' query'
+      return $ CU.StateOpen (searchResultNextPage res) (searchResultResults res)
+    pull Nothing = return $ CU.StateClosed
+
+search :: TwitterBaseM m
+       => String -- ^ search string
+       -> Int -- ^ page
+       -> HT.SimpleQuery -- ^ query
+       -> TW cred m (SearchResult [SearchStatus])
+search q page query = search' query'
+  where query' = ("q", B8.pack $ q) : ("page", showBS page) : query
+
+search' :: TwitterBaseM m
+        => HT.SimpleQuery -- ^ query
+        -> TW cred m (SearchResult [SearchStatus])
+search' query = apiGet' noAuth endpointSearch query
 
 friendsIds, followersIds
   :: TwitterBaseM m => UserParam -> C.Source (TW cred m) UserId
