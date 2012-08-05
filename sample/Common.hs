@@ -10,13 +10,10 @@ import qualified Web.Authenticate.OAuth as OA
 import qualified Network.URI as URI
 import Network.HTTP.Conduit
 import Data.Aeson hiding (Error)
-import Data.Aeson.Types (parseMaybe)
 import qualified Data.Map as M
 import qualified Data.ByteString.Lazy.Char8 as LB
 import qualified Data.ByteString.Char8 as B
 import qualified Data.CaseInsensitive as CI
-import Data.Attoparsec
-import Data.Default
 import Control.Arrow (first)
 import Control.Applicative
 import Control.Monad.Trans
@@ -44,10 +41,9 @@ loadCredential :: FilePath -> IO (Maybe Credential)
 loadCredential file = do
   existp <- doesFileExist file
   if existp
-    then
-    do
-      content <- B.readFile file
-      return $ Credential <$> ((maybeResult . parse json) content >>= parseMaybe parseJSON)
+    then do
+      content <- LB.readFile file
+      return $ Credential <$> decode content
     else return Nothing
 
 saveCredential :: FilePath -> Credential -> IO ()
@@ -56,9 +52,7 @@ saveCredential file cred = LB.writeFile file $ encode . unCredential $ cred
 withCredentialFile :: FilePath -> TW WithToken (ResourceT IO) a -> IO a
 withCredentialFile file task = do
   pr <- getProxyEnv
-  cred <- withManager $ \mng -> do
-    liftIO $ maybe (authorize pr tokens getPIN mng) return =<< loadCredential file
-  saveCredential file cred
+  cred <- maybe (authorizeAndSave pr) return =<< loadCredential file
   let env = (setCredential tokens cred def) { twProxy = pr }
   runTW env task
   where
@@ -67,6 +61,11 @@ withCredentialFile file task = do
       putStr "> what was the PIN twitter provided you with? "
       hFlush stdout
       getLine
+    authorizeAndSave pr =
+      withManager $ \mgr -> do
+        cred <- authorize pr tokens getPIN mgr
+        liftIO $ saveCredential file cred
+        return cred
 
 getProxyEnv :: IO (Maybe Proxy)
 getProxyEnv = do
@@ -81,8 +80,8 @@ getProxyEnv = do
     parsePort (':':xs) = read xs
     parsePort xs       = error $ "port number parse failed " ++ xs
 
-authorize :: Maybe Proxy -> OAuth -> (String -> IO String) -> Manager -> IO Credential
-authorize pr oauth getPIN mng = runResourceT $ do
+authorize :: Maybe Proxy -> OAuth -> (String -> IO String) -> Manager -> ResourceT IO Credential
+authorize pr oauth getPIN mng = do
   cred <- OA.getTemporaryCredentialProxy pr oauth mng
   let url = OA.authorizeUrl oauth cred
   pin <- liftIO $ getPIN url
