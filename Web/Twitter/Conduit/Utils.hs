@@ -1,4 +1,5 @@
 {-# LANGUAGE DeriveDataTypeable #-}
+{-# LANGUAGE CPP #-}
 
 module Web.Twitter.Conduit.Utils
        (
@@ -30,17 +31,29 @@ data TwitterError
 
 instance Exception TwitterError
 
+#if MIN_VERSION_conduit(1,0,0)
+sinkJSON :: C.MonadResource m => C.Consumer ByteString m Value
+#else
 sinkJSON :: C.MonadResource m => C.GLSink ByteString m Value
+#endif
 sinkJSON = CA.sinkParser json
 
+#if MIN_VERSION_conduit(1,0,0)
+sinkFromJSON :: (FromJSON a, C.MonadResource m) => C.Consumer ByteString m a
+#else
 sinkFromJSON :: (FromJSON a, C.MonadResource m) => C.GLSink ByteString m a
+#endif
 sinkFromJSON = do
   v <- sinkJSON
   case fromJSON v of
     AT.Error err -> lift $ C.monadThrow $ TwitterError err
     AT.Success r -> return r
 
+#if MIN_VERSION_conduit(1,0,0)
+conduitJSON :: C.MonadResource m => C.Conduit ByteString m Value
+#else
 conduitJSON :: C.MonadResource m => C.GLInfConduit ByteString m Value
+#endif
 conduitJSON = CL.sequence $ sinkJSON
 
 conduitFromJSON :: (FromJSON a, C.MonadResource m) => C.Conduit ByteString m a
