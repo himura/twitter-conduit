@@ -65,7 +65,6 @@ import Web.Twitter.Conduit.Api
 import qualified Network.HTTP.Types as HT
 import qualified Data.Conduit as C
 import qualified Data.Conduit.List as CL
-import qualified Data.Conduit.Util as CU
 import qualified Data.ByteString.Char8 as B8
 import qualified Data.Map as M
 import Data.Monoid
@@ -87,7 +86,7 @@ searchSourceFrom :: TwitterBaseM m
 searchSourceFrom q initPage commonQuery = do
     res <- search q initPage commonQuery
     let body = CL.sourceList (searchResultResults res) <>
-               (CU.sourceState (searchResultNextPage res) pull C.$= CL.concatMap id)
+               ((C.yield (searchResultNextPage res)) C.$= CL.concatMapM pull C.$= CL.concatMap id)
     return $ res { searchResultResults = body }
   where
     cqm = M.fromList commonQuery
@@ -95,8 +94,9 @@ searchSourceFrom q initPage commonQuery = do
       let pq = HT.parseSimpleQuery query
           query' = M.toList $ M.union (M.fromList pq) cqm
       res <- search' query'
-      return $ CU.StateOpen (searchResultNextPage res) (searchResultResults res)
-    pull Nothing = return $ CU.StateClosed
+      remains <- pull $ searchResultNextPage res
+      return $ searchResultResults res : remains
+    pull Nothing = return []
 
 search :: TwitterBaseM m
        => String -- ^ search string
