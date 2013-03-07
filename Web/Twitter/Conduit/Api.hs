@@ -163,5 +163,6 @@ apiWithPages' hndl url query = loop (1 :: Int)
           rs <- lift $ do
             src <- api hndl "GET" url query'
             src C.$$+- sinkFromJSON
-          CL.sourceList rs
-          loop (page+1)
+          if null rs
+            then CL.sourceNull
+            else CL.sourceList rs >> loop (page+1)
