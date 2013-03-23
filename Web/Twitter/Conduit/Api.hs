@@ -42,6 +42,7 @@ import Data.Monoid
 import Control.Applicative
 import Control.Monad.Trans.Control
 import Control.Monad.IO.Class
+import Control.Monad.Trans.Class (lift)
 
 type AuthHandler cred m = Request (TW cred m) -> TW cred m (Request (TW cred m))
 
@@ -126,19 +127,20 @@ apiCursor' :: (TwitterBaseM m, A.FromJSON a)
            -> HT.SimpleQuery -- ^ Query
            -> T.Text
            -> C.Source (TW cred m) a
-apiCursor' hndl url query cursorKey = C.yield (-1 :: Int) C.$= CL.mapM pull C.$= CL.concatMap id
-  where 
-    pull cursor = do
-      let query' = ("cursor", showBS cursor) `insertQuery` query
-      src <- api hndl "GET" url query'
-      j <- src C.$$+- sinkJSON
-      case A.parseMaybe p j of
-        Nothing -> return []
-        Just (res, 0) -> return [res]
-        Just (res, nextCursor) -> do
-          remains <- pull nextCursor
-          return (res:remains)
-        
+apiCursor' hndl url query cursorKey = loop (-1 :: Int)
+  where
+    loop 0 = CL.sourceNull
+    loop cursor = do
+          let query' = ("cursor", showBS cursor) `insertQuery` query
+          j <- lift $ do
+            src <- api hndl "GET" url query'
+            src C.$$+- sinkJSON
+          case A.parseMaybe p j of
+            Nothing -> CL.sourceNull
+            Just (res, nextCursor) -> do
+              CL.sourceList res
+              loop nextCursor
+
     p (A.Object v) = (,) <$> v A..: cursorKey <*> v A..: "next_cursor"
     p _ = mempty
 
@@ -155,14 +157,12 @@ apiWithPages' :: (TwitterBaseM m, A.FromJSON a)
               -> String -- ^ API Resource URL
               -> HT.SimpleQuery -- ^ Query
               -> C.Source (TW cred m) a
-apiWithPages' hndl url query = C.yield (1 :: Int) C.$= CL.concatMapM pull C.$= CL.concatMap id
-  where
-    pull page = do
-      let query' = ("page", showBS page) `insertQuery` query
-      src <- api hndl "GET" url query'
-      res <- src C.$$+- sinkFromJSON
-      case res of
-        [] -> return []
-        _  -> do
-          remains <- pull (page + 1)
-          return (res:remains)
+apiWithPages' hndl url query = loop (1 :: Int)
+  where loop page = do
+          let query' = ("page", showBS page) `insertQuery` query
+          rs <- lift $ do
+            src <- api hndl "GET" url query'
+            src C.$$+- sinkFromJSON
+          if null rs
+            then CL.sourceNull
+            else CL.sourceList rs >> loop (page+1)
