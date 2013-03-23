@@ -19,11 +19,11 @@ import System.IO (hFlush, stdout)
 
 tokens :: OAuth
 tokens = def { oauthServerName = "twitter"
-             , oauthRequestUri = "http://twitter.com/oauth/request_token"
-             , oauthAccessTokenUri = "http://twitter.com/oauth/access_token"
-             , oauthAuthorizeUri = "http://twitter.com/oauth/authorize"
-             , oauthConsumerKey = "PtIqT5VLGKZipeKnqeJMQ"
-             , oauthConsumerSecret = "2lmI32rnFsRJuv5NCQ35UP5zWg58z986DliUsNeA"
+             , oauthRequestUri = "https://api.twitter.com/oauth/request_token"
+             , oauthAccessTokenUri = "https://api.twitter.com/oauth/access_token"
+             , oauthAuthorizeUri = "https://api.twitter.com/oauth/authorize"
+             , oauthConsumerKey = error "You MUST specify oauthConsumerKey parameter."
+             , oauthConsumerSecret = error "You MUST specify oauthConsumerSecret parameter."
              , oauthSignatureMethod = OA.HMACSHA1
              , oauthCallback = Nothing
              }
@@ -57,6 +57,6 @@ main = withCredential $ do
   homeTimeline []
     C.$= CL.isolate 100
     C.$$ CL.mapM_ $ \status -> liftIO $ do
-      let sn = T.pack . userScreenName . statusUser $ status
+      let sn = userScreenName . statusUser $ status
           tweet = statusText status
       T.putStrLn $ T.concat [ sn, ": ", tweet]
