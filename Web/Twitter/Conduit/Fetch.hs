@@ -75,14 +75,14 @@ endpointSearch = "http://search.twitter.com/search.json"
 searchSource :: TwitterBaseM m
              => String -- ^ search string
              -> HT.SimpleQuery -- ^ query
-             -> TW cred m (SearchResult (C.Source (TW cred m) SearchStatus))
+             -> TW m (SearchResult (C.Source (TW m) SearchStatus))
 searchSource q commonQuery = searchSourceFrom q 1 commonQuery
 
 searchSourceFrom :: TwitterBaseM m
                  => String -- ^ search string
                  -> Int -- ^ start page
                  -> HT.SimpleQuery -- ^ query
-                 -> TW cred m (SearchResult (C.Source (TW cred m) SearchStatus))
+                 -> TW m (SearchResult (C.Source (TW m) SearchStatus))
 searchSourceFrom q initPage commonQuery = do
     res <- search q initPage commonQuery
     let body = CL.sourceList (searchResultResults res) <>
@@ -102,31 +102,31 @@ search :: TwitterBaseM m
        => String -- ^ search string
        -> Int -- ^ page
        -> HT.SimpleQuery -- ^ query
-       -> TW cred m (SearchResult [SearchStatus])
+       -> TW m (SearchResult [SearchStatus])
 search q page query = search' query'
   where query' = ("q", B8.pack $ q) : ("page", showBS page) : query
 
 search' :: TwitterBaseM m
         => HT.SimpleQuery -- ^ query
-        -> TW cred m (SearchResult [SearchStatus])
-search' query = apiGet' noAuth endpointSearch query
+        -> TW m (SearchResult [SearchStatus])
+search' query = apiGet' signOAuthTW endpointSearch query
 
 directMessages :: TwitterBaseM m
                => HT.SimpleQuery -- ^ query
-               -> C.Source (TW WithToken m) DirectMessage
-directMessages query = apiWithPages authRequired "direct_messages.json" query
+               -> C.Source (TW m) DirectMessage
+directMessages query = apiWithPages signOAuthTW "direct_messages.json" query
 
 friendsIds, followersIds
-  :: TwitterBaseM m => UserParam -> C.Source (TW cred m) UserId
-friendsIds   q = apiCursor authSupported "friends/ids.json"   (mkUserParam q) "ids"
-followersIds q = apiCursor authSupported "followers/ids.json" (mkUserParam q) "ids"
+  :: TwitterBaseM m => UserParam -> C.Source (TW m) UserId
+friendsIds   q = apiCursor signOAuthTW "friends/ids.json"   (mkUserParam q) "ids"
+followersIds q = apiCursor signOAuthTW "followers/ids.json" (mkUserParam q) "ids"
 
-usersShow :: TwitterBaseM m => UserParam -> (TW cred m) User
-usersShow q = apiGet authSupported "users/show.json" (mkUserParam q)
+usersShow :: TwitterBaseM m => UserParam -> TW m User
+usersShow q = apiGet signOAuthTW "users/show.json" (mkUserParam q)
 
-listsAll :: TwitterBaseM m => UserParam -> C.Source (TW cred m) List
-listsAll q = apiCursor authSupported "lists/all.json" (mkUserParam q) ""
+listsAll :: TwitterBaseM m => UserParam -> C.Source (TW m) List
+listsAll q = apiCursor signOAuthTW "lists/all.json" (mkUserParam q) ""
 
-listsMembers :: TwitterBaseM m => ListParam -> C.Source (TW cred m) User
-listsMembers q = apiCursor authSupported "lists/members.json" (mkListParam q) "users"
+listsMembers :: TwitterBaseM m => ListParam -> C.Source (TW m) User
+listsMembers q = apiCursor signOAuthTW "lists/members.json" (mkListParam q) "users"
 

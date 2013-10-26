@@ -6,9 +6,7 @@
 
 module Web.Twitter.Conduit.Monad
        ( TW
-       , NoToken
-       , WithToken
-       , AuthType (..)
+       , TWToken (..)
        , TWInfo (..)
        , setCredential
        , runTW
@@ -16,7 +14,6 @@ module Web.Twitter.Conduit.Monad
        , getProxy
        , getManager
        , signOAuthTW
-       , signOAuthIfExistTW
        )
        where
 
@@ -27,34 +24,47 @@ import Control.Monad.IO.Class
 import Control.Monad.Trans.Reader
 import Control.Monad.Trans.Resource
 
-type TW cred m = ReaderT (TWEnv cred) m
+type TW m = ReaderT TWEnv m
 
-data NoToken
-data WithToken
+data TWToken
+    = TWToken
+      { twOAuth :: OAuth
+      , twCredential :: Credential
+      }
+instance Default TWToken where
+  def = TWToken defaultTokens (Credential [])
 
-data AuthType a where
-  NoAuth :: AuthType NoToken
-  UseOAuth :: OAuth -> Credential -> AuthType WithToken
-
-data TWInfo cred = TWInfo
-    { twToken :: AuthType cred
+data TWInfo = TWInfo
+    { twToken :: TWToken
     , twProxy :: Maybe Proxy
     }
-instance Default (TWInfo NoToken) where
+instance Default TWInfo where
   def = TWInfo
-        { twToken = NoAuth
+        { twToken = def
         , twProxy = Nothing
         }
 
-data TWEnv cred = TWEnv
-    { twInfo :: TWInfo cred
+defaultTokens :: OAuth
+defaultTokens =
+  def { oauthServerName = "twitter"
+      , oauthRequestUri = "https://api.twitter.com/oauth/request_token"
+      , oauthAccessTokenUri = "https://api.twitter.com/oauth/access_token"
+      , oauthAuthorizeUri = "https://api.twitter.com/oauth/authorize"
+      , oauthConsumerKey = error "You MUST specify oauthConsumerKey parameter."
+      , oauthConsumerSecret = error "You MUST specify oauthConsumerSecret parameter."
+      , oauthSignatureMethod = HMACSHA1
+      , oauthCallback = Nothing
+      }
+
+data TWEnv = TWEnv
+    { twInfo :: TWInfo
     , twManager :: Manager
     }
 
-setCredential :: OAuth -> Credential -> TWInfo NoToken -> TWInfo WithToken
+setCredential :: OAuth -> Credential -> TWInfo -> TWInfo
 setCredential oa cred env
   = TWInfo
-    { twToken = UseOAuth oa cred
+    { twToken = TWToken oa cred
     , twProxy = twProxy env
     }
 
@@ -62,28 +72,23 @@ runTW :: ( MonadIO m
          , MonadBaseControl IO m
          , MonadThrow m
          , MonadUnsafeIO m )
-      => TWInfo cred
-      -> TW cred (ResourceT m) a
+      => TWInfo
+      -> TW (ResourceT m) a
       -> m a
 runTW info st = withManager $ \mgr -> runTWManager info mgr st
 
-runTWManager :: MonadBaseControl IO m => TWInfo cred -> Manager -> TW cred (ResourceT m) a -> ResourceT m a
+runTWManager :: MonadBaseControl IO m => TWInfo -> Manager -> TW (ResourceT m) a -> ResourceT m a
 runTWManager info mgr st = runReaderT st $ TWEnv info mgr
 
-getProxy ::Monad m => TW cred m (Maybe Proxy)
+getProxy ::Monad m => TW m (Maybe Proxy)
 getProxy = asks (twProxy . twInfo)
 
-getManager :: Monad m => TW cred m Manager
+getManager :: Monad m => TW m Manager
 getManager = asks twManager
 
-signOAuthTW :: (Monad m, MonadUnsafeIO m) => Request (TW WithToken m) -> TW WithToken m (Request (TW WithToken m))
+signOAuthTW :: (Monad m, MonadUnsafeIO m)
+            => Request (TW m)
+            -> TW m (Request (TW m))
 signOAuthTW req = do
-  UseOAuth oa cred <- asks (twToken . twInfo)
+  TWToken oa cred <- asks (twToken . twInfo)
   signOAuth oa cred req
-
-signOAuthIfExistTW :: (Monad m, MonadUnsafeIO m) => Request (TW cred m) -> TW cred m (Request (TW cred m))
-signOAuthIfExistTW req = do
-  token <- asks (twToken . twInfo)
-  case token of
-    UseOAuth oa cred -> signOAuth oa cred req
-    NoAuth -> return req

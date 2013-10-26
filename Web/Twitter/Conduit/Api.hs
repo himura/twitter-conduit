@@ -19,9 +19,6 @@ module Web.Twitter.Conduit.Api
        , apiWithPages
        , apiWithPages'
        , AuthHandler
-       , authRequired
-       , authSupported
-       , noAuth
        , TwitterBaseM
        , endpoint
        ) where
@@ -44,7 +41,7 @@ import Control.Monad.Trans.Control
 import Control.Monad.IO.Class
 import Control.Monad.Trans.Class (lift)
 
-type AuthHandler cred m = Request (TW cred m) -> TW cred m (Request (TW cred m))
+type AuthHandler m = Request (TW m) -> TW m (Request (TW m))
 
 #if __GLASGOW_HASKELL__ >= 704
 type TwitterBaseM m = (C.MonadResource m, MonadBaseControl IO m)
@@ -54,11 +51,11 @@ instance (C.MonadResource m, MonadBaseControl IO m) => TwitterBaseM m
 #endif
 
 api :: (C.MonadResource m, MonadBaseControl IO m)
-    => AuthHandler cred m
+    => AuthHandler m
     -> HT.Method -- ^ HTTP request method (GET or POST)
     -> String -- ^ API Resource URL
     -> HT.SimpleQuery -- ^ Query
-    -> TW cred m (C.ResumableSource (TW cred m) ByteString)
+    -> TW m (C.ResumableSource (TW m) ByteString)
 api hndl m url query = do
   p <- getProxy
   req  <- liftIO $ parseUrl url
@@ -66,67 +63,58 @@ api hndl m url query = do
   mgr  <- getManager
   responseBody <$> http req' mgr
 
-authRequired :: C.MonadUnsafeIO m => AuthHandler WithToken m
-authRequired = signOAuthTW
-
-authSupported :: C.MonadUnsafeIO m => AuthHandler cred m
-authSupported = signOAuthIfExistTW
-
-noAuth :: Monad m => AuthHandler cred m
-noAuth = return
-
 endpoint :: String
 endpoint = "https://api.twitter.com/1.1/"
 
 apiGet :: (TwitterBaseM m, A.FromJSON a)
-       => AuthHandler cred m
+       => AuthHandler m
        -> String -- ^ API Resource URL
        -> HT.SimpleQuery -- ^ Query
-       -> TW cred m a
+       -> TW m a
 apiGet hndl u = apiGet' hndl fu
   where fu = endpoint ++ u
 
 apiPost :: (TwitterBaseM m, A.FromJSON a)
-        => AuthHandler cred m
+        => AuthHandler m
         -> String -- ^ API Resource URL
         -> HT.SimpleQuery -- ^ Query
-        -> TW cred m a
+        -> TW m a
 apiPost hndl u = apiPost' hndl fu
   where fu = endpoint ++ u
 
 apiGet' :: (TwitterBaseM m, A.FromJSON a)
-        => AuthHandler cred m
+        => AuthHandler m
         -> String -- ^ API Resource URL
         -> HT.SimpleQuery -- ^ Query
-        -> TW cred m a
+        -> TW m a
 apiGet' hndl url query = do
   src <- api hndl "GET" url query
   src C.$$+- sinkFromJSON
 
 apiPost' :: (TwitterBaseM m, A.FromJSON a)
-         => AuthHandler cred m
+         => AuthHandler m
          -> String -- ^ API Resource URL
          -> HT.SimpleQuery -- ^ Query
-         -> TW cred m a
+         -> TW m a
 apiPost' hndl url query = do
   src <- api hndl "POST" url query
   src C.$$+- sinkFromJSON
 
 apiCursor :: (TwitterBaseM m, A.FromJSON a)
-          => AuthHandler cred m
+          => AuthHandler m
           -> String -- ^ API Resource URL
           -> HT.SimpleQuery -- ^ Query
           -> T.Text
-          -> C.Source (TW cred m) a
+          -> C.Source (TW m) a
 apiCursor hndl u = apiCursor' hndl fu
   where fu = endpoint ++ u
 
 apiCursor' :: (TwitterBaseM m, A.FromJSON a)
-           => AuthHandler cred m
+           => AuthHandler m
            -> String -- ^ API Resource URL
            -> HT.SimpleQuery -- ^ Query
            -> T.Text
-           -> C.Source (TW cred m) a
+           -> C.Source (TW m) a
 apiCursor' hndl url query cursorKey = loop (-1 :: Int)
   where
     loop 0 = CL.sourceNull
@@ -145,18 +133,18 @@ apiCursor' hndl url query cursorKey = loop (-1 :: Int)
     p _ = mempty
 
 apiWithPages :: (TwitterBaseM m, A.FromJSON a)
-             => AuthHandler cred m
+             => AuthHandler m
              -> String -- ^ API Resource URL
              -> HT.SimpleQuery -- ^ Query
-             -> C.Source (TW cred m) a
+             -> C.Source (TW m) a
 apiWithPages hndl u = apiWithPages' hndl fu
   where fu = endpoint ++ u
 
 apiWithPages' :: (TwitterBaseM m, A.FromJSON a)
-              => AuthHandler cred m
+              => AuthHandler m
               -> String -- ^ API Resource URL
               -> HT.SimpleQuery -- ^ Query
-              -> C.Source (TW cred m) a
+              -> C.Source (TW m) a
 apiWithPages' hndl url query = loop (1 :: Int)
   where loop page = do
           let query' = ("page", showBS page) `insertQuery` query
