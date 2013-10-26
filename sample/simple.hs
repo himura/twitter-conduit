@@ -39,7 +39,7 @@ authorize oauth getPIN mgr = do
   pin <- getPIN url
   OA.getAccessToken oauth (OA.insert "oauth_verifier" (B8.pack pin) cred) mgr
 
-withCredential :: TW WithToken (ResourceT IO) a -> IO a
+withCredential :: TW (ResourceT IO) a -> IO a
 withCredential task = do
   cred <- withManager $ \mgr -> authorize tokens getPIN mgr
   let env = setCredential tokens cred def

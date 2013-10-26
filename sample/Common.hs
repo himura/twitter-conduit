@@ -34,7 +34,7 @@ confdir = fmap (</> ".twitter2notify") getHomeDirectory >>= ensureDirectoryExist
 credentialFile :: IO FilePath
 credentialFile = (</> "credential.json") <$> confdir
 
-withCF :: TW WithToken (ResourceT IO) a -> IO a
+withCF :: TW (ResourceT IO) a -> IO a
 withCF t = credentialFile >>= \f -> withCredentialFile f t
 
 loadCredential :: FilePath -> IO (Maybe Credential)
@@ -49,7 +49,7 @@ loadCredential file = do
 saveCredential :: FilePath -> Credential -> IO ()
 saveCredential file cred = LB.writeFile file $ encode . unCredential $ cred
 
-withCredentialFile :: FilePath -> TW WithToken (ResourceT IO) a -> IO a
+withCredentialFile :: FilePath -> TW (ResourceT IO) a -> IO a
 withCredentialFile file task = do
   pr <- getProxyEnv
   cred <- maybe (authorizeAndSave pr) return =<< loadCredential file
