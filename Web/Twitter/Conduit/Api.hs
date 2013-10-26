@@ -76,7 +76,7 @@ noAuth :: Monad m => AuthHandler cred m
 noAuth = return
 
 endpoint :: String
-endpoint = "https://api.twitter.com/1/"
+endpoint = "https://api.twitter.com/1.1/"
 
 apiGet :: (TwitterBaseM m, A.FromJSON a)
        => AuthHandler cred m
