@@ -105,7 +105,7 @@ search q page query = search' query'
 search' :: TwitterBaseM m
         => HT.SimpleQuery -- ^ query
         -> TW m (SearchResult [SearchStatus])
-search' query = apiGet' signOAuthTW "search/tweets.json" query
+search' query = apiGet signOAuthTW "search/tweets.json" query
 
 directMessages :: TwitterBaseM m
                => HT.SimpleQuery -- ^ query
