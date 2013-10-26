@@ -72,35 +72,37 @@ searchSource :: TwitterBaseM m
              => String -- ^ search string
              -> HT.SimpleQuery -- ^ query
              -> TW m (SearchResult (C.Source (TW m) SearchStatus))
-searchSource q commonQuery = searchSourceFrom q 1 commonQuery
+searchSource q commonQuery = searchSourceFrom q "" commonQuery
 
 searchSourceFrom :: TwitterBaseM m
                  => String -- ^ search string
-                 -> Int -- ^ start page
+                 -> URIString -- ^ start page
                  -> HT.SimpleQuery -- ^ query
                  -> TW m (SearchResult (C.Source (TW m) SearchStatus))
 searchSourceFrom q initPage commonQuery = do
     res <- search q initPage commonQuery
-    let body = CL.sourceList (searchResultResults res) <>
-               ((C.yield (searchResultNextPage res)) C.$= CL.concatMapM pull C.$= CL.concatMap id)
-    return $ res { searchResultResults = body }
+    let body = CL.sourceList (searchResultStatuses res) <>
+               ((C.yield (searchMetadataNextResults . searchResultSearchMetadata $ res)) C.$= CL.concatMapM pull C.$= CL.concatMap id)
+    return $ res { searchResultStatuses = body }
   where
     cqm = M.fromList commonQuery
     pull (Just query) = do
       let pq = HT.parseSimpleQuery query
           query' = M.toList $ M.union (M.fromList pq) cqm
       res <- search' query'
-      remains <- pull $ searchResultNextPage res
-      return $ searchResultResults res : remains
+      remains <- pull $ searchMetadataNextResults . searchResultSearchMetadata $ res
+      return $ searchResultStatuses res : remains
     pull Nothing = return []
 
 search :: TwitterBaseM m
        => String -- ^ search string
-       -> Int -- ^ page
+       -> URIString -- ^ next query
        -> HT.SimpleQuery -- ^ query
        -> TW m (SearchResult [SearchStatus])
-search q page query = search' query'
-  where query' = ("q", B8.pack $ q) : ("page", showBS page) : query
+search q next_results_str query = search' query'
+  where
+    next_query = HT.parseSimpleQuery next_results_str
+    query' = ("q", B8.pack $ q) : (next_query ++ query)
 
 search' :: TwitterBaseM m
         => HT.SimpleQuery -- ^ query
