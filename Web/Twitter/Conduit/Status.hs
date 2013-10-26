@@ -8,22 +8,16 @@
 module Web.Twitter.Conduit.Status
        ( statuses
        -- * Timelines
-       , homeTimeline
-       , mentions
-       , publicTimeline
-       , retweetedByMe
-       , retweetedToMe
-       , retweetsOfMe
+       , mentionsTimeline
        , userTimeline
-       , retweetedToUser
-       , retweetedByUser
-       , idRetweetedBy
-       , idRetweetedByIds
+       , homeTimeline
+       , retweetsOfMe
+       -- * Tweets
        , retweetsId
        , showId
        , destroyId
-       , retweetId
        , update
+       , retweetId
        -- , updateWithMedia
        -- , oembed
        ) where
@@ -46,38 +40,21 @@ statuses :: (TwitterBaseM m, FromJSON a)
 statuses hndl uri query = apiWithPages hndl u query
   where u = "statuses/" ++ uri
 
-homeTimeline :: TwitterBaseM m => HT.SimpleQuery -> C.Source (TW m) Status
-homeTimeline = statuses signOAuthTW "home_timeline.json"
+-- * Timelines
 
-mentions :: TwitterBaseM m => HT.SimpleQuery -> C.Source (TW m) Status
-mentions = statuses signOAuthTW "mentions.json"
-
-publicTimeline :: TwitterBaseM m => HT.SimpleQuery -> C.Source (TW m) Status
-publicTimeline = statuses signOAuthTW "public_timeline.json"
-
-retweetedByMe :: TwitterBaseM m => HT.SimpleQuery -> C.Source (TW m) Status
-retweetedByMe = statuses signOAuthTW "retweeted_by_me.json"
-
-retweetedToMe :: TwitterBaseM m => HT.SimpleQuery -> C.Source (TW m) Status
-retweetedToMe = statuses signOAuthTW "retweeted_to_me.json"
-
-retweetsOfMe :: TwitterBaseM m => HT.SimpleQuery -> C.Source (TW m) Status
-retweetsOfMe = statuses signOAuthTW "retweeted_of_me.json"
+mentionsTimeline :: TwitterBaseM m => HT.SimpleQuery -> C.Source (TW m) Status
+mentionsTimeline = statuses signOAuthTW "mentions_timeline.json"
 
 userTimeline :: TwitterBaseM m => HT.SimpleQuery -> C.Source (TW m) Status
 userTimeline = statuses signOAuthTW "user_timeline.json"
 
-retweetedToUser :: TwitterBaseM m => HT.SimpleQuery -> C.Source (TW m) Status
-retweetedToUser = statuses signOAuthTW "retweeted_to_user.json"
+homeTimeline :: TwitterBaseM m => HT.SimpleQuery -> C.Source (TW m) Status
+homeTimeline = statuses signOAuthTW "home_timeline.json"
 
-retweetedByUser :: TwitterBaseM m => HT.SimpleQuery -> C.Source (TW m) Status
-retweetedByUser = statuses signOAuthTW "retweeted_by_user.json"
+retweetsOfMe :: TwitterBaseM m => HT.SimpleQuery -> C.Source (TW m) Status
+retweetsOfMe = statuses signOAuthTW "retweets_of_me.json"
 
-idRetweetedBy :: TwitterBaseM m => StatusId -> HT.SimpleQuery -> C.Source (TW m) User
-idRetweetedBy status_id = statuses signOAuthTW (show status_id ++ "/retweeted_by.json")
-
-idRetweetedByIds :: TwitterBaseM m => StatusId -> HT.SimpleQuery -> C.Source (TW m) UserId
-idRetweetedByIds status_id = statuses signOAuthTW (show status_id ++ "/retweeted_by/ids.json")
+-- * Tweets
 
 retweetsId :: TwitterBaseM m => StatusId -> HT.SimpleQuery -> TW m [RetweetedStatus]
 retweetsId status_id query = apiGet signOAuthTW uri query
@@ -91,9 +68,13 @@ destroyId :: TwitterBaseM m => StatusId -> HT.SimpleQuery -> TW m Status
 destroyId status_id query = apiPost signOAuthTW uri query
   where uri = "statuses/destroy/" ++ show status_id ++ ".json"
 
+update :: TwitterBaseM m => T.Text -> HT.SimpleQuery -> TW m Status
+update status query = apiPost signOAuthTW "statuses/update.json" (("status", T.encodeUtf8 status):query)
+
 retweetId :: TwitterBaseM m => StatusId -> HT.SimpleQuery -> TW m RetweetedStatus
 retweetId status_id query = apiPost signOAuthTW uri query
   where uri = "statuses/retweet/" ++ show status_id ++ ".json"
 
-update :: TwitterBaseM m => T.Text -> HT.SimpleQuery -> TW m Status
-update status query = apiPost signOAuthTW "statuses/update.json" (("status", T.encodeUtf8 status):query)
+-- updateWithMedia
+-- oembed
+-- retweetersIds

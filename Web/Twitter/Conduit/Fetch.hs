@@ -44,7 +44,6 @@ module Web.Twitter.Conduit.Fetch
        -- , favorites
 
        -- * Lists
-       , listsAll
        -- , listsStatuses
        -- , listsMemberships
        -- , listsSubscribers
@@ -68,9 +67,6 @@ import qualified Data.Conduit.List as CL
 import qualified Data.ByteString.Char8 as B8
 import qualified Data.Map as M
 import Data.Monoid
-
-endpointSearch :: String
-endpointSearch = "http://search.twitter.com/search.json"
 
 searchSource :: TwitterBaseM m
              => String -- ^ search string
@@ -109,7 +105,7 @@ search q page query = search' query'
 search' :: TwitterBaseM m
         => HT.SimpleQuery -- ^ query
         -> TW m (SearchResult [SearchStatus])
-search' query = apiGet' signOAuthTW endpointSearch query
+search' query = apiGet' signOAuthTW "search/tweets.json" query
 
 directMessages :: TwitterBaseM m
                => HT.SimpleQuery -- ^ query
@@ -123,9 +119,6 @@ followersIds q = apiCursor signOAuthTW "followers/ids.json" (mkUserParam q) "ids
 
 usersShow :: TwitterBaseM m => UserParam -> TW m User
 usersShow q = apiGet signOAuthTW "users/show.json" (mkUserParam q)
-
-listsAll :: TwitterBaseM m => UserParam -> C.Source (TW m) List
-listsAll q = apiCursor signOAuthTW "lists/all.json" (mkUserParam q) ""
 
 listsMembers :: TwitterBaseM m => ListParam -> C.Source (TW m) User
 listsMembers q = apiCursor signOAuthTW "lists/members.json" (mkListParam q) "users"
