@@ -9,6 +9,7 @@ module Web.Twitter.Conduit.Stream
        (
        -- * StreamingAPI
          userstream
+       , userstream'
        , statusesFilter
   ) where
 
@@ -21,6 +22,7 @@ import qualified Data.Conduit as C
 import qualified Data.Conduit.Internal as CI
 import qualified Network.HTTP.Types as HT
 import Control.Monad.IO.Class
+import Data.Aeson
 
 ($=+) :: MonadIO m
       => CI.ResumableSource m a
@@ -32,6 +34,11 @@ rsrc $=+ cndt = do
 
 userstream :: TwitterBaseM m => TW m (C.ResumableSource (TW m) StreamingAPI)
 userstream = do
+  rsrc <- api signOAuthTW "GET" "https://userstream.twitter.com/2/user.json" []
+  rsrc $=+ conduitFromJSON
+
+userstream' :: (TwitterBaseM m, FromJSON v) => TW m (C.ResumableSource (TW m) v)
+userstream' = do
   rsrc <- api signOAuthTW "GET" "https://userstream.twitter.com/2/user.json" []
   rsrc $=+ conduitFromJSON
 
