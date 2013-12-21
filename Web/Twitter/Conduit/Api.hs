@@ -41,7 +41,11 @@ import Control.Monad.Trans.Control
 import Control.Monad.IO.Class
 import Control.Monad.Trans.Class (lift)
 
+#if MIN_VERSION_http_conduit(2, 0, 0)
+type AuthHandler m = Request -> TW m Request
+#else
 type AuthHandler m = Request (TW m) -> TW m (Request (TW m))
+#end
 
 #if __GLASGOW_HASKELL__ >= 704
 type TwitterBaseM m = (C.MonadResource m, MonadBaseControl IO m)

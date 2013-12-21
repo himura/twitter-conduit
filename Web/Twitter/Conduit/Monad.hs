@@ -87,8 +87,13 @@ getManager :: Monad m => TW m Manager
 getManager = asks twManager
 
 signOAuthTW :: (Monad m, MonadUnsafeIO m)
+#if MIN_VERSION_http_conduit(2, 0, 0)
+            => Request
+            -> TW m Request
+#else
             => Request (TW m)
             -> TW m (Request (TW m))
+#end
 signOAuthTW req = do
   TWToken oa cred <- asks (twToken . twInfo)
   signOAuth oa cred req
