@@ -9,6 +9,8 @@ module Web.Twitter.Conduit.Post
        ( statusesUpdate
        , statusesRetweetId
 
+       , MediaData(..)
+       , statusesUpdateWithMedia
        -- * Friends & Followers
        , friendshipsCreate
        -- , friendshipDestroy
@@ -32,6 +34,12 @@ import Web.Twitter.Conduit.Api
 import Web.Twitter.Types
 import Web.Twitter.Conduit.Param
 import Web.Twitter.Conduit.Utils
+import Network.HTTP.Client.MultipartFormData
+
+import Control.Monad.IO.Class
+import Network.HTTP.Conduit
+import Data.Conduit
+import Control.Arrow
 
 import Data.Text (Text)
 import Data.Text.Encoding as T
@@ -51,3 +59,26 @@ statusesRetweetId tweetId query = apiPost signOAuthTW ("statuses/retweet/" ++ sh
 friendshipsCreate :: TwitterBaseM m => UserParam -> HT.SimpleQuery -> TW m User
 friendshipsCreate user query = apiPost signOAuthTW "friendships/create.json" q
   where q = mkUserParam user ++ query
+
+data MediaData = MediaFromFile FilePath
+               | MediaRequestBody FilePath RequestBody
+
+statusesUpdateWithMedia :: TwitterBaseM m
+                        => Text
+                        -> MediaData
+                        -> HT.SimpleQuery
+                        -> TW m Status
+statusesUpdateWithMedia tweet mediaData query = do
+    p <- getProxy
+    req <- liftIO . parseUrl $ endpoint ++ "statuses/update_with_media.json"
+    req' <- formDataBody body $ req { proxy = p }
+    reqSigned <- signOAuthTW req'
+    mgr <- getManager
+    res <- http reqSigned mgr
+    responseBody res $$+- sinkFromJSON
+  where
+    body = mediaBody mediaData : partQuery
+
+    partQuery = map (uncurry partBS . first T.decodeUtf8) $ ("status", T.encodeUtf8 tweet) : query
+    mediaBody (MediaFromFile fp) = partFileSource "media[]" fp
+    mediaBody (MediaRequestBody filename body) = partFileRequestBody "media[]" filename body
