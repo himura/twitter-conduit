@@ -12,6 +12,7 @@ import qualified Data.Conduit.List as CL
 import qualified Data.Text as T
 import qualified Data.Text.IO as T
 import qualified Data.ByteString.Char8 as B8
+import Data.Default
 import Control.Monad.Trans.Control
 import Control.Monad.Trans.Resource
 import Control.Monad.IO.Class (liftIO)

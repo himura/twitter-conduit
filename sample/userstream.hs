@@ -2,7 +2,6 @@
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE PatternGuards #-}
 
-import Control.Monad.Trans
 import qualified Data.Conduit as C
 import qualified Data.Conduit.List as CL
 import qualified Data.Text.IO as T
@@ -10,6 +9,8 @@ import qualified Data.Text as T
 import qualified Data.ByteString.Char8 as S8
 import System.Process
 import Control.Monad
+import Control.Monad.Trans.Class
+import Control.Monad.IO.Class
 import Control.Applicative
 import System.FilePath
 import System.Directory

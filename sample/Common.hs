@@ -14,9 +14,10 @@ import qualified Data.Map as M
 import qualified Data.ByteString.Lazy.Char8 as LB
 import qualified Data.ByteString.Char8 as B
 import qualified Data.CaseInsensitive as CI
+import Data.Default
 import Control.Arrow (first)
 import Control.Applicative
-import Control.Monad.Trans
+import Control.Monad.IO.Class
 import Control.Monad.Trans.Resource
 import System.IO
 import System.FilePath
