@@ -69,6 +69,6 @@ fetchIcon sn url = do
     exists <- doesFileExist fname
     unless exists $ withManager $ \mgr -> do
         req <- liftIO $ parseUrl url
-        Response _st _version _header body <- http req mgr
-        body $$+- CB.sinkFile fname
+        res <- http req mgr
+        responseBody res $$+- CB.sinkFile fname
     return fname
