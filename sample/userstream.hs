@@ -19,7 +19,9 @@ import qualified Data.Conduit.Binary as CB
 import Network.HTTP.Conduit
 
 import Web.Twitter.Conduit
+import Web.Twitter.Types.Lens
 import Common
+import Control.Lens
 
 iconPath :: IO FilePath
 iconPath = (</> "icons") <$> confdir >>= ensureDirectoryExist
@@ -29,29 +31,29 @@ main = withCF $ do
   src <- userstream
   src C.$$+- CL.mapM_ (lift . lift . printTL)
 
-showStatus :: Status -> T.Text
-showStatus s = T.concat [ userScreenName . statusUser $ s
+showStatus :: AsStatus s => s -> T.Text
+showStatus s = T.concat [ s ^. user . userScreenName
                         , ":"
-                        , statusText s
+                        , s ^. text
                         ]
 
 printTL :: StreamingAPI -> IO ()
 printTL (SStatus s) = T.putStrLn . showStatus $ s
-printTL (SRetweetedStatus s) = T.putStrLn $ T.concat [ userScreenName . rsUser $ s
+printTL (SRetweetedStatus s) = T.putStrLn $ T.concat [ s ^. user . userScreenName
                                                      , ": RT @"
-                                                     , showStatus . rsRetweetedStatus $ s
+                                                     , showStatus (s ^. rsRetweetedStatus)
                                                      ]
-printTL (SEvent Event{..})
-    | evEvent == "favorite" || evEvent == "unfavorite",
-      Just (ETStatus st) <- evTargetObject = do
-        let (from, fromIcon) = evUserInfo evSource
-            (to, _toIcon) = evUserInfo evTarget
-            evUserInfo (ETUser user) = (userScreenName user, userProfileImageURL user)
+printTL (SEvent event)
+    | (event^.evEvent) == "favorite" || (event^.evEvent) == "unfavorite",
+      Just (ETStatus st) <- (event ^. evTargetObject) = do
+        let (fromUser, fromIcon) = evUserInfo (event^.evSource)
+            (toUser, _toIcon) = evUserInfo (event^.evTarget)
+            evUserInfo (ETUser u) = (u ^. userScreenName, u ^. userProfileImageURL)
             evUserInfo _ = ("", Nothing)
-            header = T.concat [ evEvent, "[", from, " -> ", to, "]"]
+            header = T.concat [ event ^. evEvent, "[", fromUser, " -> ", toUser, "]"]
         T.putStrLn $ T.concat [ header, " :: ", showStatus st ]
         icon <- case fromIcon of
-            Just iconUrl -> Just <$> fetchIcon (T.unpack from) (S8.unpack iconUrl)
+            Just iconUrl -> Just <$> fetchIcon (T.unpack fromUser) (S8.unpack iconUrl)
             Nothing -> return Nothing
         notifySend header (showStatus st) icon
 printTL s = print s
@@ -70,6 +72,6 @@ fetchIcon sn url = do
     exists <- doesFileExist fname
     unless exists $ withManager $ \mgr -> do
         req <- liftIO $ parseUrl url
-        res <- http req mgr
-        responseBody res $$+- CB.sinkFile fname
+        body <- http req mgr
+        responseBody body $$+- CB.sinkFile fname
     return fname
