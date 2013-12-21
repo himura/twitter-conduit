@@ -31,18 +31,19 @@ import Web.Twitter.Conduit.Monad
 import Web.Twitter.Conduit.Api
 import Web.Twitter.Types
 import Web.Twitter.Conduit.Param
+import Web.Twitter.Conduit.Utils
 
 import Data.Text (Text)
 import Data.Text.Encoding as T
 
-statusesUpdate :: TwitterBaseM m => Text -> HT.SimpleQuery -> TW m ()
+statusesUpdate :: TwitterBaseM m => Text -> HT.SimpleQuery -> TW m Status
 statusesUpdate tweet query = apiPost signOAuthTW "statuses/update.json" (("status", T.encodeUtf8 tweet):query)
 
 favoritesCreate :: TwitterBaseM m => StatusId -> HT.SimpleQuery -> TW m Status
-favoritesCreate sid query = apiPost signOAuthTW ("favorites/create/" ++ show sid ++ ".json") query
+favoritesCreate sid query = apiPost signOAuthTW "favorites/create.json" (("id", showBS sid):query)
 
 favoritesDestroy :: TwitterBaseM m => StatusId -> HT.SimpleQuery -> TW m Status
-favoritesDestroy sid query = apiPost signOAuthTW ("favorites/destroy/" ++ show sid ++ ".json") query
+favoritesDestroy sid query = apiPost signOAuthTW "favorites/destroy.json" (("id", showBS sid):query)
 
 statusesRetweetId :: TwitterBaseM m => Integer -> HT.SimpleQuery -> TW m RetweetedStatus
 statusesRetweetId tweetId query = apiPost signOAuthTW ("statuses/retweet/" ++ show tweetId ++ ".json") query
