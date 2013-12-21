@@ -45,7 +45,7 @@ import Control.Monad.Trans.Class (lift)
 type AuthHandler m = Request -> TW m Request
 #else
 type AuthHandler m = Request (TW m) -> TW m (Request (TW m))
-#end
+#endif
 
 #if __GLASGOW_HASKELL__ >= 704
 type TwitterBaseM m = (C.MonadResource m, MonadBaseControl IO m)

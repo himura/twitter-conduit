@@ -93,7 +93,7 @@ signOAuthTW :: (Monad m, MonadUnsafeIO m)
 #else
             => Request (TW m)
             -> TW m (Request (TW m))
-#end
+#endif
 signOAuthTW req = do
   TWToken oa cred <- asks (twToken . twInfo)
   signOAuth oa cred req
