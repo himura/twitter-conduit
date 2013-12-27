@@ -30,7 +30,7 @@ library
     , conduit >= 0.5
     , failure >= 0.2
     , http-types
-    , http-conduit >= 1.5
+    , http-conduit >= 2.0
     , http-client-multipart
     , aeson >= 0.6
     , attoparsec >= 0.10
