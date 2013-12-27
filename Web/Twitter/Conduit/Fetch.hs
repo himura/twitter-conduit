@@ -58,7 +58,6 @@ module Web.Twitter.Conduit.Fetch
 import Web.Twitter.Types
 import Web.Twitter.Conduit.Monad
 import Web.Twitter.Conduit.Param
-import Web.Twitter.Conduit.Utils
 import Web.Twitter.Conduit.Api
 
 import qualified Network.HTTP.Types as HT
@@ -107,21 +106,21 @@ search q next_results_str query = search' query'
 search' :: TwitterBaseM m
         => HT.SimpleQuery -- ^ query
         -> TW m (SearchResult [SearchStatus])
-search' query = apiGet signOAuthTW "search/tweets.json" query
+search' query = apiGet "search/tweets.json" query
 
 directMessages :: TwitterBaseM m
                => HT.SimpleQuery -- ^ query
                -> C.Source (TW m) DirectMessage
-directMessages query = apiWithPages signOAuthTW "direct_messages.json" query
+directMessages query = apiWithPages "direct_messages.json" query
 
 friendsIds, followersIds
   :: TwitterBaseM m => UserParam -> C.Source (TW m) UserId
-friendsIds   q = apiCursor signOAuthTW "friends/ids.json"   (mkUserParam q) "ids"
-followersIds q = apiCursor signOAuthTW "followers/ids.json" (mkUserParam q) "ids"
+friendsIds   q = apiCursor "friends/ids.json"   (mkUserParam q) "ids"
+followersIds q = apiCursor "followers/ids.json" (mkUserParam q) "ids"
 
 usersShow :: TwitterBaseM m => UserParam -> TW m User
-usersShow q = apiGet signOAuthTW "users/show.json" (mkUserParam q)
+usersShow q = apiGet "users/show.json" (mkUserParam q)
 
 listsMembers :: TwitterBaseM m => ListParam -> C.Source (TW m) User
-listsMembers q = apiCursor signOAuthTW "lists/members.json" (mkListParam q) "users"
+listsMembers q = apiCursor "lists/members.json" (mkListParam q) "users"
 

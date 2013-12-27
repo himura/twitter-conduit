@@ -45,19 +45,19 @@ import Data.Text (Text)
 import Data.Text.Encoding as T
 
 statusesUpdate :: TwitterBaseM m => Text -> HT.SimpleQuery -> TW m Status
-statusesUpdate tweet query = apiPost signOAuthTW "statuses/update.json" (("status", T.encodeUtf8 tweet):query)
+statusesUpdate tweet query = apiPost "statuses/update.json" (("status", T.encodeUtf8 tweet):query)
 
 favoritesCreate :: TwitterBaseM m => StatusId -> HT.SimpleQuery -> TW m Status
-favoritesCreate sid query = apiPost signOAuthTW "favorites/create.json" (("id", showBS sid):query)
+favoritesCreate sid query = apiPost "favorites/create.json" (("id", showBS sid):query)
 
 favoritesDestroy :: TwitterBaseM m => StatusId -> HT.SimpleQuery -> TW m Status
-favoritesDestroy sid query = apiPost signOAuthTW "favorites/destroy.json" (("id", showBS sid):query)
+favoritesDestroy sid query = apiPost "favorites/destroy.json" (("id", showBS sid):query)
 
 statusesRetweetId :: TwitterBaseM m => Integer -> HT.SimpleQuery -> TW m RetweetedStatus
-statusesRetweetId tweetId query = apiPost signOAuthTW ("statuses/retweet/" ++ show tweetId ++ ".json") query
+statusesRetweetId tweetId query = apiPost ("statuses/retweet/" ++ show tweetId ++ ".json") query
 
 friendshipsCreate :: TwitterBaseM m => UserParam -> HT.SimpleQuery -> TW m User
-friendshipsCreate user query = apiPost signOAuthTW "friendships/create.json" q
+friendshipsCreate user query = apiPost "friendships/create.json" q
   where q = mkUserParam user ++ query
 
 data MediaData = MediaFromFile FilePath
