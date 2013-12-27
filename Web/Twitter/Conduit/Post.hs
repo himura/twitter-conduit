@@ -36,7 +36,6 @@ import Web.Twitter.Conduit.Param
 import Web.Twitter.Conduit.Utils
 import Network.HTTP.Client.MultipartFormData
 
-import Control.Monad.IO.Class
 import Network.HTTP.Conduit
 import Data.Conduit
 import Control.Arrow
@@ -69,16 +68,12 @@ statusesUpdateWithMedia :: TwitterBaseM m
                         -> HT.SimpleQuery
                         -> TW m Status
 statusesUpdateWithMedia tweet mediaData query = do
-    p <- getProxy
-    req <- liftIO . parseUrl $ endpoint ++ "statuses/update_with_media.json"
-    req' <- formDataBody body $ req { proxy = p }
-    reqSigned <- signOAuthTW req'
-    mgr <- getManager
-    res <- http reqSigned mgr
-    responseBody res $$+- sinkFromJSON
+    req <- formDataBody body =<< makeRequest "POST" (endpoint ++ "statuses/update_with_media.json") []
+    res <- apiRequest req
+    res $$+- sinkFromJSON
   where
     body = mediaBody mediaData : partQuery
 
     partQuery = map (uncurry partBS . first T.decodeUtf8) $ ("status", T.encodeUtf8 tweet) : query
     mediaBody (MediaFromFile fp) = partFileSource "media[]" fp
-    mediaBody (MediaRequestBody filename body) = partFileRequestBody "media[]" filename body
+    mediaBody (MediaRequestBody filename filebody) = partFileRequestBody "media[]" filename filebody

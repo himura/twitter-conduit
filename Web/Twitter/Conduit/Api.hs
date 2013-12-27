@@ -10,6 +10,7 @@
 
 module Web.Twitter.Conduit.Api
        ( api
+       , apiRequest
        , apiGet
        , apiGet'
        , apiPost
@@ -20,6 +21,7 @@ module Web.Twitter.Conduit.Api
        , apiWithPages'
        , TwitterBaseM
        , endpoint
+       , makeRequest
        ) where
 
 import Web.Twitter.Conduit.Monad
@@ -36,28 +38,43 @@ import qualified Data.Text as T
 import Data.ByteString (ByteString)
 import Data.Monoid
 import Control.Applicative
-import Control.Monad.Trans.Control
 import Control.Monad.IO.Class
 import Control.Monad.Trans.Class (lift)
 
 #if __GLASGOW_HASKELL__ >= 704
-type TwitterBaseM m = (C.MonadResource m, MonadBaseControl IO m)
+type TwitterBaseM m = C.MonadResource m
 #else
-class (C.MonadResource m, MonadBaseControl IO m) => TwitterBaseM m
-instance (C.MonadResource m, MonadBaseControl IO m) => TwitterBaseM m
+class (C.MonadResource m) => TwitterBaseM m
+instance (C.MonadResource m) => TwitterBaseM m
 #endif
 
-api :: (C.MonadResource m, MonadBaseControl IO m)
+makeRequest :: MonadIO m
+            => HT.Method -- ^ HTTP request method (GET or POST)
+            -> String -- ^ API Resource URL
+            -> HT.SimpleQuery -- ^ Query
+            -> TW m Request
+makeRequest m url query = do
+  p <- getProxy
+  req <- liftIO $ parseUrl url
+  return $ req { method = m
+               , queryString = HT.renderSimpleQuery False query
+               , proxy = p }
+
+api :: TwitterBaseM m
     => HT.Method -- ^ HTTP request method (GET or POST)
     -> String -- ^ API Resource URL
     -> HT.SimpleQuery -- ^ Query
     -> TW m (C.ResumableSource (TW m) ByteString)
-api m url query = do
-  p <- getProxy
-  req  <- liftIO $ parseUrl url
-  req' <- signOAuthTW req { method = m, queryString = HT.renderSimpleQuery False query, proxy = p }
-  mgr  <- getManager
-  responseBody <$> http req' mgr
+api m url query =
+  apiRequest =<< makeRequest m url query
+
+apiRequest :: TwitterBaseM m
+           => Request
+           -> TW m (C.ResumableSource (TW m) ByteString)
+apiRequest req = do
+  signedReq <- signOAuthTW req
+  mgr <- getManager
+  responseBody <$> http signedReq mgr
 
 endpoint :: String
 endpoint = "https://api.twitter.com/1.1/"
