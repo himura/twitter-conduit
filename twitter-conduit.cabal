@@ -12,10 +12,6 @@ cabal-version:     >= 1.8
 build-type:        Simple
 homepage:          https://github.com/seagull-kamome/twitter-conduit
 
-flag logging
-  description: enable request-reponse logging
-  default: True
-
 source-repository head
   type: git
   location: git://github.com/tanakh/twitter-conduit.git
