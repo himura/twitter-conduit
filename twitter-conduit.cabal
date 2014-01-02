@@ -33,6 +33,8 @@ library
     , resourcet >= 0.4.3
     , conduit >= 1.0
     , failure >= 0.2
+    , monad-logger
+    , shakespeare-text
     , http-types
     , http-conduit >= 2.0
     , http-client-multipart
@@ -58,9 +60,3 @@ library
 
   other-modules:
     Web.Twitter.Conduit.Utils
-
-  if flag(logging)
-    build-depends:
-        monad-logger
-      , shakespeare-text
-    CPP-Options: -DTWITTER_LOGGING

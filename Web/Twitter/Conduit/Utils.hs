@@ -1,9 +1,6 @@
 {-# LANGUAGE DeriveDataTypeable #-}
-{-# LANGUAGE CPP #-}
-#ifdef TWITTER_LOGGING
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE QuasiQuotes #-}
-#endif
 
 module Web.Twitter.Conduit.Utils
        (
@@ -28,10 +25,8 @@ import qualified Data.Conduit.Attoparsec as CA
 import Data.Data
 import qualified Network.HTTP.Types as HT
 import qualified Data.Map as M
-#ifdef TWITTER_LOGGING
 import Text.Shakespeare.Text
 import Control.Monad.Logger
-#endif
 
 data TwitterError
   = TwitterError String
@@ -40,22 +35,16 @@ data TwitterError
 instance Exception TwitterError
 
 sinkJSON :: ( C.MonadThrow m
-#ifdef TWITTER_LOGGING
             , MonadLogger m
-#endif
             ) => C.Consumer ByteString m Value
 sinkJSON = do
   js <- CA.sinkParser json
-#ifdef TWITTER_LOGGING
   $(logDebug) [st|Response JSON: #{show js}|]
-#endif
   return js
 
 sinkFromJSON :: ( FromJSON a
                 , C.MonadThrow m
-#ifdef TWITTER_LOGGING
                 , MonadLogger m
-#endif
                 ) => C.Consumer ByteString m a
 sinkFromJSON = do
   v <- sinkJSON
@@ -64,17 +53,13 @@ sinkFromJSON = do
     AT.Success r -> return r
 
 conduitJSON :: ( C.MonadThrow m
-#ifdef TWITTER_LOGGING
                , MonadLogger m
-#endif
                ) => C.Conduit ByteString m Value
 conduitJSON = CL.sequence $ sinkJSON
 
 conduitFromJSON :: ( FromJSON a
                    , C.MonadThrow m
-#ifdef TWITTER_LOGGING
                    , MonadLogger m
-#endif
                    ) => C.Conduit ByteString m a
 conduitFromJSON = CL.sequence $ sinkFromJSON
 

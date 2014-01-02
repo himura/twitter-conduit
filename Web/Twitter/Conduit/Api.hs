@@ -1,15 +1,13 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE CPP #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE QuasiQuotes #-}
 #if __GLASGOW_HASKELL__ >= 704
 {-# LANGUAGE ConstraintKinds #-}
 #else
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE UndecidableInstances #-}
-#endif
-#ifdef TWITTER_LOGGING
-{-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE QuasiQuotes #-}
 #endif
 
 module Web.Twitter.Conduit.Api
@@ -44,25 +42,16 @@ import Data.Monoid
 import Control.Applicative
 import Control.Monad.IO.Class
 import Control.Monad.Trans.Class (lift)
-#ifdef TWITTER_LOGGING
 import Text.Shakespeare.Text
 import Control.Monad.Logger
-#endif
 
 #if __GLASGOW_HASKELL__ >= 704
 type TwitterBaseM m = ( C.MonadResource m
-#  ifdef TWITTER_LOGGING
                       , MonadLogger m
-#  endif
                       )
 #else
-#  ifdef TWITTER_LOGGING
 class (C.MonadResource m, MonadLogger m) => TwitterBaseM m
 instance (C.MonadResource m, MonadLoger m) => TwitterBaseM m
-#  else
-class (C.MonadResource m) => TwitterBaseM m
-instance (C.MonadResource m) => TwitterBaseM m
-#  endif
 #endif
 
 makeRequest :: MonadIO m
@@ -90,15 +79,11 @@ apiRequest :: TwitterBaseM m
            -> TW m (C.ResumableSource (TW m) ByteString)
 apiRequest req = do
   signedReq <- signOAuthTW req
-#ifdef TWITTER_LOGGING
   $(logDebug) [st|Signed Request: #{show signedReq}|]
-#endif
   mgr <- getManager
   res <- http signedReq mgr
-#ifdef TWITTER_LOGGING
   $(logDebug) [st|Response Status: #{show $ responseStatus res}|]
   $(logDebug) [st|Response Header: #{show $ responseHeaders res}|]
-#endif
   return $ responseBody res
 
 endpoint :: String
