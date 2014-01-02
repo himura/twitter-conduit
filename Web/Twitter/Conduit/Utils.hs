@@ -31,20 +31,20 @@ data TwitterError
 
 instance Exception TwitterError
 
-sinkJSON :: C.MonadResource m => C.Consumer ByteString m Value
+sinkJSON :: C.MonadThrow m => C.Consumer ByteString m Value
 sinkJSON = CA.sinkParser json
 
-sinkFromJSON :: (FromJSON a, C.MonadResource m) => C.Consumer ByteString m a
+sinkFromJSON :: (FromJSON a, C.MonadThrow m) => C.Consumer ByteString m a
 sinkFromJSON = do
   v <- sinkJSON
   case fromJSON v of
     AT.Error err -> lift $ C.monadThrow $ TwitterError err
     AT.Success r -> return r
 
-conduitJSON :: C.MonadResource m => C.Conduit ByteString m Value
+conduitJSON :: C.MonadThrow m => C.Conduit ByteString m Value
 conduitJSON = CL.sequence $ sinkJSON
 
-conduitFromJSON :: (FromJSON a, C.MonadResource m) => C.Conduit ByteString m a
+conduitFromJSON :: (FromJSON a, C.MonadThrow m) => C.Conduit ByteString m a
 conduitFromJSON = CL.sequence $ sinkFromJSON
 
 showBS :: Show a => a -> ByteString
