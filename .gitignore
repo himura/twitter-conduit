@@ -22,3 +22,5 @@ stamp-h1
 Main
 dist/
 cabal-dev/
+cabal.sandbox.config
+.cabal-sandbox
