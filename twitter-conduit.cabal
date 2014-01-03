@@ -65,3 +65,14 @@ test-suite hlint
   build-depends:
       base
     , hlint >= 1.7
+
+test-suite doctests
+  type: exitcode-stdio-1.0
+  main-is: doctests.hs
+  hs-source-dirs: tests
+
+  build-depends:
+      base
+    , filepath
+    , directory
+    , doctest

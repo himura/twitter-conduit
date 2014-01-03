@@ -28,6 +28,9 @@ import qualified Data.Map as M
 import Text.Shakespeare.Text
 import Control.Monad.Logger
 
+-- $setup
+-- >>> :set -XOverloadedStrings
+
 data TwitterError
   = TwitterError String
   deriving (Show, Data, Typeable)
@@ -66,6 +69,12 @@ conduitFromJSON = CL.sequence sinkFromJSON
 showBS :: Show a => a -> ByteString
 showBS = B8.pack . show
 
+-- | insert key-value pair to @SimpleQuery@.
+--
+-- >>> insertQuery ("Key1", "Value1") []
+-- [("Key1","Value1")]
+-- >>> insertQuery ("Key1", "Value1") [("Test","Input")]
+-- [("Key1","Value1"),("Test","Input")]
 insertQuery :: (ByteString, ByteString) -> HT.SimpleQuery -> HT.SimpleQuery
 insertQuery (key, value) = mk
   where mk = M.toList . M.insert key value . M.fromList

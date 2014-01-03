@@ -24,12 +24,15 @@ import Control.Monad.IO.Class
 import Control.Monad.Trans.Reader
 import Control.Monad.Trans.Resource
 
+-- $setup
+-- >>> :set -XOverloadedStrings
+
 type TW m = ReaderT TWEnv m
 
 data TWToken
     = TWToken
       { twOAuth :: OAuth
-      , twCregdential :: Credential
+      , twCredential :: Credential
       }
 instance Default TWToken where
   def = TWToken twitterOAuth (Credential [])
@@ -61,6 +64,17 @@ data TWEnv = TWEnv
     , twManager :: Manager
     }
 
+-- | set OAuth keys and Credentials to TWInfo.
+--
+-- >>> let proxy = Proxy "localhost" 8080
+-- >>> let twinfo = def { twProxy = Just proxy }
+-- >>> let oauth = twitterOAuth { oauthConsumerKey = "consumer_key", oauthConsumerSecret = "consumer_secret" }
+-- >>> let credential = Credential [("oauth_token","...")]
+-- >>> let twinfo2 = setCredential oauth credential twinfo
+-- >>> oauthConsumerKey . twOAuth . twToken $ twinfo2
+-- "consumer_key"
+-- >>> twProxy twinfo2 == Just proxy
+-- True
 setCredential :: OAuth -> Credential -> TWInfo -> TWInfo
 setCredential oa cred env
   = TWInfo
@@ -68,6 +82,12 @@ setCredential oa cred env
     , twProxy = twProxy env
     }
 
+-- | create a new http-conduit manager and run TW monad.
+--
+-- >>> runTW def getProxy
+-- Nothing
+-- >>> runTW def $ asks (twCredential . twToken . twInfo)
+-- Credential {unCredential = []}
 runTW :: ( MonadBaseControl IO m
          , MonadIO m
          ) => TWInfo -> TW (ResourceT m) a -> m a
