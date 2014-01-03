@@ -1,5 +1,7 @@
 # twitter-conduit: An Conduit based Twitter API library for Haskell #
 
+[![Build Status](https://travis-ci.org/himura/twitter-conduit.png?branch=master)](https://travis-ci.org/himura/twitter-conduit)
+
 ## About ##
 
 This is an enumerator based Twitter API library for Haskell, including Streaming API supports.
