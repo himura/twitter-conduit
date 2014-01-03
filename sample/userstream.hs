@@ -28,7 +28,7 @@ iconPath = (</> "icons") <$> confdir >>= ensureDirectoryExist
 main :: IO ()
 main = withCF $ do
   src <- userstream
-  src C.$$+- CL.mapM_ (lift . lift . printTL)
+  src C.$$+- CL.mapM_ (liftIO . printTL)
 
 showStatus :: AsStatus s => s -> T.Text
 showStatus s = T.concat [ s ^. user . userScreenName

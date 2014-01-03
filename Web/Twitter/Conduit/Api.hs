@@ -1,6 +1,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE CPP #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE QuasiQuotes #-}
 #if __GLASGOW_HASKELL__ >= 704
 {-# LANGUAGE ConstraintKinds #-}
 #else
@@ -40,12 +42,16 @@ import Data.Monoid
 import Control.Applicative
 import Control.Monad.IO.Class
 import Control.Monad.Trans.Class (lift)
+import Text.Shakespeare.Text
+import Control.Monad.Logger
 
 #if __GLASGOW_HASKELL__ >= 704
-type TwitterBaseM m = C.MonadResource m
+type TwitterBaseM m = ( C.MonadResource m
+                      , MonadLogger m
+                      )
 #else
-class (C.MonadResource m) => TwitterBaseM m
-instance (C.MonadResource m) => TwitterBaseM m
+class (C.MonadResource m, MonadLogger m) => TwitterBaseM m
+instance (C.MonadResource m, MonadLoger m) => TwitterBaseM m
 #endif
 
 makeRequest :: MonadIO m
@@ -73,8 +79,12 @@ apiRequest :: TwitterBaseM m
            -> TW m (C.ResumableSource (TW m) ByteString)
 apiRequest req = do
   signedReq <- signOAuthTW req
+  $(logDebug) [st|Signed Request: #{show signedReq}|]
   mgr <- getManager
-  responseBody <$> http signedReq mgr
+  res <- http signedReq mgr
+  $(logDebug) [st|Response Status: #{show $ responseStatus res}|]
+  $(logDebug) [st|Response Header: #{show $ responseHeaders res}|]
+  return $ responseBody res
 
 endpoint :: String
 endpoint = "https://api.twitter.com/1.1/"

@@ -30,7 +30,7 @@ iconPath = (</> "icons") <$> confdir >>= ensureDirectoryExist
 main :: IO ()
 main = withCF $ do
   src <- userstream'
-  src C.$$+- CL.mapM_ (lift . lift . printJSON)
+  src C.$$+- CL.mapM_ (liftIO . printJSON)
   where
     printJSON :: Value -> IO ()
     printJSON = L8.putStrLn . encode
