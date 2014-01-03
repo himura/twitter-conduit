@@ -20,15 +20,10 @@ import Control.Monad.IO.Class (liftIO)
 import System.IO (hFlush, stdout)
 
 tokens :: OAuth
-tokens = def { oauthServerName = "twitter"
-             , oauthRequestUri = "https://api.twitter.com/oauth/request_token"
-             , oauthAccessTokenUri = "https://api.twitter.com/oauth/access_token"
-             , oauthAuthorizeUri = "https://api.twitter.com/oauth/authorize"
-             , oauthConsumerKey = error "You MUST specify oauthConsumerKey parameter."
-             , oauthConsumerSecret = error "You MUST specify oauthConsumerSecret parameter."
-             , oauthSignatureMethod = OA.HMACSHA1
-             , oauthCallback = Nothing
-             }
+tokens = twitterOAuth
+  { oauthConsumerKey = error "You MUST specify oauthConsumerKey parameter."
+  , oauthConsumerSecret = error "You MUST specify oauthConsumerSecret parameter."
+  }
 
 authorize :: (MonadBaseControl IO m, C.MonadResource m)
           => OAuth -- ^ OAuth Consumer key and secret

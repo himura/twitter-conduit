@@ -15,6 +15,7 @@ module Web.Twitter.Conduit.Monad
        , getProxy
        , getManager
        , signOAuthTW
+       , twitterOAuth
        )
        where
 
@@ -33,7 +34,7 @@ data TWToken
       , twCredential :: Credential
       }
 instance Default TWToken where
-  def = TWToken defaultTokens (Credential [])
+  def = TWToken twitterOAuth (Credential [])
 
 data TWInfo = TWInfo
     { twToken :: TWToken
@@ -45,8 +46,8 @@ instance Default TWInfo where
         , twProxy = Nothing
         }
 
-defaultTokens :: OAuth
-defaultTokens =
+twitterOAuth :: OAuth
+twitterOAuth =
   def { oauthServerName = "twitter"
       , oauthRequestUri = "https://api.twitter.com/oauth/request_token"
       , oauthAccessTokenUri = "https://api.twitter.com/oauth/access_token"
