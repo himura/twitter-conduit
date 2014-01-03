@@ -13,6 +13,7 @@ import qualified Data.Text as T
 import qualified Data.Text.IO as T
 import qualified Data.ByteString.Char8 as B8
 import Data.Default
+import Control.Monad.Logger
 import Control.Monad.Trans.Control
 import Control.Monad.Trans.Resource
 import Control.Monad.IO.Class (liftIO)
@@ -40,7 +41,7 @@ authorize oauth getPIN mgr = do
   pin <- getPIN url
   OA.getAccessToken oauth (OA.insert "oauth_verifier" (B8.pack pin) cred) mgr
 
-withCredential :: TW (ResourceT IO) a -> IO a
+withCredential :: TW (ResourceT (LoggingT IO)) b -> LoggingT IO b
 withCredential task = do
   cred <- withManager $ \mgr -> authorize tokens getPIN mgr
   let env = setCredential tokens cred def
@@ -53,7 +54,7 @@ withCredential task = do
       getLine
 
 main :: IO ()
-main = withCredential $ do
+main = runStderrLoggingT . withCredential $ do
   liftIO . putStrLn $ "# your home timeline (up to 100 tweets):"
   homeTimeline []
     C.$= CL.isolate 100
