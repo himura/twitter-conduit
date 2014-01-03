@@ -1,6 +1,4 @@
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE GADTs #-}
-{-# LANGUAGE EmptyDataDecls #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE CPP #-}
@@ -31,7 +29,7 @@ type TW m = ReaderT TWEnv m
 data TWToken
     = TWToken
       { twOAuth :: OAuth
-      , twCredential :: Credential
+      , twCregdential :: Credential
       }
 instance Default TWToken where
   def = TWToken twitterOAuth (Credential [])
@@ -70,13 +68,9 @@ setCredential oa cred env
     , twProxy = twProxy env
     }
 
-runTW :: ( MonadIO m
-         , MonadBaseControl IO m
-         , MonadThrow m
-         , MonadUnsafeIO m )
-      => TWInfo
-      -> TW (ResourceT m) a
-      -> m a
+runTW :: ( MonadBaseControl IO m
+         , MonadIO m
+         ) => TWInfo -> TW (ResourceT m) a -> m a
 runTW info st = withManager $ \mgr -> runTWManager info mgr st
 
 runTWManager :: MonadBaseControl IO m => TWInfo -> Manager -> TW (ResourceT m) a -> ResourceT m a
@@ -88,7 +82,7 @@ getProxy = asks (twProxy . twInfo)
 getManager :: Monad m => TW m Manager
 getManager = asks twManager
 
-signOAuthTW :: (Monad m, MonadUnsafeIO m)
+signOAuthTW :: MonadUnsafeIO m
             => Request
             -> TW m Request
 signOAuthTW req = do

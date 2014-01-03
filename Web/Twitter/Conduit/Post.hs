@@ -53,7 +53,7 @@ favoritesDestroy :: TwitterBaseM m => StatusId -> HT.SimpleQuery -> TW m Status
 favoritesDestroy sid query = apiPost "favorites/destroy.json" (("id", showBS sid):query)
 
 statusesRetweetId :: TwitterBaseM m => Integer -> HT.SimpleQuery -> TW m RetweetedStatus
-statusesRetweetId tweetId query = apiPost ("statuses/retweet/" ++ show tweetId ++ ".json") query
+statusesRetweetId tweetId = apiPost ("statuses/retweet/" ++ show tweetId ++ ".json")
 
 friendshipsCreate :: TwitterBaseM m => UserParam -> HT.SimpleQuery -> TW m User
 friendshipsCreate user query = apiPost "friendships/create.json" q

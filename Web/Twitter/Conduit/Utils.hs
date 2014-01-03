@@ -55,13 +55,13 @@ sinkFromJSON = do
 conduitJSON :: ( C.MonadThrow m
                , MonadLogger m
                ) => C.Conduit ByteString m Value
-conduitJSON = CL.sequence $ sinkJSON
+conduitJSON = CL.sequence sinkJSON
 
 conduitFromJSON :: ( FromJSON a
                    , C.MonadThrow m
                    , MonadLogger m
                    ) => C.Conduit ByteString m a
-conduitFromJSON = CL.sequence $ sinkFromJSON
+conduitFromJSON = CL.sequence sinkFromJSON
 
 showBS :: Show a => a -> ByteString
 showBS = B8.pack . show

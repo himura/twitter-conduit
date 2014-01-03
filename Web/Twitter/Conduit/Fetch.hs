@@ -71,7 +71,7 @@ searchSource :: TwitterBaseM m
              => String -- ^ search string
              -> HT.SimpleQuery -- ^ query
              -> TW m (SearchResult (C.Source (TW m) SearchStatus))
-searchSource q commonQuery = searchSourceFrom q "" commonQuery
+searchSource q = searchSourceFrom q ""
 
 searchSourceFrom :: TwitterBaseM m
                  => String -- ^ search string
@@ -81,7 +81,7 @@ searchSourceFrom :: TwitterBaseM m
 searchSourceFrom q initPage commonQuery = do
     res <- search q initPage commonQuery
     let body = CL.sourceList (searchResultStatuses res) <>
-               ((C.yield (searchMetadataNextResults . searchResultSearchMetadata $ res)) C.$= CL.concatMapM pull C.$= CL.concatMap id)
+               (C.yield (searchMetadataNextResults . searchResultSearchMetadata $ res) C.$= CL.concatMapM pull C.$= CL.concatMap id)
     return $ res { searchResultStatuses = body }
   where
     cqm = M.fromList commonQuery
@@ -101,17 +101,17 @@ search :: TwitterBaseM m
 search q next_results_str query = search' query'
   where
     next_query = HT.parseSimpleQuery next_results_str
-    query' = ("q", B8.pack $ q) : (next_query ++ query)
+    query' = ("q", B8.pack q) : (next_query ++ query)
 
 search' :: TwitterBaseM m
         => HT.SimpleQuery -- ^ query
         -> TW m (SearchResult [SearchStatus])
-search' query = apiGet "search/tweets.json" query
+search' = apiGet "search/tweets.json"
 
 directMessages :: TwitterBaseM m
                => HT.SimpleQuery -- ^ query
                -> C.Source (TW m) DirectMessage
-directMessages query = apiWithPages "direct_messages.json" query
+directMessages = apiWithPages "direct_messages.json"
 
 friendsIds, followersIds
   :: TwitterBaseM m => UserParam -> C.Source (TW m) UserId

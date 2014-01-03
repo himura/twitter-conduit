@@ -36,7 +36,7 @@ statuses :: (TwitterBaseM m, FromJSON a)
          => String -- ^ Resource URL
          -> HT.SimpleQuery -- ^ Query
          -> C.Source (TW m) a
-statuses uri query = apiWithPages u query
+statuses uri = apiWithPages u
   where u = "statuses/" ++ uri
 
 -- * Timelines
@@ -56,22 +56,22 @@ retweetsOfMe = statuses "retweets_of_me.json"
 -- * Tweets
 
 retweetsId :: TwitterBaseM m => StatusId -> HT.SimpleQuery -> TW m [RetweetedStatus]
-retweetsId status_id query = apiGet uri query
+retweetsId status_id = apiGet uri
   where uri = "statuses/retweets/" ++ show status_id ++ ".json"
 
 showId :: TwitterBaseM m => StatusId -> HT.SimpleQuery -> TW m Status
-showId status_id query = apiGet uri query
+showId status_id = apiGet uri
   where uri = "statuses/show/" ++ show status_id ++ ".json"
 
 destroyId :: TwitterBaseM m => StatusId -> HT.SimpleQuery -> TW m Status
-destroyId status_id query = apiPost uri query
+destroyId status_id = apiPost uri
   where uri = "statuses/destroy/" ++ show status_id ++ ".json"
 
 update :: TwitterBaseM m => T.Text -> HT.SimpleQuery -> TW m Status
 update status query = apiPost "statuses/update.json" (("status", T.encodeUtf8 status):query)
 
 retweetId :: TwitterBaseM m => StatusId -> HT.SimpleQuery -> TW m RetweetedStatus
-retweetId status_id query = apiPost uri query
+retweetId status_id = apiPost uri
   where uri = "statuses/retweet/" ++ show status_id ++ ".json"
 
 -- updateWithMedia

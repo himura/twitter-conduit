@@ -33,9 +33,7 @@ rsrc $=+ cndt = do
   return $ CI.ResumableSource (src C.$= cndt) finalizer
 
 userstream :: TwitterBaseM m => TW m (C.ResumableSource (TW m) StreamingAPI)
-userstream = do
-  rsrc <- api "GET" "https://userstream.twitter.com/2/user.json" []
-  rsrc $=+ conduitFromJSON
+userstream = userstream'
 
 userstream' :: (TwitterBaseM m, FromJSON v) => TW m (C.ResumableSource (TW m) v)
 userstream' = do
