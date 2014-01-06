@@ -118,6 +118,7 @@ executable userstream
       , filepath
       , directory
       , network
+      , process
       , case-insensitive
       , lens
       , aeson
