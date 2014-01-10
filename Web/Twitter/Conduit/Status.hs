@@ -18,12 +18,15 @@ module Web.Twitter.Conduit.Status
        , destroyId
        , update
        , retweetId
-       -- , updateWithMedia
+       , MediaData (..)
+       , updateWithMedia
        -- , oembed
+       -- , retweetersIds
        ) where
 
 import Web.Twitter.Conduit.Api
 import Web.Twitter.Conduit.Monad
+import Web.Twitter.Conduit.Utils
 import Web.Twitter.Types
 
 import qualified Network.HTTP.Types as HT
@@ -31,6 +34,10 @@ import Data.Aeson
 import qualified Data.Conduit as C
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
+import Network.HTTP.Client.MultipartFormData
+import Network.HTTP.Conduit
+import Data.Conduit
+import Control.Arrow
 
 statuses :: (TwitterBaseM m, FromJSON a)
          => String -- ^ Resource URL
@@ -74,6 +81,21 @@ retweetId :: TwitterBaseM m => StatusId -> HT.SimpleQuery -> TW m RetweetedStatu
 retweetId status_id = apiPost uri
   where uri = "statuses/retweet/" ++ show status_id ++ ".json"
 
--- updateWithMedia
--- oembed
--- retweetersIds
+data MediaData = MediaFromFile FilePath
+               | MediaRequestBody FilePath RequestBody
+
+updateWithMedia :: TwitterBaseM m
+                => T.Text
+                -> MediaData
+                -> HT.SimpleQuery
+                -> TW m Status
+updateWithMedia tweet mediaData query = do
+    req <- formDataBody body =<< makeRequest "POST" (endpoint ++ "statuses/update_with_media.json") []
+    res <- apiRequest req
+    res $$+- sinkFromJSON
+  where
+    body = mediaBody mediaData : partQuery
+
+    partQuery = map (uncurry partBS . first T.decodeUtf8) $ ("status", T.encodeUtf8 tweet) : query
+    mediaBody (MediaFromFile fp) = partFileSource "media[]" fp
+    mediaBody (MediaRequestBody filename filebody) = partFileRequestBody "media[]" filename filebody
