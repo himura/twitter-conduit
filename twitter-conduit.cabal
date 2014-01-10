@@ -12,9 +12,6 @@ cabal-version:     >= 1.8
 build-type:        Simple
 homepage:          https://github.com/seagull-kamome/twitter-conduit
 
-flag build-samples
-  default: False
-
 source-repository head
   type: git
   location: git://github.com/tanakh/twitter-conduit.git
@@ -79,53 +76,3 @@ test-suite doctests
     , filepath
     , directory
     , doctest
-
-executable simple
-  main-is: simple.hs
-  hs-source-dirs: sample/
-
-  if !flag(build-samples)
-    buildable: False
-  else
-    build-depends:
-        base >= 4.0 && < 5
-      , transformers
-      , monad-control
-      , bytestring
-      , text
-      , data-default
-      , resourcet
-      , conduit
-      , http-conduit
-      , monad-logger
-      , authenticate-oauth
-      , twitter-conduit
-
-executable userstream
-  main-is: userstream.hs
-  hs-source-dirs: sample/
-
-  if !flag(build-samples)
-    buildable: False
-  else
-    build-depends:
-        base >= 4.0 && < 5
-      , containers
-      , transformers
-      , monad-control
-      , bytestring
-      , text
-      , filepath
-      , directory
-      , network
-      , process
-      , case-insensitive
-      , lens
-      , aeson
-      , data-default
-      , resourcet
-      , conduit
-      , http-conduit
-      , monad-logger
-      , authenticate-oauth
-      , twitter-conduit

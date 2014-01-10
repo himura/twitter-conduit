@@ -1,0 +1,62 @@
+name:              twitter-conduit-sample
+version:           0.0.0
+license:           BSD3
+author:            Takahiro HIMURA
+maintainer:        Takahiro Himura <taka@himura.jp>
+synopsis:          Twitter API package with conduit interface and Streaming API support.
+description:       This package uses conduit package for access Twitter API.
+category:          Web, Conduit
+stability:         Experimental
+cabal-version:     >= 1.8
+build-type:        Simple
+homepage:          https://github.com/himura/twitter-conduit
+
+source-repository head
+  type: git
+  location: git://github.com/himura/twitter-conduit.git
+
+executable simple
+  main-is: simple.hs
+  hs-source-dirs: .
+
+  build-depends:
+      base >= 4.0 && < 5
+    , transformers-base
+    , transformers
+    , monad-control
+    , bytestring
+    , text
+    , data-default
+    , resourcet
+    , conduit
+    , http-conduit
+    , monad-logger
+    , authenticate-oauth
+    , twitter-conduit
+
+executable userstream
+  main-is: userstream.hs
+  hs-source-dirs: .
+
+  build-depends:
+      base >= 4.0 && < 5
+    , containers
+    , transformers-base
+    , transformers
+    , monad-control
+    , bytestring
+    , text
+    , filepath
+    , directory
+    , network
+    , process
+    , case-insensitive
+    , lens
+    , aeson
+    , data-default
+    , resourcet
+    , conduit
+    , http-conduit
+    , monad-logger
+    , authenticate-oauth
+    , twitter-conduit
