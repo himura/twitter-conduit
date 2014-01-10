@@ -16,7 +16,6 @@ import qualified Data.ByteString.Char8 as B
 import qualified Data.Text.Encoding as T
 import qualified Data.CaseInsensitive as CI
 import Data.Default
-import Control.Arrow (first)
 import Control.Applicative
 import Control.Monad.IO.Class
 import Control.Monad.Trans.Resource
@@ -73,7 +72,7 @@ withCredentialFile file task = do
 
 getProxyEnv :: IO (Maybe Proxy)
 getProxyEnv = do
-  env <- M.fromList <$> map (first CI.mk) <$> getEnvironment
+  env <- M.fromList <$> over (mapped . _1) CI.mk <$> getEnvironment
   let u = M.lookup "https_proxy" env <|>
           M.lookup "http_proxy" env <|>
           M.lookup "proxy" env >>= URI.parseURI >>= URI.uriAuthority
