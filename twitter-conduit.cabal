@@ -3,18 +3,18 @@ version:           0.0.0
 license:           BSD3
 license-file:      LICENSE
 author:            HATTORI Hiroki, Hideyuki Tanaka, Takahiro HIMURA
-maintainer:        HATTORI Hiroki <seagull.kamome@gmail.com>
+maintainer:        Takahiro HIMURA <taka@himura.jp>
 synopsis:          Twitter API package with conduit interface and Streaming API support.
 description:       This package uses conduit package for access Twitter API.
 category:          Web, Conduit
 stability:         Experimental
 cabal-version:     >= 1.8
 build-type:        Simple
-homepage:          https://github.com/seagull-kamome/twitter-conduit
+homepage:          https://github.com/himura/twitter-conduit
 
 source-repository head
   type: git
-  location: git://github.com/tanakh/twitter-conduit.git
+  location: git://github.com/himura/twitter-conduit.git
 
 library
   ghc-options: -Wall
