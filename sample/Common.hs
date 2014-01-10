@@ -13,6 +13,7 @@ import Data.Aeson hiding (Error)
 import qualified Data.Map as M
 import qualified Data.ByteString.Lazy.Char8 as LB
 import qualified Data.ByteString.Char8 as B
+import qualified Data.Text.Encoding as T
 import qualified Data.CaseInsensitive as CI
 import Data.Default
 import Control.Arrow (first)
@@ -24,6 +25,7 @@ import System.FilePath
 import System.Directory
 import System.Environment
 import Control.Monad.Logger
+import Control.Lens
 
 ensureDirectoryExist :: FilePath -> IO FilePath
 ensureDirectoryExist dir = do
@@ -45,11 +47,11 @@ loadCredential file = do
   if existp
     then do
       content <- LB.readFile file
-      return $ Credential <$> decode content
+      return $ Credential . over (mapped . both) T.encodeUtf8 <$> decode content
     else return Nothing
 
 saveCredential :: FilePath -> Credential -> IO ()
-saveCredential file cred = LB.writeFile file $ encode . unCredential $ cred
+saveCredential file cred = LB.writeFile file $ encode . over (mapped . both) T.decodeUtf8 . unCredential $ cred
 
 withCredentialFile :: FilePath -> TW (ResourceT (LoggingT IO)) a -> IO a
 withCredentialFile file task = do

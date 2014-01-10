@@ -65,6 +65,7 @@ import qualified Data.Conduit as C
 import qualified Data.Conduit.List as CL
 import qualified Data.ByteString.Char8 as B8
 import qualified Data.Map as M
+import qualified Data.Text.Encoding as T
 import Data.Monoid
 
 searchSource :: TwitterBaseM m
@@ -86,7 +87,7 @@ searchSourceFrom q initPage commonQuery = do
   where
     cqm = M.fromList commonQuery
     pull (Just query) = do
-      let pq = HT.parseSimpleQuery query
+      let pq = HT.parseSimpleQuery . T.encodeUtf8 $ query
           query' = M.toList $ M.union (M.fromList pq) cqm
       res <- search' query'
       remains <- pull $ searchMetadataNextResults . searchResultSearchMetadata $ res
@@ -100,7 +101,7 @@ search :: TwitterBaseM m
        -> TW m (SearchResult [SearchStatus])
 search q next_results_str query = search' query'
   where
-    next_query = HT.parseSimpleQuery next_results_str
+    next_query = HT.parseSimpleQuery . T.encodeUtf8 $ next_results_str
     query' = ("q", B8.pack q) : (next_query ++ query)
 
 search' :: TwitterBaseM m

@@ -44,7 +44,7 @@ library
     , bytestring >= 0.9
     , text >= 0.11
     , containers
-    , twitter-types
+    , twitter-types >= 0.2
 
   exposed-modules:
     Web.Twitter.Conduit

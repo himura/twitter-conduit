@@ -52,7 +52,7 @@ printTL (SEvent event)
             header = T.concat [ event ^. evEvent, "[", fromUser, " -> ", toUser, "]"]
         T.putStrLn $ T.concat [ header, " :: ", showStatus st ]
         icon <- case fromIcon of
-            Just iconUrl -> Just <$> fetchIcon (T.unpack fromUser) (S8.unpack iconUrl)
+            Just iconUrl -> Just <$> fetchIcon (T.unpack fromUser) (T.unpack iconUrl)
             Nothing -> return Nothing
         notifySend header (showStatus st) icon
 printTL s = print s
