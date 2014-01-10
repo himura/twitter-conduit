@@ -1,4 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE ConstraintKinds #-}
+{-# LANGUAGE FlexibleContexts #-}
 
 module Common where
 
@@ -18,6 +20,7 @@ import qualified Data.CaseInsensitive as CI
 import Data.Default
 import Control.Applicative
 import Control.Monad.IO.Class
+import Control.Monad.Base
 import Control.Monad.Trans.Resource
 import System.IO
 import System.FilePath
@@ -37,8 +40,11 @@ confdir = fmap (</> ".twitter2notify") getHomeDirectory >>= ensureDirectoryExist
 credentialFile :: IO FilePath
 credentialFile = (</> "credential.json") <$> confdir
 
-withCF :: TW (ResourceT (LoggingT IO)) a -> IO a
-withCF t = credentialFile >>= \f -> withCredentialFile f t
+withCF :: TW (ResourceT (NoLoggingT IO)) a -> IO a
+withCF = runNoLoggingT . withCF'
+
+withCF' :: (MonadLogger m, MonadBaseControl IO m, MonadIO m) => TW (ResourceT m) a -> m a
+withCF' t = liftBase credentialFile >>= \f -> withCredentialFile f t
 
 loadCredential :: FilePath -> IO (Maybe Credential)
 loadCredential file = do
@@ -52,12 +58,12 @@ loadCredential file = do
 saveCredential :: FilePath -> Credential -> IO ()
 saveCredential file cred = LB.writeFile file $ encode . over (mapped . both) T.decodeUtf8 . unCredential $ cred
 
-withCredentialFile :: FilePath -> TW (ResourceT (LoggingT IO)) a -> IO a
+withCredentialFile :: (MonadLogger m, MonadBaseControl IO m, MonadIO m) => FilePath -> TW (ResourceT m) a -> m a
 withCredentialFile file task = do
-  pr <- getProxyEnv
-  cred <- maybe (authorizeAndSave pr) return =<< loadCredential file
+  pr <- liftBase getProxyEnv
+  cred <- liftBase $ maybe (authorizeAndSave pr) return =<< loadCredential file
   let env = (setCredential tokens cred def) { twProxy = pr }
-  runStderrLoggingT $ runTW env task
+  runTW env task
   where
     getPIN url = do
       putStrLn $ "browse URL: " ++ url
@@ -72,7 +78,7 @@ withCredentialFile file task = do
 
 getProxyEnv :: IO (Maybe Proxy)
 getProxyEnv = do
-  env <- M.fromList <$> over (mapped . _1) CI.mk <$> getEnvironment
+  env <- M.fromList . over (mapped . _1) CI.mk <$> getEnvironment
   let u = M.lookup "https_proxy" env <|>
           M.lookup "http_proxy" env <|>
           M.lookup "proxy" env >>= URI.parseURI >>= URI.uriAuthority
