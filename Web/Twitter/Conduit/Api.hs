@@ -1,172 +1,167 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE CPP #-}
-{-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE QuasiQuotes #-}
 #if __GLASGOW_HASKELL__ >= 704
 {-# LANGUAGE ConstraintKinds #-}
-#else
-{-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE UndecidableInstances #-}
 #endif
 
 module Web.Twitter.Conduit.Api
-       ( api
-       , apiRequest
-       , apiGet
-       , apiGet'
-       , apiPost
-       , apiPost'
-       , apiCursor
-       , apiCursor'
-       , apiWithPages
-       , apiWithPages'
-       , TwitterBaseM
-       , endpoint
-       , makeRequest
+       (
+       -- * Search
+         search
+       , searchSource
+       , searchSourceFrom
+
+       -- * Direct Messages
+       , directMessages
+       -- , directMessagesSent
+       -- , directMessagesShow
+       -- , directMessagesDestroy
+       -- , directMessagesNew
+
+       -- * Friends & Followers
+       -- , friendshipsNoRetweetsIds
+       , friendsIds
+       , followersIds
+       -- , friendshipsLookup
+       -- , friendshipsIncoming
+       -- , friendshipsOutgoing
+       , friendshipsCreate
+       -- , friendshipsDestroy
+       -- , friendshipsUpdate
+       -- , friendshipsShow
+       , friendsList
+       -- , followersList
+
+       -- * Users
+       -- , accountSettings
+       -- , accountVerifyCredentials
+       -- , accountSettingsUpdate
+       -- , accountUpdateDeliveryDevice
+       -- , accountUpdateProfile
+       -- , accountUpdateProfileBackgroundImage
+       -- , accountUpdateProfileColors
+       -- , accoutUpdateProfileImage
+       -- , blocksList
+       -- , blocksIds
+       -- , blocksCreate
+       -- , blocksDestroy
+
+       , usersLookup
+       , usersShow
+       -- , usersSearch
+       -- , usersContributees
+       -- , usersContributors
+       -- , accuntRemoveProfileBanner
+       -- , accuntUpdateProfileBanner
+       -- , accuntProfileBanner
+
+       -- * Suggested Users
+       -- , usersSuggestionsSlug
+       -- , usersSuggestions
+       -- , usersSuggestionsSlugMembers
+
+       -- * Favorites
+       -- , favoritesList
+       , favoritesDestroy
+       , favoritesCreate
+
+       -- * Lists
+       -- , listsStatuses
+       -- , listsMemberships
+       -- , listsSubscribers
+       -- , listsSubscribersShow
+       -- , listsMembersShow
+       , listsMembers
+       -- , lists
+       -- , listsShow
+       -- , listsSubscriptions
        ) where
 
+import Web.Twitter.Types
 import Web.Twitter.Conduit.Monad
+import Web.Twitter.Conduit.Param
 import Web.Twitter.Conduit.Utils
+import Web.Twitter.Conduit.Base
 
-import Network.HTTP.Conduit
 import qualified Network.HTTP.Types as HT
 import qualified Data.Conduit as C
 import qualified Data.Conduit.List as CL
-
-import qualified Data.Aeson as A
-import qualified Data.Aeson.Types as A
-import qualified Data.Text as T
-import Data.ByteString (ByteString)
+import qualified Data.ByteString.Char8 as B8
+import qualified Data.Map as M
+import qualified Data.Text.Encoding as T
 import Data.Monoid
-import Control.Applicative
-import Control.Monad.IO.Class
-import Control.Monad.Trans.Class (lift)
-import Text.Shakespeare.Text
-import Control.Monad.Logger
 
-#if __GLASGOW_HASKELL__ >= 704
-type TwitterBaseM m = ( C.MonadResource m
-                      , MonadLogger m
-                      )
-#else
-class (C.MonadResource m, MonadLogger m) => TwitterBaseM m
-instance (C.MonadResource m, MonadLoger m) => TwitterBaseM m
-#endif
+searchSource :: TwitterBaseM m
+             => String -- ^ search string
+             -> HT.SimpleQuery -- ^ query
+             -> TW m (SearchResult (C.Source (TW m) SearchStatus))
+searchSource q = searchSourceFrom q ""
 
-makeRequest :: MonadIO m
-            => HT.Method -- ^ HTTP request method (GET or POST)
-            -> String -- ^ API Resource URL
-            -> HT.SimpleQuery -- ^ Query
-            -> TW m Request
-makeRequest m url query = do
-    p <- getProxy
-    req <- liftIO $ parseUrl url
-    return $ req { method = m
-                 , queryString = HT.renderSimpleQuery False query
-                 , proxy = p }
-
-api :: TwitterBaseM m
-    => HT.Method -- ^ HTTP request method (GET or POST)
-    -> String -- ^ API Resource URL
-    -> HT.SimpleQuery -- ^ Query
-    -> TW m (C.ResumableSource (TW m) ByteString)
-api m url query =
-    apiRequest =<< makeRequest m url query
-
-apiRequest :: TwitterBaseM m
-           => Request
-           -> TW m (C.ResumableSource (TW m) ByteString)
-apiRequest req = do
-    signedReq <- signOAuthTW req
-    $(logDebug) [st|Signed Request: #{show signedReq}|]
-    mgr <- getManager
-    res <- http signedReq mgr
-    $(logDebug) [st|Response Status: #{show $ responseStatus res}|]
-    $(logDebug) [st|Response Header: #{show $ responseHeaders res}|]
-    return $ responseBody res
-
-endpoint :: String
-endpoint = "https://api.twitter.com/1.1/"
-
-apiGet :: (TwitterBaseM m, A.FromJSON a)
-       => String -- ^ API Resource URL
-       -> HT.SimpleQuery -- ^ Query
-       -> TW m a
-apiGet u = apiGet' fu
-  where fu = endpoint ++ u
-
-apiPost :: (TwitterBaseM m, A.FromJSON a)
-        => String -- ^ API Resource URL
-        -> HT.SimpleQuery -- ^ Query
-        -> TW m a
-apiPost u = apiPost' fu
-  where fu = endpoint ++ u
-
-apiGet' :: (TwitterBaseM m, A.FromJSON a)
-        => String -- ^ API Resource URL
-        -> HT.SimpleQuery -- ^ Query
-        -> TW m a
-apiGet' url query = do
-    src <- api "GET" url query
-    src C.$$+- sinkFromJSON
-
-apiPost' :: (TwitterBaseM m, A.FromJSON a)
-         => String -- ^ API Resource URL
-         -> HT.SimpleQuery -- ^ Query
-         -> TW m a
-apiPost' url query = do
-    src <- api "POST" url query
-    src C.$$+- sinkFromJSON
-
-apiCursor :: (TwitterBaseM m, A.FromJSON a)
-          => String -- ^ API Resource URL
-          -> HT.SimpleQuery -- ^ Query
-          -> T.Text
-          -> C.Source (TW m) a
-apiCursor u = apiCursor' fu
-  where fu = endpoint ++ u
-
-apiCursor' :: (TwitterBaseM m, A.FromJSON a)
-           => String -- ^ API Resource URL
-           -> HT.SimpleQuery -- ^ Query
-           -> T.Text
-           -> C.Source (TW m) a
-apiCursor' url query cursorKey = loop (-1 :: Int)
+searchSourceFrom :: TwitterBaseM m
+                 => String -- ^ search string
+                 -> URIString -- ^ start page
+                 -> HT.SimpleQuery -- ^ query
+                 -> TW m (SearchResult (C.Source (TW m) SearchStatus))
+searchSourceFrom q initPage commonQuery = do
+    res <- search q initPage commonQuery
+    let body = CL.sourceList (searchResultStatuses res) <>
+               (C.yield (searchMetadataNextResults . searchResultSearchMetadata $ res) C.$= CL.concatMapM pull C.$= CL.concatMap id)
+    return $ res { searchResultStatuses = body }
   where
-    loop 0 = CL.sourceNull
-    loop cursor = do
-        let query' = ("cursor", showBS cursor) `insertQuery` query
-        j <- lift $ do
-            src <- api "GET" url query'
-            src C.$$+- sinkJSON
-        case A.parseMaybe p j of
-            Nothing -> CL.sourceNull
-            Just (res, nextCursor) -> do
-                CL.sourceList res
-                loop nextCursor
+    cqm = M.fromList commonQuery
+    pull (Just query) = do
+      let pq = HT.parseSimpleQuery . T.encodeUtf8 $ query
+          query' = M.toList $ M.union (M.fromList pq) cqm
+      res <- search' query'
+      remains <- pull $ searchMetadataNextResults . searchResultSearchMetadata $ res
+      return $ searchResultStatuses res : remains
+    pull Nothing = return []
 
-    p (A.Object v) = (,) <$> v A..: cursorKey <*> v A..: "next_cursor"
-    p _ = mempty
-
-apiWithPages :: (TwitterBaseM m, A.FromJSON a)
-             => String -- ^ API Resource URL
-             -> HT.SimpleQuery -- ^ Query
-             -> C.Source (TW m) a
-apiWithPages u = apiWithPages' fu
-  where fu = endpoint ++ u
-
-apiWithPages' :: (TwitterBaseM m, A.FromJSON a)
-              => String -- ^ API Resource URL
-              -> HT.SimpleQuery -- ^ Query
-              -> C.Source (TW m) a
-apiWithPages' url query = loop (1 :: Int)
+search :: TwitterBaseM m
+       => String -- ^ search string
+       -> URIString -- ^ next query
+       -> HT.SimpleQuery -- ^ query
+       -> TW m (SearchResult [SearchStatus])
+search q next_results_str query = search' query'
   where
-    loop page = do
-        let query' = ("page", showBS page) `insertQuery` query
-        rs <- lift $ do
-            src <- api "GET" url query'
-            src C.$$+- sinkFromJSON
-        if null rs
-            then CL.sourceNull
-            else CL.sourceList rs >> loop (page+1)
+    next_query = HT.parseSimpleQuery . T.encodeUtf8 $ next_results_str
+    query' = ("q", B8.pack q) : (next_query ++ query)
+
+search' :: TwitterBaseM m
+        => HT.SimpleQuery -- ^ query
+        -> TW m (SearchResult [SearchStatus])
+search' = apiGet "search/tweets.json"
+
+directMessages :: TwitterBaseM m
+               => HT.SimpleQuery -- ^ query
+               -> C.Source (TW m) DirectMessage
+directMessages = apiWithPages "direct_messages.json"
+
+friendsIds, followersIds
+  :: TwitterBaseM m => UserParam -> C.Source (TW m) UserId
+friendsIds   q = apiCursor "friends/ids.json"   (mkUserParam q) "ids"
+followersIds q = apiCursor "followers/ids.json" (mkUserParam q) "ids"
+
+friendshipsCreate :: TwitterBaseM m => UserParam -> HT.SimpleQuery -> TW m User
+friendshipsCreate user query = apiPost "friendships/create.json" q
+  where q = mkUserParam user ++ query
+
+friendsList
+  :: TwitterBaseM m => UserParam -> C.Source (TW m) User
+friendsList q = apiCursor "friends/list.json" (mkUserParam q) "users"
+
+usersLookup :: TwitterBaseM m => UserListParam -> TW m [User]
+usersLookup q = apiGet "users/lookup.json" (mkUserListParam q)
+
+usersShow :: TwitterBaseM m => UserParam -> TW m User
+usersShow q = apiGet "users/show.json" (mkUserParam q)
+
+favoritesCreate :: TwitterBaseM m => StatusId -> HT.SimpleQuery -> TW m Status
+favoritesCreate sid query = apiPost "favorites/create.json" (("id", showBS sid):query)
+
+favoritesDestroy :: TwitterBaseM m => StatusId -> HT.SimpleQuery -> TW m Status
+favoritesDestroy sid query = apiPost "favorites/destroy.json" (("id", showBS sid):query)
+
+listsMembers :: TwitterBaseM m => ListParam -> C.Source (TW m) User
+listsMembers q = apiCursor "lists/members.json" (mkListParam q) "users"

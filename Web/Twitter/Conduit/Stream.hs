@@ -11,9 +11,13 @@ module Web.Twitter.Conduit.Stream
          userstream
        , userstream'
        , statusesFilter
-       ) where
+       -- , statusesSample
+       -- , statusesFirehose
+       -- , sitestream
+       -- , sitestream'
+  ) where
 
-import Web.Twitter.Conduit.Api
+import Web.Twitter.Conduit.Base
 import Web.Twitter.Conduit.Monad
 import Web.Twitter.Types
 import Web.Twitter.Conduit.Utils

@@ -50,10 +50,9 @@ library
   exposed-modules:
     Web.Twitter.Conduit
     Web.Twitter.Conduit.Lens
+    Web.Twitter.Conduit.Base
     Web.Twitter.Conduit.Api
-    Web.Twitter.Conduit.Fetch
     Web.Twitter.Conduit.Monad
-    Web.Twitter.Conduit.Post
     Web.Twitter.Conduit.Param
     Web.Twitter.Conduit.Stream
     Web.Twitter.Conduit.Status

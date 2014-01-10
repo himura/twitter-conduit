@@ -24,7 +24,7 @@ module Web.Twitter.Conduit.Status
        -- , retweetersIds
        ) where
 
-import Web.Twitter.Conduit.Api
+import Web.Twitter.Conduit.Base
 import Web.Twitter.Conduit.Monad
 import Web.Twitter.Conduit.Utils
 import Web.Twitter.Types
