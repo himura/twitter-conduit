@@ -36,12 +36,12 @@ mkUserParam (ScreenNameParam sn) = [("screen_name", B8.pack sn)]
 
 -- | converts 'UserListParam' to 'HT.SimpleQuery'.
 --
--- >>> mkUserParam $ UserIdListParam [123456]
+-- >>> mkUserListParam $ UserIdListParam [123456]
 -- [("user_id","123456")]
--- >>> mkUserParam $ UserIdListParam [123456, 654321]
--- [("user_id","123456"),("user_id","654321")]
--- >>> mkUserParam $ ScreenNameListParam ["thimura", "NikaidouShinku"]
--- [("screen_name","thimura"),("screen_name","NikaidouShinku")]
+-- >>> mkUserListParam $ UserIdListParam [123456, 654321]
+-- [("user_id","123456,654321")]
+-- >>> mkUserListParam $ ScreenNameListParam ["thimura", "NikaidouShinku"]
+-- [("screen_name","thimura,NikaidouShinku")]
 mkUserListParam :: UserListParam -> HT.SimpleQuery
 mkUserListParam (UserIdListParam uids) =  [("user_id", B8.intercalate "," . map showBS $ uids)]
 mkUserListParam (ScreenNameListParam sns) = [("screen_name", B8.intercalate "," . map B8.pack $ sns)]
