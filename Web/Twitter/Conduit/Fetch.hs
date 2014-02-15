@@ -26,6 +26,7 @@ module Web.Twitter.Conduit.Fetch
        -- , friendshipsShow
        -- , friendshipsLookup
        -- , friendshipsNoRetweetIds
+       , friendsList
 
        -- * Users
        -- , usersLookup
@@ -118,6 +119,10 @@ friendsIds, followersIds
   :: TwitterBaseM m => UserParam -> C.Source (TW m) UserId
 friendsIds   q = apiCursor "friends/ids.json"   (mkUserParam q) "ids"
 followersIds q = apiCursor "followers/ids.json" (mkUserParam q) "ids"
+
+friendsList
+  :: TwitterBaseM m => UserParam -> C.Source (TW m) User
+friendsList q = apiCursor "friends/list.json" (mkUserParam q) "users"
 
 usersShow :: TwitterBaseM m => UserParam -> TW m User
 usersShow q = apiGet "users/show.json" (mkUserParam q)
