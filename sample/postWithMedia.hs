@@ -14,7 +14,7 @@ import Common
 
 main :: IO ()
 main = withCF $ do
-  [status, filepath] <- liftIO getArgs
-  liftIO $ putStrLn $ "Post message: " ++ status
-  res <- statusesUpdateWithMedia (T.pack status) (MediaFromFile filepath) []
-  liftIO $ print res
+    [status, filepath] <- liftIO getArgs
+    liftIO $ putStrLn $ "Post message: " ++ status
+    res <- statusesUpdateWithMedia (T.pack status) (MediaFromFile filepath) []
+    liftIO $ print res

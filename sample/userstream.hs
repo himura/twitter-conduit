@@ -27,8 +27,8 @@ iconPath = (</> "icons") <$> confdir >>= ensureDirectoryExist
 
 main :: IO ()
 main = withCF $ do
-  src <- userstream
-  src C.$$+- CL.mapM_ (liftIO . printTL)
+    src <- userstream
+    src C.$$+- CL.mapM_ (liftIO . printTL)
 
 showStatus :: AsStatus s => s -> T.Text
 showStatus s = T.concat [ s ^. user . userScreenName
@@ -45,22 +45,22 @@ printTL (SRetweetedStatus s) = T.putStrLn $ T.concat [ s ^. user . userScreenNam
 printTL (SEvent event)
     | (event^.evEvent) == "favorite" || (event^.evEvent) == "unfavorite",
       Just (ETStatus st) <- (event ^. evTargetObject) = do
-        let (fromUser, fromIcon) = evUserInfo (event^.evSource)
-            (toUser, _toIcon) = evUserInfo (event^.evTarget)
-            evUserInfo (ETUser u) = (u ^. userScreenName, u ^. userProfileImageURL)
-            evUserInfo _ = ("", Nothing)
-            header = T.concat [ event ^. evEvent, "[", fromUser, " -> ", toUser, "]"]
-        T.putStrLn $ T.concat [ header, " :: ", showStatus st ]
-        icon <- case fromIcon of
-            Just iconUrl -> Just <$> fetchIcon (T.unpack fromUser) (T.unpack iconUrl)
-            Nothing -> return Nothing
-        notifySend header (showStatus st) icon
+          let (fromUser, fromIcon) = evUserInfo (event^.evSource)
+              (toUser, _toIcon) = evUserInfo (event^.evTarget)
+              evUserInfo (ETUser u) = (u ^. userScreenName, u ^. userProfileImageURL)
+              evUserInfo _ = ("", Nothing)
+              header = T.concat [ event ^. evEvent, "[", fromUser, " -> ", toUser, "]"]
+          T.putStrLn $ T.concat [ header, " :: ", showStatus st ]
+          icon <- case fromIcon of
+              Just iconUrl -> Just <$> fetchIcon (T.unpack fromUser) (T.unpack iconUrl)
+              Nothing -> return Nothing
+          notifySend header (showStatus st) icon
 printTL s = print s
 
 notifySend :: T.Text -> T.Text -> Maybe FilePath -> IO ()
 notifySend header content icon = do
-  let ic = maybe [] (\i -> ["-i", i]) icon
-  void $ rawSystem "notify-send" $ [T.unpack header, T.unpack content] ++ ic
+    let ic = maybe [] (\i -> ["-i", i]) icon
+    void $ rawSystem "notify-send" $ [T.unpack header, T.unpack content] ++ ic
 
 fetchIcon :: String -- ^ screen name
           -> String -- ^ icon url

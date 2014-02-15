@@ -14,9 +14,9 @@ import Common
 
 main :: IO ()
 main = withCF $ do
-  [statusIdStr] <- liftIO getArgs
-  let statusId = read statusIdStr
-  targetStatus <- showId statusId []
-  liftIO . putStrLn $ "Unfavorite Tweet: " ++ show targetStatus
-  res <- favoritesDestroy statusId []
-  liftIO $ print res
+    [statusIdStr] <- liftIO getArgs
+    let statusId = read statusIdStr
+    targetStatus <- showId statusId []
+    liftIO . putStrLn $ "Unfavorite Tweet: " ++ show targetStatus
+    res <- favoritesDestroy statusId []
+    liftIO $ print res

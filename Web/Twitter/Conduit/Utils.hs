@@ -41,19 +41,19 @@ sinkJSON :: ( C.MonadThrow m
             , MonadLogger m
             ) => C.Consumer ByteString m Value
 sinkJSON = do
-  js <- CA.sinkParser json
-  $(logDebug) [st|Response JSON: #{show js}|]
-  return js
+    js <- CA.sinkParser json
+    $(logDebug) [st|Response JSON: #{show js}|]
+    return js
 
 sinkFromJSON :: ( FromJSON a
                 , C.MonadThrow m
                 , MonadLogger m
                 ) => C.Consumer ByteString m a
 sinkFromJSON = do
-  v <- sinkJSON
-  case fromJSON v of
-    AT.Error err -> lift $ C.monadThrow $ TwitterError err
-    AT.Success r -> return r
+    v <- sinkJSON
+    case fromJSON v of
+        AT.Error err -> lift $ C.monadThrow $ TwitterError err
+        AT.Success r -> return r
 
 conduitJSON :: ( C.MonadThrow m
                , MonadLogger m

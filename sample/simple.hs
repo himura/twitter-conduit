@@ -21,9 +21,9 @@ import System.IO (hFlush, stdout)
 
 tokens :: OAuth
 tokens = twitterOAuth
-  { oauthConsumerKey = error "You MUST specify oauthConsumerKey parameter."
-  , oauthConsumerSecret = error "You MUST specify oauthConsumerSecret parameter."
-  }
+    { oauthConsumerKey = error "You MUST specify oauthConsumerKey parameter."
+    , oauthConsumerSecret = error "You MUST specify oauthConsumerSecret parameter."
+    }
 
 authorize :: (MonadBaseControl IO m, C.MonadResource m)
           => OAuth -- ^ OAuth Consumer key and secret
@@ -31,29 +31,29 @@ authorize :: (MonadBaseControl IO m, C.MonadResource m)
           -> Manager
           -> m Credential
 authorize oauth getPIN mgr = do
-  cred <- OA.getTemporaryCredential oauth mgr
-  let url = OA.authorizeUrl oauth cred
-  pin <- getPIN url
-  OA.getAccessToken oauth (OA.insert "oauth_verifier" (B8.pack pin) cred) mgr
+    cred <- OA.getTemporaryCredential oauth mgr
+    let url = OA.authorizeUrl oauth cred
+    pin <- getPIN url
+    OA.getAccessToken oauth (OA.insert "oauth_verifier" (B8.pack pin) cred) mgr
 
 withCredential :: TW (ResourceT (LoggingT IO)) b -> LoggingT IO b
 withCredential task = do
-  cred <- withManager $ \mgr -> authorize tokens getPIN mgr
-  let env = setCredential tokens cred def
-  runTW env task
+    cred <- withManager $ \mgr -> authorize tokens getPIN mgr
+    let env = setCredential tokens cred def
+    runTW env task
   where
     getPIN url = liftIO $ do
-      putStrLn $ "browse URL: " ++ url
-      putStr "> what was the PIN twitter provided you with? "
-      hFlush stdout
-      getLine
+        putStrLn $ "browse URL: " ++ url
+        putStr "> what was the PIN twitter provided you with? "
+        hFlush stdout
+        getLine
 
 main :: IO ()
 main = runStderrLoggingT . withCredential $ do
-  liftIO . putStrLn $ "# your home timeline (up to 100 tweets):"
-  homeTimeline []
-    C.$= CL.isolate 100
-    C.$$ CL.mapM_ $ \status -> liftIO $ do
-      let sn = userScreenName . statusUser $ status
-          tweet = statusText status
-      T.putStrLn $ T.concat [ sn, ": ", tweet]
+    liftIO . putStrLn $ "# your home timeline (up to 100 tweets):"
+    homeTimeline []
+        C.$= CL.isolate 100
+        C.$$ CL.mapM_ $ \status -> liftIO $ do
+            let sn = userScreenName . statusUser $ status
+                tweet = statusText status
+            T.putStrLn $ T.concat [ sn, ": ", tweet]

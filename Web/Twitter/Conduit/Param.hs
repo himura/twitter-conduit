@@ -55,8 +55,8 @@ mkUserListParam (ScreenNameListParam sns) = [("screen_name", B8.intercalate "," 
 mkListParam :: ListParam -> HT.SimpleQuery
 mkListParam (ListIdParam lid) =  [("list_id", showBS lid)]
 mkListParam (ListNameParam listname) =
-  [("slug", B8.pack lstName),
-   ("owner_screen_name", B8.pack screenName)]
+    [("slug", B8.pack lstName),
+     ("owner_screen_name", B8.pack screenName)]
   where
     (screenName, ln) = span (/= '/') listname
     lstName = drop 1 ln

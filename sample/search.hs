@@ -12,10 +12,10 @@ import Common
 
 main :: IO ()
 main = withCF $ do
-  [keyword] <- liftIO getArgs
+    [keyword] <- liftIO getArgs
 
-  res <- searchSource keyword []
-  let metadata = searchResultSearchMetadata res
-  liftIO . putStrLn $ "search completed in: " ++ (show . searchMetadataCompletedIn $ metadata)
-  liftIO . putStrLn $ "search result max id: " ++ (show . searchMetadataMaxId $ metadata)
-  searchResultStatuses res $$ CL.mapM_ (liftIO . print)
+    res <- searchSource keyword []
+    let metadata = searchResultSearchMetadata res
+    liftIO . putStrLn $ "search completed in: " ++ (show . searchMetadataCompletedIn $ metadata)
+    liftIO . putStrLn $ "search result max id: " ++ (show . searchMetadataMaxId $ metadata)
+    searchResultStatuses res $$ CL.mapM_ (liftIO . print)

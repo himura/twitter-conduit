@@ -14,7 +14,7 @@ import Common
 
 main :: IO ()
 main = withCF $ do
-  status <- T.concat . map T.pack <$> liftIO getArgs
-  liftIO $ T.putStrLn $ "Post message: " <> status
-  res <- statusesUpdate status []
-  liftIO $ print res
+    status <- T.concat . map T.pack <$> liftIO getArgs
+    liftIO $ T.putStrLn $ "Post message: " <> status
+    res <- statusesUpdate status []
+    liftIO $ print res

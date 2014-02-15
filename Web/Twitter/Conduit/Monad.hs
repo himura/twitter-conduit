@@ -29,35 +29,34 @@ import Control.Monad.Trans.Resource
 
 type TW m = ReaderT TWEnv m
 
-data TWToken
-    = TWToken
-      { twOAuth :: OAuth
-      , twCredential :: Credential
-      }
+data TWToken = TWToken
+    { twOAuth :: OAuth
+    , twCredential :: Credential
+    }
 instance Default TWToken where
-  def = TWToken twitterOAuth (Credential [])
+    def = TWToken twitterOAuth (Credential [])
 
 data TWInfo = TWInfo
     { twToken :: TWToken
     , twProxy :: Maybe Proxy
     }
 instance Default TWInfo where
-  def = TWInfo
+    def = TWInfo
         { twToken = def
         , twProxy = Nothing
         }
 
 twitterOAuth :: OAuth
 twitterOAuth =
-  def { oauthServerName = "twitter"
-      , oauthRequestUri = "https://api.twitter.com/oauth/request_token"
-      , oauthAccessTokenUri = "https://api.twitter.com/oauth/access_token"
-      , oauthAuthorizeUri = "https://api.twitter.com/oauth/authorize"
-      , oauthConsumerKey = error "You MUST specify oauthConsumerKey parameter."
-      , oauthConsumerSecret = error "You MUST specify oauthConsumerSecret parameter."
-      , oauthSignatureMethod = HMACSHA1
-      , oauthCallback = Nothing
-      }
+    def { oauthServerName = "twitter"
+        , oauthRequestUri = "https://api.twitter.com/oauth/request_token"
+        , oauthAccessTokenUri = "https://api.twitter.com/oauth/access_token"
+        , oauthAuthorizeUri = "https://api.twitter.com/oauth/authorize"
+        , oauthConsumerKey = error "You MUST specify oauthConsumerKey parameter."
+        , oauthConsumerSecret = error "You MUST specify oauthConsumerSecret parameter."
+        , oauthSignatureMethod = HMACSHA1
+        , oauthCallback = Nothing
+        }
 
 data TWEnv = TWEnv
     { twInfo :: TWInfo
@@ -106,5 +105,5 @@ signOAuthTW :: MonadUnsafeIO m
             => Request
             -> TW m Request
 signOAuthTW req = do
-  TWToken oa cred <- asks (twToken . twInfo)
-  signOAuth oa cred req
+    TWToken oa cred <- asks (twToken . twInfo)
+    signOAuth oa cred req
