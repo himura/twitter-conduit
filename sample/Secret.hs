@@ -11,4 +11,5 @@ tokens :: OAuth
 tokens = twitterOAuth
   { oauthConsumerKey = error "You MUST specify oauthConsumerKey parameter."
   , oauthConsumerSecret = error "You MUST specify oauthConsumerSecret parameter."
+  , oauthCallback = Just "oob"
   }
