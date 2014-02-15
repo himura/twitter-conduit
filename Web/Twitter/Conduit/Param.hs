@@ -2,8 +2,10 @@
 
 module Web.Twitter.Conduit.Param
        ( UserParam(..)
+       , UserListParam(..)
        , ListParam(..)
        , mkUserParam
+       , mkUserListParam
        , mkListParam
        ) where
 
@@ -18,6 +20,7 @@ import qualified Data.ByteString.Char8 as B8
 
 data UserParam = UserIdParam UserId | ScreenNameParam String
                deriving (Show, Eq)
+data UserListParam = UserIdListParam [UserId] | ScreenNameListParam [String]
 data ListParam = ListIdParam Integer | ListNameParam String
                deriving (Show, Eq)
 
@@ -30,6 +33,18 @@ data ListParam = ListIdParam Integer | ListNameParam String
 mkUserParam :: UserParam -> HT.SimpleQuery
 mkUserParam (UserIdParam uid) =  [("user_id", showBS uid)]
 mkUserParam (ScreenNameParam sn) = [("screen_name", B8.pack sn)]
+
+-- | converts 'UserListParam' to 'HT.SimpleQuery'.
+--
+-- >>> mkUserParam $ UserIdListParam [123456]
+-- [("user_id","123456")]
+-- >>> mkUserParam $ UserIdListParam [123456, 654321]
+-- [("user_id","123456"),("user_id","654321")]
+-- >>> mkUserParam $ ScreenNameListParam ["thimura", "NikaidouShinku"]
+-- [("screen_name","thimura"),("screen_name","NikaidouShinku")]
+mkUserListParam :: UserListParam -> HT.SimpleQuery
+mkUserListParam (UserIdListParam uids) =  [("user_id", B8.intercalate "," . map showBS $ uids)]
+mkUserListParam (ScreenNameListParam sns) = [("screen_name", B8.intercalate "," . map B8.pack $ sns)]
 
 -- | converts 'ListParam' to 'HT.SimpleQuery'.
 --
