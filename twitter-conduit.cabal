@@ -29,6 +29,7 @@ library
     , transformers-base
     , lifted-base >= 0.1
     , monad-control >= 0.3
+    , lens
     , authenticate-oauth >= 1.3
     , resourcet >= 0.4.3
     , conduit >= 1.0
@@ -56,6 +57,7 @@ library
     Web.Twitter.Conduit.Param
     Web.Twitter.Conduit.Stream
     Web.Twitter.Conduit.Status
+    Web.Twitter.Conduit.Request
 
   other-modules:
     Web.Twitter.Conduit.Utils
