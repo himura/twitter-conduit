@@ -37,10 +37,10 @@ userstream = userstream'
 
 userstream' :: (TwitterBaseM m, FromJSON v) => TW m (C.ResumableSource (TW m) v)
 userstream' = do
-    rsrc <- api "GET" "https://userstream.twitter.com/2/user.json" []
+    rsrc <- api "GET" "https://userstream.twitter.com/1.1/user.json" []
     rsrc $=+ conduitFromJSON
 
 statusesFilter :: TwitterBaseM m => HT.SimpleQuery -> TW m (C.ResumableSource (TW m) StreamingAPI)
 statusesFilter query = do
-    rsrc <- api "GET" "https://stream.twitter.com/1/statuses/filter.json" query
+    rsrc <- api "GET" "https://stream.twitter.com/1.1/statuses/filter.json" query
     rsrc $=+ conduitFromJSON
