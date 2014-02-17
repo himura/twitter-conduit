@@ -20,7 +20,7 @@ import Control.Applicative
 -- $setup
 -- >>> :set -XOverloadedStrings -XRank2Types -XEmptyDataDecls -XFlexibleInstances
 
-data Request a = Request
+data Request apiName responseType = Request
     { _method :: String
     , _url :: String
     , _params :: HT.SimpleQuery
@@ -28,7 +28,7 @@ data Request a = Request
 
 class Parameters a where
     params :: Lens' a HT.SimpleQuery
-instance Parameters (Request a) where
+instance Parameters (Request apiName responseType) where
     params f (Request m u pa) = Request m u <$> f pa
 
 isoReadShowBS :: (Show a, Read a) => Iso' (Maybe a) S.ByteString
@@ -61,9 +61,10 @@ class Parameters a => HasMaxIdParam a where
 
 -- * Example
 data SampleApi
-instance HasCountParam (Request SampleApi)
-instance HasSinceIdParam (Request SampleApi)
-instance HasMaxIdParam (Request SampleApi)
+type SampleId = Integer
+instance HasCountParam (Request SampleApi [SampleId])
+instance HasSinceIdParam (Request SampleApi [SampleId])
+instance HasMaxIdParam (Request SampleApi [SampleId])
 
 -- | make 'Request' for Sample API.
 --
@@ -73,5 +74,5 @@ instance HasMaxIdParam (Request SampleApi)
 -- [("max_id","1234567890"),("count","100")]
 -- >>> (sampleApiRequest & count ?~ 100 & maxId ?~ 1234567890 & count .~ Nothing) ^. params
 -- [("max_id","1234567890")]
-sampleApiRequest :: Request SampleApi
+sampleApiRequest :: Request SampleApi [SampleId]
 sampleApiRequest = Request "GET" "sample/api.json" def
