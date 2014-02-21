@@ -5,7 +5,7 @@
 {-# LANGUAGE ConstraintKinds #-}
 #endif
 
-module Web.Twitter.Conduit.Api
+module Web.Twitter.Conduit.Legacy.Api
        (
        -- * Search
          search

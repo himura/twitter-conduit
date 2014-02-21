@@ -5,7 +5,7 @@
 {-# LANGUAGE ConstraintKinds #-}
 #endif
 
-module Web.Twitter.Conduit.Status
+module Web.Twitter.Conduit.Legacy.Status
        ( statuses
        -- * Timelines
        , mentionsTimeline
