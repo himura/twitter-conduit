@@ -20,6 +20,7 @@ module Web.Twitter.Conduit.Base
        , call
        , apiCursor
        , apiCursor'
+       , sourceWithMaxId
        , apiWithPages
        , apiWithPages'
        , TwitterBaseM
@@ -38,6 +39,7 @@ import qualified Data.Conduit.List as CL
 
 import qualified Data.Aeson as A
 import qualified Data.Aeson.Types as A
+import Data.Aeson.Lens
 import qualified Data.Text as T
 import Data.ByteString (ByteString)
 import Data.Monoid
@@ -46,6 +48,7 @@ import Control.Monad.IO.Class
 import Control.Monad.Trans.Class (lift)
 import Text.Shakespeare.Text
 import Control.Monad.Logger
+import Control.Lens
 
 #if __GLASGOW_HASKELL__ >= 704
 type TwitterBaseM m = ( C.MonadResource m
@@ -161,6 +164,24 @@ apiCursor' url query cursorKey = loop (-1 :: Int)
 
     p (A.Object v) = (,) <$> v A..: cursorKey <*> v A..: "next_cursor"
     p _ = mempty
+
+sourceWithMaxId :: ( TwitterBaseM m
+                   , A.FromJSON responseType
+                   , HasMaxIdParam (APIRequest apiName [responseType])
+                   )
+                => APIRequest apiName [responseType]
+                -> C.Source (TW m) responseType
+sourceWithMaxId = loop
+  where
+    loop req = do
+        res <- lift $ call req
+        case (getMinId res, res ^. parsed) of
+            (Just mid, Just list) -> do
+                CL.sourceList list
+                loop $ req & maxId ?~ mid - 1
+            (_, Just list) -> CL.sourceList list
+            (_, _) -> CL.sourceList []
+    getMinId = minimumOf (_Array . traverse . key "id" . _Integer)
 
 apiWithPages :: (TwitterBaseM m, A.FromJSON a)
              => String -- ^ API Resource URL
