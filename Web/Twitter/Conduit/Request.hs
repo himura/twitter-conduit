@@ -37,33 +37,31 @@ instance Parameters (APIRequest apiName responseType) where
     params f (APIRequestGet u pa) = APIRequestGet u <$> f pa
     params f (APIRequestPost u pa) = APIRequestPost u <$> f pa
 
-isoReadShowBS :: (Show a, Read a) => Iso' (Maybe a) S.ByteString
-isoReadShowBS = iso (S8.pack . showMaybe) (readMaybe . S8.unpack)
+readShow :: (Read a, Show a) => Prism' S.ByteString a
+readShow = prism' (S8.pack . show) (readMaybe . S8.unpack)
   where
-    showMaybe (Just a) = show a
-    showMaybe Nothing = ""
     readMaybe str = case [x | (x, t) <- reads str, ("", "") <- lex t] of
         [x] -> Just x
         _ -> Nothing
 
-wrappedParam :: Parameters p => S.ByteString -> Iso' (Maybe a) S.ByteString -> Lens' p (Maybe a)
+wrappedParam :: Parameters p => S.ByteString -> Prism' S.ByteString a -> Lens' p (Maybe a)
 wrappedParam key aSBS = lens getter setter
    where
-     getter = (view (from aSBS) =<<) . lookup key . view params
+     getter = ((^? aSBS) =<<) . lookup key . view params
      setter = flip (over params . replace key)
-     replace k (Just v) = ((k, view aSBS $ Just v):) . dropAssoc k
+     replace k (Just v) = ((k, aSBS # v):) . dropAssoc k
      replace k Nothing = dropAssoc k
      dropAssoc k = filter ((/= k) . fst)
 
 class Parameters a => HasCountParam a where
     count :: Lens' a (Maybe Integer)
-    count = wrappedParam "count" isoReadShowBS
+    count = wrappedParam "count" readShow
 class Parameters a => HasSinceIdParam a where
     sinceId :: Lens' a (Maybe Integer)
-    sinceId = wrappedParam "since_id" isoReadShowBS
+    sinceId = wrappedParam "since_id" readShow
 class Parameters a => HasMaxIdParam a where
     maxId :: Lens' a (Maybe Integer)
-    maxId = wrappedParam "max_id" isoReadShowBS
+    maxId = wrappedParam "max_id" readShow
 
 -- * Example
 data SampleApi
