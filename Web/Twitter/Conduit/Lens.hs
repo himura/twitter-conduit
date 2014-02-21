@@ -2,6 +2,7 @@ module Web.Twitter.Conduit.Lens
        ( module Export
        ) where
 
+import Web.Twitter.Conduit.Base as Export
 import Web.Twitter.Conduit.Api as Export
 import Web.Twitter.Conduit.Status as Export
 import Web.Twitter.Conduit.Monad as Export
