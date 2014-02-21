@@ -3,7 +3,8 @@
 
 module Main where
 
-import Web.Twitter.Conduit
+import Web.Twitter.Conduit.Lens
+import Control.Lens
 import Web.Authenticate.OAuth (OAuth(..), Credential(..))
 import qualified Web.Authenticate.OAuth as OA
 import Network.HTTP.Conduit
@@ -16,7 +17,7 @@ import Data.Default
 import Control.Monad.Logger
 import Control.Monad.Trans.Control
 import Control.Monad.Trans.Resource
-import Control.Monad.IO.Class (liftIO)
+import Control.Monad.IO.Class
 import System.IO (hFlush, stdout)
 
 tokens :: OAuth
@@ -36,9 +37,9 @@ authorize oauth getPIN mgr = do
     pin <- getPIN url
     OA.getAccessToken oauth (OA.insert "oauth_verifier" (B8.pack pin) cred) mgr
 
-withCredential :: TW (ResourceT (LoggingT IO)) b -> LoggingT IO b
+withCredential :: (MonadLogger m, MonadBaseControl IO m, MonadIO m) => TW (ResourceT m) a -> m a
 withCredential task = do
-    cred <- withManager $ \mgr -> authorize tokens getPIN mgr
+    cred <- liftIO $ withManager $ \mgr -> authorize tokens getPIN mgr
     let env = setCredential tokens cred def
     runTW env task
   where
@@ -49,11 +50,11 @@ withCredential task = do
         getLine
 
 main :: IO ()
-main = runStderrLoggingT . withCredential $ do
+main = runNoLoggingT . withCredential $ do
     liftIO . putStrLn $ "# your home timeline (up to 100 tweets):"
     homeTimeline []
         C.$= CL.isolate 100
         C.$$ CL.mapM_ $ \status -> liftIO $ do
-            let sn = userScreenName . statusUser $ status
-                tweet = statusText status
+            let sn = status ^. statusUser . userScreenName
+                tweet = status ^. statusText
             T.putStrLn $ T.concat [ sn, ": ", tweet]
