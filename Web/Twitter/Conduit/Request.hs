@@ -11,6 +11,9 @@ module Web.Twitter.Conduit.Request
        , sampleApiRequest
        , parse
        , parsed
+       , HasSinceIdParam(..)
+       , HasCountParam(..)
+       , HasMaxIdParam(..)
        ) where
 
 import qualified Network.HTTP.Types as HT
