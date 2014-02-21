@@ -18,7 +18,7 @@ import qualified Data.ByteString as S
 import qualified Data.ByteString.Char8 as S8
 import Data.Default
 import Data.Aeson
-import Data.Aeson.Lens (AsJSON (..))
+import Data.Aeson.Lens (AsJSON (..), AsPrimitive (..), AsValue (..), AsNumber (..))
 import Control.Lens
 import Control.Applicative
 
@@ -48,6 +48,10 @@ data APIResponse responseType
 
 instance AsJSON (APIResponse a) where
     _JSON = prism' (APIResponse . toJSON) unsafeParse
+instance AsPrimitive (APIResponse a)
+instance AsNumber (APIResponse a)
+instance AsValue (APIResponse a) where
+    _Value = _JSON
 
 unsafeParse :: FromJSON a => APIResponse ignored -> Maybe a
 unsafeParse (APIResponse v)  =
