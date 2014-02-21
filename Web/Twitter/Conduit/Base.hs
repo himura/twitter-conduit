@@ -28,6 +28,7 @@ module Web.Twitter.Conduit.Base
 
 import Web.Twitter.Conduit.Monad
 import Web.Twitter.Conduit.Utils
+import Web.Twitter.Conduit.Request
 
 import Network.HTTP.Conduit
 import qualified Network.HTTP.Types as HT
@@ -118,6 +119,12 @@ apiPost' :: (TwitterBaseM m, A.FromJSON a)
 apiPost' url query = do
     src <- api "POST" url query
     src C.$$+- sinkFromJSON
+
+call :: (TwitterBaseM m, A.FromJSON responseType)
+     => APIRequest apiName responseType
+     -> TW m responseType
+call (APIRequestGet u pa) = apiGet' u pa
+call (APIRequestPost u pa) = apiPost' u pa
 
 apiCursor :: (TwitterBaseM m, A.FromJSON a)
           => String -- ^ API Resource URL

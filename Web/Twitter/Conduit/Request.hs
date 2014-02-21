@@ -4,7 +4,7 @@
 {-# LANGUAGE FlexibleInstances #-}
 
 module Web.Twitter.Conduit.Request
-       ( Request(..)
+       ( APIRequest(..)
        , Parameters(..)
        , wrappedParam
        , sampleApiRequest
@@ -20,16 +20,22 @@ import Control.Applicative
 -- $setup
 -- >>> :set -XOverloadedStrings -XRank2Types -XEmptyDataDecls -XFlexibleInstances
 
-data Request apiName responseType = Request
-    { _method :: String
-    , _url :: String
-    , _params :: HT.SimpleQuery
-    } deriving (Show, Eq)
+data APIRequest apiName responseType
+    = APIRequestGet
+      { _url :: String
+      , _params :: HT.SimpleQuery
+      }
+    | APIRequestPost
+      { _url :: String
+      , _params :: HT.SimpleQuery
+      }
+    deriving (Show, Eq)
 
 class Parameters a where
     params :: Lens' a HT.SimpleQuery
-instance Parameters (Request apiName responseType) where
-    params f (Request m u pa) = Request m u <$> f pa
+instance Parameters (APIRequest apiName responseType) where
+    params f (APIRequestGet u pa) = APIRequestGet u <$> f pa
+    params f (APIRequestPost u pa) = APIRequestPost u <$> f pa
 
 isoReadShowBS :: (Show a, Read a) => Iso' (Maybe a) S.ByteString
 isoReadShowBS = iso (S8.pack . showMaybe) (readMaybe . S8.unpack)
@@ -62,11 +68,11 @@ class Parameters a => HasMaxIdParam a where
 -- * Example
 data SampleApi
 type SampleId = Integer
-instance HasCountParam (Request SampleApi [SampleId])
-instance HasSinceIdParam (Request SampleApi [SampleId])
-instance HasMaxIdParam (Request SampleApi [SampleId])
+instance HasCountParam (APIRequest SampleApi [SampleId])
+instance HasSinceIdParam (APIRequest SampleApi [SampleId])
+instance HasMaxIdParam (APIRequest SampleApi [SampleId])
 
--- | make 'Request' for Sample API.
+-- | make 'APIRequest' for Sample API.
 --
 -- >>> sampleApiRequest ^. params
 -- []
@@ -74,5 +80,5 @@ instance HasMaxIdParam (Request SampleApi [SampleId])
 -- [("max_id","1234567890"),("count","100")]
 -- >>> (sampleApiRequest & count ?~ 100 & maxId ?~ 1234567890 & count .~ Nothing) ^. params
 -- [("max_id","1234567890")]
-sampleApiRequest :: Request SampleApi [SampleId]
-sampleApiRequest = Request "GET" "sample/api.json" def
+sampleApiRequest :: APIRequest SampleApi [SampleId]
+sampleApiRequest = APIRequestGet "https://api.twitter.com/sample/api.json" def
