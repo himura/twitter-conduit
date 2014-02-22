@@ -50,7 +50,6 @@ import Control.Monad.IO.Class
 import Control.Monad.Trans.Class (lift)
 import Text.Shakespeare.Text
 import Control.Monad.Logger
-import Control.Arrow (first)
 import Control.Lens
 
 #if __GLASGOW_HASKELL__ >= 704
@@ -143,7 +142,7 @@ call' (APIRequestPostMultipart u param prt) = do
     src C.$$+- sinkFromJSON
   where
     body = prt ++ partParam
-    partParam = map (uncurry partBS . first T.decodeUtf8) param
+    partParam = map (uncurry partBS . over _1 T.decodeUtf8) param
 
 apiCursor :: (TwitterBaseM m, A.FromJSON a)
           => String -- ^ API Resource URL
