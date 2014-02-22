@@ -33,6 +33,7 @@ import Web.Twitter.Conduit.Utils
 import Web.Twitter.Conduit.Request
 
 import Network.HTTP.Conduit
+import Network.HTTP.Client.MultipartFormData
 import qualified Network.HTTP.Types as HT
 import qualified Data.Conduit as C
 import qualified Data.Conduit.List as CL
@@ -41,6 +42,7 @@ import qualified Data.Aeson as A
 import qualified Data.Aeson.Types as A
 import Data.Aeson.Lens
 import qualified Data.Text as T
+import qualified Data.Text.Encoding as T
 import Data.ByteString (ByteString)
 import Data.Monoid
 import Control.Applicative
@@ -48,6 +50,7 @@ import Control.Monad.IO.Class
 import Control.Monad.Trans.Class (lift)
 import Text.Shakespeare.Text
 import Control.Monad.Logger
+import Control.Arrow (first)
 import Control.Lens
 
 #if __GLASGOW_HASKELL__ >= 704
@@ -134,6 +137,13 @@ call' :: (TwitterBaseM m, A.FromJSON responseType)
       -> TW m A.Value
 call' (APIRequestGet u pa) = apiGet' u pa
 call' (APIRequestPost u pa) = apiPost' u pa
+call' (APIRequestPostMultipart u param prt) = do
+    req <- formDataBody body =<< makeRequest "POST" u []
+    src <- apiRequest req
+    src C.$$+- sinkFromJSON
+  where
+    body = prt ++ partParam
+    partParam = map (uncurry partBS . first T.decodeUtf8) param
 
 apiCursor :: (TwitterBaseM m, A.FromJSON a)
           => String -- ^ API Resource URL

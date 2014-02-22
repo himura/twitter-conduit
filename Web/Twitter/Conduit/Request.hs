@@ -16,6 +16,7 @@ module Web.Twitter.Conduit.Request
        , HasMaxIdParam(..)
        ) where
 
+import Network.HTTP.Client.MultipartFormData
 import qualified Network.HTTP.Types as HT
 import qualified Data.ByteString as S
 import qualified Data.ByteString.Char8 as S8
@@ -37,13 +38,19 @@ data APIRequest apiName responseType
       { _url :: String
       , _params :: HT.SimpleQuery
       }
-    deriving (Show, Eq)
+    | APIRequestPostMultipart
+      { _url :: String
+      , _params :: HT.SimpleQuery
+      , _part :: [Part]
+      }
 
 class Parameters a where
     params :: Lens' a HT.SimpleQuery
 instance Parameters (APIRequest apiName responseType) where
     params f (APIRequestGet u pa) = APIRequestGet u <$> f pa
     params f (APIRequestPost u pa) = APIRequestPost u <$> f pa
+    params f (APIRequestPostMultipart u pa prt) =
+        (\p -> APIRequestPostMultipart u p prt) <$> f pa
 
 data APIResponse responseType
     = APIResponse Value
