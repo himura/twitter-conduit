@@ -59,6 +59,7 @@ library
     Web.Twitter.Conduit.Stream
     Web.Twitter.Conduit.Status
     Web.Twitter.Conduit.Request
+    Web.Twitter.Conduit.Response
 
   other-modules:
     Web.Twitter.Conduit.Utils

@@ -1,16 +1,11 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE Rank2Types #-}
-{-# LANGUAGE EmptyDataDecls #-}
 {-# LANGUAGE FlexibleInstances #-}
 
 module Web.Twitter.Conduit.Request
        ( APIRequest(..)
        , Parameters(..)
-       , APIResponse(..)
        , wrappedParam
-       , sampleApiRequest
-       , parse
-       , parsed
        , HasSinceIdParam(..)
        , HasCountParam(..)
        , HasMaxIdParam(..)
@@ -21,15 +16,27 @@ import Network.HTTP.Client.MultipartFormData
 import qualified Network.HTTP.Types as HT
 import qualified Data.ByteString as S
 import qualified Data.ByteString.Char8 as S8
-import Data.Default
-import Data.Aeson
-import Data.Aeson.Lens (AsJSON (..), AsPrimitive (..), AsValue (..), AsNumber (..))
 import Control.Lens
 import Control.Applicative
 
 -- $setup
 -- >>> :set -XOverloadedStrings -XRank2Types -XEmptyDataDecls -XFlexibleInstances
+-- >>> import Data.Default
+-- >>> data SampleApi
+-- >>> type SampleId = Integer
+-- >>> instance HasCountParam (APIRequest SampleApi [SampleId])
+-- >>> instance HasSinceIdParam (APIRequest SampleApi [SampleId])
+-- >>> instance HasMaxIdParam (APIRequest SampleApi [SampleId])
+-- >>> let sampleApiRequest :: APIRequest SampleApi [SampleId]; sampleApiRequest = APIRequestGet "https://api.twitter.com/sample/api.json" def
 
+-- | make 'APIRequest' for Sample API.
+--
+-- >>> sampleApiRequest ^. params
+-- []
+-- >>> (sampleApiRequest & count ?~ 100 & maxId ?~ 1234567890) ^. params
+-- [("max_id","1234567890"),("count","100")]
+-- >>> (sampleApiRequest & count ?~ 100 & maxId ?~ 1234567890 & count .~ Nothing) ^. params
+-- [("max_id","1234567890")]
 data APIRequest apiName responseType
     = APIRequestGet
       { _url :: String
@@ -52,29 +59,6 @@ instance Parameters (APIRequest apiName responseType) where
     params f (APIRequestPost u pa) = APIRequestPost u <$> f pa
     params f (APIRequestPostMultipart u pa prt) =
         (\p -> APIRequestPostMultipart u p prt) <$> f pa
-
-data APIResponse responseType
-    = APIResponse Value
-    deriving Show
-
-instance AsJSON (APIResponse a) where
-    _JSON = prism' (APIResponse . toJSON) unsafeParse
-instance AsPrimitive (APIResponse a)
-instance AsNumber (APIResponse a)
-instance AsValue (APIResponse a) where
-    _Value = _JSON
-
-unsafeParse :: FromJSON a => APIResponse ignored -> Maybe a
-unsafeParse (APIResponse v)  =
-    case fromJSON v of
-        Success y -> Just y
-        _ -> Nothing
-
-parse :: FromJSON a => APIResponse a -> Maybe a
-parse = unsafeParse
-
-parsed :: FromJSON a => IndexPreservingGetter (APIResponse a) (Maybe a)
-parsed = to parse
 
 -- | This 'Prism' convert from a 'ByteString' to some value based on 'Read' and 'Show'
 --
@@ -110,21 +94,3 @@ class Parameters a => HasMaxIdParam a where
 class Parameters a => HasCursorParam a where
     cursor :: Lens' a (Maybe Integer)
     cursor = wrappedParam "cursor" readShow
-
--- * Example
-data SampleApi
-type SampleId = Integer
-instance HasCountParam (APIRequest SampleApi [SampleId])
-instance HasSinceIdParam (APIRequest SampleApi [SampleId])
-instance HasMaxIdParam (APIRequest SampleApi [SampleId])
-
--- | make 'APIRequest' for Sample API.
---
--- >>> sampleApiRequest ^. params
--- []
--- >>> (sampleApiRequest & count ?~ 100 & maxId ?~ 1234567890) ^. params
--- [("max_id","1234567890"),("count","100")]
--- >>> (sampleApiRequest & count ?~ 100 & maxId ?~ 1234567890 & count .~ Nothing) ^. params
--- [("max_id","1234567890")]
-sampleApiRequest :: APIRequest SampleApi [SampleId]
-sampleApiRequest = APIRequestGet "https://api.twitter.com/sample/api.json" def

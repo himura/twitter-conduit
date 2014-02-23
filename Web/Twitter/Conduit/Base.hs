@@ -28,6 +28,7 @@ module Web.Twitter.Conduit.Base
 import Web.Twitter.Conduit.Monad
 import Web.Twitter.Conduit.Utils
 import Web.Twitter.Conduit.Request
+import Web.Twitter.Conduit.Response
 import Web.Twitter.Conduit.Cursor
 
 import Network.HTTP.Conduit
