@@ -76,6 +76,12 @@ parse = unsafeParse
 parsed :: FromJSON a => IndexPreservingGetter (APIResponse a) (Maybe a)
 parsed = to parse
 
+-- | This 'Prism' convert from a 'ByteString' to some value based on 'Read' and 'Show'
+--
+-- >>> readShow # 2
+-- "2"
+-- >>> "1024" ^? readShow :: Maybe Integer
+-- Just 1024
 readShow :: (Read a, Show a) => Prism' S.ByteString a
 readShow = prism' (S8.pack . show) (readMaybe . S8.unpack)
   where
