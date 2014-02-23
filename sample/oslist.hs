@@ -14,8 +14,8 @@ main :: IO ()
 main = withCF $ do
     [screenName] <- liftIO getArgs
     let sn = ScreenNameParam screenName
-    folids <- followersIds sn C.$$ CL.consume
-    friids <- friendsIds sn C.$$ CL.consume
+    folids <- sourceWithCursor (followersIds sn) C.$$ CL.consume
+    friids <- sourceWithCursor (friendsIds sn) C.$$ CL.consume
 
     let folmap = M.fromList $ map (flip (,) True) folids
         os = filter (\uid -> M.notMember uid folmap) friids

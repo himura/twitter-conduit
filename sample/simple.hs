@@ -52,9 +52,12 @@ withCredential task = do
 main :: IO ()
 main = runNoLoggingT . withCredential $ do
     liftIO . putStrLn $ "# your home timeline (up to 100 tweets):"
-    homeTimeline []
+    sourceWithMaxId homeTimeline
         C.$= CL.isolate 100
         C.$$ CL.mapM_ $ \status -> liftIO $ do
-            let sn = status ^. statusUser . userScreenName
-                tweet = status ^. statusText
-            T.putStrLn $ T.concat [ sn, ": ", tweet]
+            T.putStrLn $ T.concat [ T.pack . show $ status ^. statusId
+                                  , ": "
+                                  , status ^. statusUser . userScreenName
+                                  , ": "
+                                  , status ^. statusText
+                                  ]
