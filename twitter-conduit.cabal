@@ -52,6 +52,7 @@ library
     Web.Twitter.Conduit
     Web.Twitter.Conduit.Lens
     Web.Twitter.Conduit.Base
+    Web.Twitter.Conduit.Cursor
     Web.Twitter.Conduit.Api
     Web.Twitter.Conduit.Monad
     Web.Twitter.Conduit.Param
