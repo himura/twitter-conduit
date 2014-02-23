@@ -52,7 +52,7 @@ stream (APIRequestGet u pa) = do
 stream (APIRequestPost u pa) = do
     rsrc <- api "POST" u pa
     rsrc $=+ (CL.sequence sinkJSON C.=$= CL.map APIResponse)
-stream (APIRequestPostMultipart _ _ _) =
+stream APIRequestPostMultipart {} =
     error "APIRequestPostMultipart is not supported by stream function."
 
 data Userstream
