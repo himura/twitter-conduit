@@ -14,6 +14,7 @@ module Web.Twitter.Conduit.Request
        , HasSinceIdParam(..)
        , HasCountParam(..)
        , HasMaxIdParam(..)
+       , HasCursorParam(..)
        ) where
 
 import Network.HTTP.Client.MultipartFormData
@@ -100,6 +101,9 @@ class Parameters a => HasSinceIdParam a where
 class Parameters a => HasMaxIdParam a where
     maxId :: Lens' a (Maybe Integer)
     maxId = wrappedParam "max_id" readShow
+class Parameters a => HasCursorParam a where
+    cursor :: Lens' a (Maybe Integer)
+    cursor = wrappedParam "cursor" readShow
 
 -- * Example
 data SampleApi

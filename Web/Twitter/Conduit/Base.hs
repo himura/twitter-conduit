@@ -18,9 +18,8 @@ module Web.Twitter.Conduit.Base
        , apiPost
        , apiPost'
        , call
-       , apiCursor
-       , apiCursor'
        , sourceWithMaxId
+       , sourceWithCursor
        , apiWithPages
        , apiWithPages'
        , TwitterBaseM
@@ -31,6 +30,7 @@ module Web.Twitter.Conduit.Base
 import Web.Twitter.Conduit.Monad
 import Web.Twitter.Conduit.Utils
 import Web.Twitter.Conduit.Request
+import Web.Twitter.Conduit.Cursor
 
 import Network.HTTP.Conduit
 import Network.HTTP.Client.MultipartFormData
@@ -39,13 +39,9 @@ import qualified Data.Conduit as C
 import qualified Data.Conduit.List as CL
 
 import qualified Data.Aeson as A
-import qualified Data.Aeson.Types as A
 import Data.Aeson.Lens
-import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
 import Data.ByteString (ByteString)
-import Data.Monoid
-import Control.Applicative
 import Control.Monad.IO.Class
 import Control.Monad.Trans.Class (lift)
 import Text.Shakespeare.Text
@@ -144,36 +140,6 @@ call' (APIRequestPostMultipart u param prt) = do
     body = prt ++ partParam
     partParam = map (uncurry partBS . over _1 T.decodeUtf8) param
 
-apiCursor :: (TwitterBaseM m, A.FromJSON a)
-          => String -- ^ API Resource URL
-          -> HT.SimpleQuery -- ^ Query
-          -> T.Text
-          -> C.Source (TW m) a
-apiCursor u = apiCursor' fu
-  where fu = endpoint ++ u
-
-apiCursor' :: (TwitterBaseM m, A.FromJSON a)
-           => String -- ^ API Resource URL
-           -> HT.SimpleQuery -- ^ Query
-           -> T.Text
-           -> C.Source (TW m) a
-apiCursor' url query cursorKey = loop (-1 :: Int)
-  where
-    loop 0 = CL.sourceNull
-    loop cursor = do
-        let query' = ("cursor", showBS cursor) `insertQuery` query
-        j <- lift $ do
-            src <- api "GET" url query'
-            src C.$$+- sinkJSON
-        case A.parseMaybe p j of
-            Nothing -> CL.sourceNull
-            Just (res, nextCursor) -> do
-                CL.sourceList res
-                loop nextCursor
-
-    p (A.Object v) = (,) <$> v A..: cursorKey <*> v A..: "next_cursor"
-    p _ = mempty
-
 sourceWithMaxId :: ( TwitterBaseM m
                    , A.FromJSON responseType
                    , HasMaxIdParam (APIRequest apiName [responseType])
@@ -191,6 +157,25 @@ sourceWithMaxId = loop
             (_, Just list) -> CL.sourceList list
             (_, _) -> CL.sourceList []
     getMinId = minimumOf (_Array . traverse . key "id" . _Integer)
+
+sourceWithCursor :: ( TwitterBaseM m
+                    , A.FromJSON responseType
+                    , CursorKey ck
+                    , HasCursorParam (APIRequest apiName (WithCursor ck responseType))
+                    )
+                 => APIRequest apiName (WithCursor ck responseType)
+                 -> C.Source (TW m) responseType
+sourceWithCursor req = loop (-1)
+  where
+    loop 0 = CL.sourceNull
+    loop cur = do
+        res <- lift $ call $ req & cursor ?~ cur
+        case res ^. parsed of
+            Just wrapped -> do
+                CL.sourceList $ contents wrapped
+                loop $ nextCursor wrapped
+            Nothing ->
+                CL.sourceNull
 
 apiWithPages :: (TwitterBaseM m, A.FromJSON a)
              => String -- ^ API Resource URL

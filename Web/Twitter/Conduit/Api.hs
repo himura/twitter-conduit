@@ -101,10 +101,12 @@ instance HasMaxIdParam (APIRequest DirectMessages [DirectMessage])
 data FriendsIds
 friendsIds :: UserParam -> APIRequest FriendsIds (WithCursor IdsCursorKey UserId)
 friendsIds q = APIRequestGet (endpoint ++ "friends/ids.json") (mkUserParam q)
+instance HasCursorParam (APIRequest FriendsIds (WithCursor IdsCursorKey UserId))
 
 data FollowersIds
 followersIds :: UserParam -> APIRequest FollowersIds (WithCursor IdsCursorKey UserId)
 followersIds q = APIRequestGet (endpoint ++ "followers/ids.json") (mkUserParam q)
+instance HasCursorParam (APIRequest FollowersIds (WithCursor IdsCursorKey UserId))
 
 data FriendshipsCreate
 friendshipsCreate :: UserParam -> APIRequest FriendshipsCreate User
