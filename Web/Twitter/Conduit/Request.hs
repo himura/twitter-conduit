@@ -29,10 +29,27 @@ import Control.Applicative
 -- >>> instance HasMaxIdParam (APIRequest SampleApi [SampleId])
 -- >>> let sampleApiRequest :: APIRequest SampleApi [SampleId]; sampleApiRequest = APIRequestGet "https://api.twitter.com/sample/api.json" def
 
--- | make 'APIRequest' for Sample API.
+-- | API request. You should use specific builder functions instead of building this directly.
+--
+-- For example, if there were a @SampleApi@ type and a builder function which named @sampleApiRequest@.
+-- In addition, @'APIRequest' SampleApi [SampleId]@ is a instance of both of 'HasCountParam' and 'HasMaxIdParam'.
+--
+-- @
+-- data 'SampleApi'
+-- type 'SampleId' = 'Integer'
+-- instance 'HasCountParam' ('APIRequest' 'SampleApi' ['SampleId'])
+-- instance 'HasMaxIdParam' ('APIRequest' 'SampleApi' ['SampleId'])
+-- 'sampleApiRequest' :: 'APIRequest' 'SampleApi' ['SampleId']
+-- 'sampleApiRequest' = 'APIRequestGet' \"https:\/\/api.twitter.com\/sample\/api.json\" 'def'
+-- @
+--
+-- We can obtain request params from @'APIRequest' SampleApi [SampleId]@ :
 --
 -- >>> sampleApiRequest ^. params
 -- []
+--
+-- And update request parameters.
+--
 -- >>> (sampleApiRequest & count ?~ 100 & maxId ?~ 1234567890) ^. params
 -- [("max_id","1234567890"),("count","100")]
 -- >>> (sampleApiRequest & count ?~ 100 & maxId ?~ 1234567890 & count .~ Nothing) ^. params
