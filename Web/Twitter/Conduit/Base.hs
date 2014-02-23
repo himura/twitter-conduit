@@ -20,8 +20,6 @@ module Web.Twitter.Conduit.Base
        , call
        , sourceWithMaxId
        , sourceWithCursor
-       , apiWithPages
-       , apiWithPages'
        , TwitterBaseM
        , endpoint
        , makeRequest
@@ -177,24 +175,3 @@ sourceWithCursor req = loop (-1)
             Nothing ->
                 CL.sourceNull
 
-apiWithPages :: (TwitterBaseM m, A.FromJSON a)
-             => String -- ^ API Resource URL
-             -> HT.SimpleQuery -- ^ Query
-             -> C.Source (TW m) a
-apiWithPages u = apiWithPages' fu
-  where fu = endpoint ++ u
-
-apiWithPages' :: (TwitterBaseM m, A.FromJSON a)
-              => String -- ^ API Resource URL
-              -> HT.SimpleQuery -- ^ Query
-              -> C.Source (TW m) a
-apiWithPages' url query = loop (1 :: Int)
-  where
-    loop page = do
-        let query' = ("page", showBS page) `insertQuery` query
-        rs <- lift $ do
-            src <- api "GET" url query'
-            src C.$$+- sinkFromJSON
-        if null rs
-            then CL.sourceNull
-            else CL.sourceList rs >> loop (page+1)
