@@ -132,6 +132,6 @@ data FavoritesDestroy
 favoritesDestroy :: StatusId -> APIRequest FavoritesDestroy Status
 favoritesDestroy sid = APIRequestPost (endpoint ++ "favorites/destroy.json") [("id", showBS sid)]
 
-data ListMembers
-listsMembers :: ListParam -> APIRequest ListMembers (WithCursor UsersCursorKey User)
+data ListsMembers
+listsMembers :: ListParam -> APIRequest ListsMembers (WithCursor UsersCursorKey User)
 listsMembers q = APIRequestGet (endpoint ++ "lists/members.json") (mkListParam q)
