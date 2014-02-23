@@ -21,8 +21,6 @@ import qualified Data.Conduit as C
 import qualified Data.Conduit.List as CL
 import qualified Data.Conduit.Attoparsec as CA
 import Data.Data
-import qualified Network.HTTP.Types as HT
-import qualified Data.Map as M
 import Text.Shakespeare.Text
 import Control.Monad.Logger
 
