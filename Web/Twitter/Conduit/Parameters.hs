@@ -4,7 +4,6 @@
 module Web.Twitter.Conduit.Parameters
        ( Parameters(..)
        , wrappedParam
-       , readShow
        , HasSinceIdParam(..)
        , HasCountParam(..)
        , HasMaxIdParam(..)
