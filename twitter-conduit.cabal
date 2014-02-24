@@ -27,6 +27,7 @@ library
       base >= 4
     , transformers >= 0.2.2
     , transformers-base
+    , template-haskell
     , lifted-base >= 0.1
     , monad-control >= 0.3
     , lens >= 4.0
@@ -60,6 +61,7 @@ library
     Web.Twitter.Conduit.Status
     Web.Twitter.Conduit.Request
     Web.Twitter.Conduit.Parameters
+    Web.Twitter.Conduit.ParametersTH
     Web.Twitter.Conduit.Response
 
   other-modules:

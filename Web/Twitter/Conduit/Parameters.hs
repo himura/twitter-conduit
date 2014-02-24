@@ -1,5 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE Rank2Types #-}
+{-# LANGUAGE QuasiQuotes #-}
+{-# LANGUAGE TemplateHaskell #-}
 
 module Web.Twitter.Conduit.Parameters
        ( Parameters(..)
@@ -10,13 +12,10 @@ module Web.Twitter.Conduit.Parameters
        , HasCursorParam(..)
        ) where
 
-import qualified Network.HTTP.Types as HT
+import Web.Twitter.Conduit.ParametersTH
 import qualified Data.ByteString as S
 import qualified Data.ByteString.Char8 as S8
 import Control.Lens
-
-class Parameters a where
-    params :: Lens' a HT.SimpleQuery
 
 -- | This 'Prism' convert from a 'ByteString' to some value based on 'Read' and 'Show'
 --
@@ -31,24 +30,7 @@ readShow = prism' (S8.pack . show) (readMaybe . S8.unpack)
         [x] -> Just x
         _ -> Nothing
 
-wrappedParam :: Parameters p => S.ByteString -> Prism' S.ByteString a -> Lens' p (Maybe a)
-wrappedParam key aSBS = lens getter setter
-   where
-     getter = ((^? aSBS) =<<) . lookup key . view params
-     setter = flip (over params . replace key)
-     replace k (Just v) = ((k, aSBS # v):) . dropAssoc k
-     replace k Nothing = dropAssoc k
-     dropAssoc k = filter ((/= k) . fst)
-
-class Parameters a => HasCountParam a where
-    count :: Lens' a (Maybe Integer)
-    count = wrappedParam "count" readShow
-class Parameters a => HasSinceIdParam a where
-    sinceId :: Lens' a (Maybe Integer)
-    sinceId = wrappedParam "since_id" readShow
-class Parameters a => HasMaxIdParam a where
-    maxId :: Lens' a (Maybe Integer)
-    maxId = wrappedParam "max_id" readShow
-class Parameters a => HasCursorParam a where
-    cursor :: Lens' a (Maybe Integer)
-    cursor = wrappedParam "cursor" readShow
+defineHasParamClass "count" ''Integer 'readShow
+defineHasParamClass "since_id" ''Integer 'readShow
+defineHasParamClass "max_id" ''Integer 'readShow
+defineHasParamClass "cursor" ''Integer 'readShow

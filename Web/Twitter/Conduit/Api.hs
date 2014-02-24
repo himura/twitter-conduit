@@ -1,6 +1,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE EmptyDataDecls #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE CPP #-}
 #if __GLASGOW_HASKELL__ >= 704
 {-# LANGUAGE ConstraintKinds #-}
@@ -80,6 +82,7 @@ module Web.Twitter.Conduit.Api
 import Web.Twitter.Types
 import Web.Twitter.Conduit.Param
 import Web.Twitter.Conduit.Utils
+import Web.Twitter.Conduit.ParametersTH
 import Web.Twitter.Conduit.Base
 import Web.Twitter.Conduit.Request
 import Web.Twitter.Conduit.Cursor
@@ -96,17 +99,23 @@ search q = APIRequestGet (endpoint ++ "search/tweets.json") [("q", T.encodeUtf8 
 data DirectMessages
 directMessages :: APIRequest DirectMessages [DirectMessage]
 directMessages = APIRequestGet (endpoint ++ "direct_messages.json") def
-instance HasMaxIdParam (APIRequest DirectMessages [DirectMessage])
+deriveHasParamInstances [t|APIRequest DirectMessages [DirectMessage]|]
+    [ "max_id"
+    ]
 
 data FriendsIds
 friendsIds :: UserParam -> APIRequest FriendsIds (WithCursor IdsCursorKey UserId)
 friendsIds q = APIRequestGet (endpoint ++ "friends/ids.json") (mkUserParam q)
-instance HasCursorParam (APIRequest FriendsIds (WithCursor IdsCursorKey UserId))
+deriveHasParamInstances [t|APIRequest FriendsIds (WithCursor IdsCursorKey UserId)|]
+    [ "cursor"
+    ]
 
 data FollowersIds
 followersIds :: UserParam -> APIRequest FollowersIds (WithCursor IdsCursorKey UserId)
 followersIds q = APIRequestGet (endpoint ++ "followers/ids.json") (mkUserParam q)
-instance HasCursorParam (APIRequest FollowersIds (WithCursor IdsCursorKey UserId))
+deriveHasParamInstances [t|APIRequest FollowersIds (WithCursor IdsCursorKey UserId)|]
+    [ "cursor"
+    ]
 
 data FriendshipsCreate
 friendshipsCreate :: UserParam -> APIRequest FriendshipsCreate User
