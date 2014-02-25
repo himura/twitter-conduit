@@ -67,3 +67,7 @@ instance Parameters (APIRequest apiName responseType) where
     params f (APIRequestPost u pa) = APIRequestPost u <$> f pa
     params f (APIRequestPostMultipart u pa prt) =
         (\p -> APIRequestPostMultipart u p prt) <$> f pa
+instance Show (APIRequest apiName responseType) where
+    show (APIRequestGet u p) = "APIRequestGet " ++ show u ++ " " ++ show p
+    show (APIRequestPost u p) = "APIRequestPost " ++ show u ++ " " ++ show p
+    show (APIRequestPostMultipart u p _) = "APIRequestPostMultipart " ++ show u ++ " " ++ show p
