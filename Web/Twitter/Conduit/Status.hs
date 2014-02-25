@@ -2,6 +2,8 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE EmptyDataDecls #-}
 #if __GLASGOW_HASKELL__ >= 704
 {-# LANGUAGE ConstraintKinds #-}
@@ -28,6 +30,8 @@ module Web.Twitter.Conduit.Status
 
 import Web.Twitter.Conduit.Base
 import Web.Twitter.Conduit.Request
+import Web.Twitter.Conduit.Param
+import Web.Twitter.Conduit.Parameters.TH
 import Web.Twitter.Types
 
 import qualified Data.Text as T
@@ -41,20 +45,52 @@ import Data.Default
 data StatusesMentionsTimeline
 mentionsTimeline :: APIRequest StatusesMentionsTimeline [Status]
 mentionsTimeline = APIRequestGet (endpoint ++ "statuses/mentions_timeline.json") def
+deriveHasParamInstances [t|APIRequest StatusesMentionsTimeline [Status]|]
+    [ "count"
+    , "since_id"
+    , "max_id"
+    , "trim_user"
+    , "contributor_details"
+    , "include_entities"
+    ]
 
 data StatusesUserTimeline
-userTimeline :: APIRequest StatusesUserTimeline [Status]
-userTimeline = APIRequestGet (endpoint ++ "statuses/user_timeline.json") def
-instance HasMaxIdParam (APIRequest StatusesUserTimeline [Status])
+userTimeline :: UserParam -> APIRequest StatusesUserTimeline [Status]
+userTimeline q = APIRequestGet (endpoint ++ "statuses/user_timeline.json") (mkUserParam q)
+deriveHasParamInstances [t|APIRequest StatusesUserTimeline [Status]|]
+    [ "count"
+    , "since_id"
+    , "max_id"
+    , "trim_user"
+    , "exclude_replies"
+    , "contributor_details"
+    , "include_rts"
+    ]
 
 data StatusesHomeTimeline
 homeTimeline :: APIRequest StatusesHomeTimeline [Status]
 homeTimeline = APIRequestGet (endpoint ++ "statuses/home_timeline.json") def
-instance HasMaxIdParam (APIRequest StatusesHomeTimeline [Status])
+deriveHasParamInstances [t|APIRequest StatusesHomeTimeline [Status]|]
+    [ "count"
+    , "since_id"
+    , "max_id"
+    , "trim_user"
+    , "exclude_replies"
+    , "contributor_details"
+    , "include_entities"
+    ]
 
 data StatusesRetweetsOfMe
 retweetsOfMe :: APIRequest StatusesRetweetsOfMe [Status]
 retweetsOfMe = APIRequestGet (endpoint ++ "statuses/retweets_of_me.json") def
+deriveHasParamInstances [t|APIRequest StatusesRetweetsOfMe [Status]|]
+    [ "count"
+    , "since_id"
+    , "max_id"
+    , "trim_user"
+    , "include_entities"
+    , "include_user_entities"
+    ]
 
 -- * Tweets
 

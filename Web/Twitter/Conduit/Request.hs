@@ -4,14 +4,10 @@
 
 module Web.Twitter.Conduit.Request
        ( APIRequest(..)
-       , Parameters(..)
-       , HasSinceIdParam(..)
-       , HasCountParam(..)
-       , HasMaxIdParam(..)
-       , HasCursorParam(..)
+       , module Export
        ) where
 
-import Web.Twitter.Conduit.Parameters
+import Web.Twitter.Conduit.Parameters as Export
 
 import Network.HTTP.Client.MultipartFormData
 import qualified Network.HTTP.Types as HT

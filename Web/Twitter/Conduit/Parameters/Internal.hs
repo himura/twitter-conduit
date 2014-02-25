@@ -4,6 +4,7 @@
 module Web.Twitter.Conduit.Parameters.Internal
        ( Parameters(..)
        , readShow
+       , booleanQuery
        , wrappedParam
        ) where
 
@@ -28,6 +29,30 @@ readShow = prism' (S8.pack . show) (readMaybe . S8.unpack)
         [x] -> Just x
         _ -> Nothing
 
+-- | This 'Prism' convert from a 'ByteString' to 'Bool' value.
+--
+-- >>> booleanQuery # True
+-- "true"
+-- >>> booleanQuery # False
+-- "false"
+-- >>> "true" ^? booleanQuery
+-- Just True
+-- >>> "1" ^? booleanQuery
+-- Just True
+-- >>> "t" ^? booleanQuery
+-- Just True
+-- >>> "test" ^? booleanQuery
+-- Just False
+booleanQuery :: Prism' S.ByteString Bool
+booleanQuery = prism' bs sb
+  where
+    bs True = "true"
+    bs False = "false"
+    sb "true" = Just True
+    sb "1" = Just True
+    sb "t" = Just True
+    sb _ = Just False
+
 wrappedParam :: Parameters p => S.ByteString -> Prism' S.ByteString a -> Lens' p (Maybe a)
 wrappedParam key aSBS = lens getter setter
    where
@@ -36,4 +61,3 @@ wrappedParam key aSBS = lens getter setter
      replace k (Just v) = ((k, aSBS # v):) . dropAssoc k
      replace k Nothing = dropAssoc k
      dropAssoc k = filter ((/= k) . fst)
-
