@@ -61,7 +61,8 @@ library
     Web.Twitter.Conduit.Status
     Web.Twitter.Conduit.Request
     Web.Twitter.Conduit.Parameters
-    Web.Twitter.Conduit.ParametersTH
+    Web.Twitter.Conduit.Parameters.Internal
+    Web.Twitter.Conduit.Parameters.TH
     Web.Twitter.Conduit.Response
 
   other-modules:

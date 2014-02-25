@@ -82,7 +82,7 @@ module Web.Twitter.Conduit.Api
 import Web.Twitter.Types
 import Web.Twitter.Conduit.Param
 import Web.Twitter.Conduit.Utils
-import Web.Twitter.Conduit.ParametersTH
+import Web.Twitter.Conduit.Parameters.TH
 import Web.Twitter.Conduit.Base
 import Web.Twitter.Conduit.Request
 import Web.Twitter.Conduit.Cursor

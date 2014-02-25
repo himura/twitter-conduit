@@ -5,7 +5,6 @@
 module Web.Twitter.Conduit.Request
        ( APIRequest(..)
        , Parameters(..)
-       , wrappedParam
        , HasSinceIdParam(..)
        , HasCountParam(..)
        , HasMaxIdParam(..)

@@ -2,25 +2,12 @@
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE TemplateHaskell #-}
 
-module Web.Twitter.Conduit.ParametersTH where
+module Web.Twitter.Conduit.Parameters.TH where
 
+import Web.Twitter.Conduit.Parameters.Internal
 import Language.Haskell.TH
-import qualified Network.HTTP.Types as HT
 import Control.Lens
-import qualified Data.ByteString as S
 import Data.Char
-
-class Parameters a where
-    params :: Lens' a HT.SimpleQuery
-
-wrappedParam :: Parameters p => S.ByteString -> Prism' S.ByteString a -> Lens' p (Maybe a)
-wrappedParam key aSBS = lens getter setter
-   where
-     getter = ((^? aSBS) =<<) . lookup key . view params
-     setter = flip (over params . replace key)
-     replace k (Just v) = ((k, aSBS # v):) . dropAssoc k
-     replace k Nothing = dropAssoc k
-     dropAssoc k = filter ((/= k) . fst)
 
 snakeToLowerCamel :: String -> String
 snakeToLowerCamel [] = []
