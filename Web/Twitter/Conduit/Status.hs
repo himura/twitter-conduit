@@ -98,11 +98,20 @@ data StatusesRetweetsId
 retweetsId :: StatusId -> APIRequest StatusesRetweetsId [RetweetedStatus]
 retweetsId status_id = APIRequestGet uri def
   where uri = endpoint ++ "statuses/retweets/" ++ show status_id ++ ".json"
+deriveHasParamInstances [t|APIRequest StatusesRetweetsId [RetweetedStatus]|]
+    [ "count"
+    , "trim_user"
+    ]
 
 data StatusesShowId
 showId :: StatusId -> APIRequest StatusesShowId Status
 showId status_id = APIRequestGet uri def
   where uri = endpoint ++ "statuses/show/" ++ show status_id ++ ".json"
+deriveHasParamInstances [t|APIRequest StatusesShowId Status|]
+    [ "trim_user"
+    , "include_my_retweet"
+    , "include_entities"
+    ]
 
 data StatusesDestroyId
 destroyId :: StatusId -> APIRequest StatusesDestroyId Status

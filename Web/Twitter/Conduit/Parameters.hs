@@ -13,6 +13,7 @@ module Web.Twitter.Conduit.Parameters
        , HasIncludeEntitiesParam (..)
        , HasIncludeUserEntitiesParam (..)
        , HasIncludeRtsParam (..)
+       , HasIncludeMyRetweetParam (..)
        ) where
 
 import Web.Twitter.Conduit.Parameters.Internal
@@ -28,3 +29,4 @@ defineHasParamClass "contributor_details" ''Bool 'booleanQuery
 defineHasParamClass "include_entities" ''Bool 'booleanQuery
 defineHasParamClass "include_user_entities" ''Bool 'booleanQuery
 defineHasParamClass "include_rts" ''Bool 'booleanQuery
+defineHasParamClass "include_my_retweet" ''Bool 'booleanQuery
