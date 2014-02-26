@@ -99,21 +99,21 @@ search q = APIRequestGet (endpoint ++ "search/tweets.json") [("q", T.encodeUtf8 
 data DirectMessages
 directMessages :: APIRequest DirectMessages [DirectMessage]
 directMessages = APIRequestGet (endpoint ++ "direct_messages.json") def
-deriveHasParamInstances [t|APIRequest DirectMessages [DirectMessage]|]
+deriveHasParamInstances ''DirectMessages
     [ "max_id"
     ]
 
 data FriendsIds
 friendsIds :: UserParam -> APIRequest FriendsIds (WithCursor IdsCursorKey UserId)
 friendsIds q = APIRequestGet (endpoint ++ "friends/ids.json") (mkUserParam q)
-deriveHasParamInstances [t|APIRequest FriendsIds (WithCursor IdsCursorKey UserId)|]
+deriveHasParamInstances ''FriendsIds
     [ "cursor"
     ]
 
 data FollowersIds
 followersIds :: UserParam -> APIRequest FollowersIds (WithCursor IdsCursorKey UserId)
 followersIds q = APIRequestGet (endpoint ++ "followers/ids.json") (mkUserParam q)
-deriveHasParamInstances [t|APIRequest FollowersIds (WithCursor IdsCursorKey UserId)|]
+deriveHasParamInstances ''FollowersIds
     [ "cursor"
     ]
 

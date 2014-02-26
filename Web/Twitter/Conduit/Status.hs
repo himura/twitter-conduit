@@ -45,7 +45,7 @@ import Data.Default
 data StatusesMentionsTimeline
 mentionsTimeline :: APIRequest StatusesMentionsTimeline [Status]
 mentionsTimeline = APIRequestGet (endpoint ++ "statuses/mentions_timeline.json") def
-deriveHasParamInstances [t|APIRequest StatusesMentionsTimeline [Status]|]
+deriveHasParamInstances ''StatusesMentionsTimeline
     [ "count"
     , "since_id"
     , "max_id"
@@ -57,7 +57,7 @@ deriveHasParamInstances [t|APIRequest StatusesMentionsTimeline [Status]|]
 data StatusesUserTimeline
 userTimeline :: UserParam -> APIRequest StatusesUserTimeline [Status]
 userTimeline q = APIRequestGet (endpoint ++ "statuses/user_timeline.json") (mkUserParam q)
-deriveHasParamInstances [t|APIRequest StatusesUserTimeline [Status]|]
+deriveHasParamInstances ''StatusesUserTimeline
     [ "count"
     , "since_id"
     , "max_id"
@@ -70,7 +70,7 @@ deriveHasParamInstances [t|APIRequest StatusesUserTimeline [Status]|]
 data StatusesHomeTimeline
 homeTimeline :: APIRequest StatusesHomeTimeline [Status]
 homeTimeline = APIRequestGet (endpoint ++ "statuses/home_timeline.json") def
-deriveHasParamInstances [t|APIRequest StatusesHomeTimeline [Status]|]
+deriveHasParamInstances ''StatusesHomeTimeline
     [ "count"
     , "since_id"
     , "max_id"
@@ -83,7 +83,7 @@ deriveHasParamInstances [t|APIRequest StatusesHomeTimeline [Status]|]
 data StatusesRetweetsOfMe
 retweetsOfMe :: APIRequest StatusesRetweetsOfMe [Status]
 retweetsOfMe = APIRequestGet (endpoint ++ "statuses/retweets_of_me.json") def
-deriveHasParamInstances [t|APIRequest StatusesRetweetsOfMe [Status]|]
+deriveHasParamInstances ''StatusesRetweetsOfMe
     [ "count"
     , "since_id"
     , "max_id"
@@ -98,7 +98,7 @@ data StatusesRetweetsId
 retweetsId :: StatusId -> APIRequest StatusesRetweetsId [RetweetedStatus]
 retweetsId status_id = APIRequestGet uri def
   where uri = endpoint ++ "statuses/retweets/" ++ show status_id ++ ".json"
-deriveHasParamInstances [t|APIRequest StatusesRetweetsId [RetweetedStatus]|]
+deriveHasParamInstances ''StatusesRetweetsId
     [ "count"
     , "trim_user"
     ]
@@ -107,7 +107,7 @@ data StatusesShowId
 showId :: StatusId -> APIRequest StatusesShowId Status
 showId status_id = APIRequestGet uri def
   where uri = endpoint ++ "statuses/show/" ++ show status_id ++ ".json"
-deriveHasParamInstances [t|APIRequest StatusesShowId Status|]
+deriveHasParamInstances ''StatusesShowId
     [ "trim_user"
     , "include_my_retweet"
     , "include_entities"

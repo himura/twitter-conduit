@@ -46,11 +46,14 @@ defineHasParamClass' cNameS fNameS paramName typeN prismN = do
     dec <- classD cCxt cName [PlainTV a] [] [tySig, valDef]
     return [dec]
 
-deriveHasParamInstances :: TypeQ -- ^ target type
+deriveHasParamInstances :: Name -- ^ target data type name
                         -> [String] -- ^ parameter name
                         -> Q [Dec]
-deriveHasParamInstances typ paramNameList = 
+deriveHasParamInstances typName paramNameList =
     mapM mkInstance cNameStrList
   where
     cNameStrList = map paramNameToClassName paramNameList
-    mkInstance cn = instanceD (return []) (appT (conT (mkName cn)) typ) []
+    mkInstance cn = instanceD (return []) (appT (conT (mkName cn)) targetType) []
+    targetType = do
+        a <- newName "a"
+        appT (appT (conT (mkName "APIRequest")) (conT typName)) (varT a)
