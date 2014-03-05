@@ -117,16 +117,29 @@ data StatusesDestroyId
 destroyId :: StatusId -> APIRequest StatusesDestroyId Status
 destroyId status_id = APIRequestPost uri def
   where uri = endpoint ++ "statuses/destroy/" ++ show status_id ++ ".json"
+deriveHasParamInstances ''StatusesDestroyId
+    [ "trim_user"
+    ]
 
 data StatusesUpdate
 update :: T.Text -> APIRequest StatusesUpdate Status
 update status = APIRequestPost uri [("status", T.encodeUtf8 status)]
   where uri = endpoint ++ "statuses/update.json"
+deriveHasParamInstances ''StatusesUpdate
+    [ "in_reply_to_status_id"
+    -- , "lat_long"
+    -- , "place_id"
+    , "display_coordinates"
+    , "trim_user"
+    ]
 
 data StatusesRetweetId
 retweetId :: StatusId -> APIRequest StatusesRetweetId RetweetedStatus
 retweetId status_id = APIRequestPost uri def
   where uri = "statuses/retweet/" ++ show status_id ++ ".json"
+deriveHasParamInstances ''StatusesRetweetId
+    [ "trim_user"
+    ]
 
 data MediaData = MediaFromFile FilePath
                | MediaRequestBody FilePath RequestBody
@@ -141,3 +154,10 @@ updateWithMedia tweet mediaData =
     uri = endpoint ++ "statuses/update_with_media.json"
     mediaBody (MediaFromFile fp) = partFileSource "media[]" fp
     mediaBody (MediaRequestBody filename filebody) = partFileRequestBody "media[]" filename filebody
+deriveHasParamInstances ''StatusesUpdateWithMedia
+    [ "possibly_sensitive"
+    , "in_reply_to_status_id"
+    -- , "lat_long"
+    -- , "place_id"
+    , "display_coordinates"
+    ]
