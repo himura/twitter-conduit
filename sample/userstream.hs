@@ -18,7 +18,7 @@ import Data.Conduit
 import qualified Data.Conduit.Binary as CB
 import Network.HTTP.Conduit
 
-import Web.Twitter.Conduit.Lens
+import Web.Twitter.Conduit
 import Common
 import Control.Lens
 

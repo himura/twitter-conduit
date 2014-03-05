@@ -10,4 +10,4 @@ import Web.Twitter.Conduit.Param as Export
 import Web.Twitter.Conduit.Stream as Export
 import Web.Twitter.Conduit.Request as Export
 import Web.Twitter.Conduit.Response as Export
-import Web.Twitter.Types as Export
+import Web.Twitter.Types.Lens as Export
