@@ -56,7 +56,7 @@ booleanQuery = prism' bs sb
 wrappedParam :: Parameters p => S.ByteString -> Prism' S.ByteString a -> Lens' p (Maybe a)
 wrappedParam key aSBS = lens getter setter
    where
-     getter = ((^? aSBS) =<<) . lookup key . view params
+     getter = preview $ params . to (lookup key) . _Just . aSBS
      setter = flip (over params . replace key)
      replace k (Just v) = ((k, aSBS # v):) . dropAssoc k
      replace k Nothing = dropAssoc k
