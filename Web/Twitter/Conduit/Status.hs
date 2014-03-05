@@ -1,14 +1,18 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE CPP #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE QuasiQuotes #-}
+{-# LANGUAGE EmptyDataDecls #-}
 #if __GLASGOW_HASKELL__ >= 704
 {-# LANGUAGE ConstraintKinds #-}
 #endif
 
 module Web.Twitter.Conduit.Status
-       ( statuses
+       (
        -- * Timelines
-       , mentionsTimeline
+         mentionsTimeline
        , userTimeline
        , homeTimeline
        , retweetsOfMe
@@ -18,62 +22,142 @@ module Web.Twitter.Conduit.Status
        , destroyId
        , update
        , retweetId
-       -- , updateWithMedia
+       , MediaData (..)
+       , updateWithMedia
        -- , oembed
+       -- , retweetersIds
        ) where
 
-import Web.Twitter.Conduit.Api
-import Web.Twitter.Conduit.Monad
+import Web.Twitter.Conduit.Base
+import Web.Twitter.Conduit.Request
+import Web.Twitter.Conduit.Param
+import Web.Twitter.Conduit.Parameters.TH
 import Web.Twitter.Types
 
-import qualified Network.HTTP.Types as HT
-import Data.Aeson
-import qualified Data.Conduit as C
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
-
-statuses :: (TwitterBaseM m, FromJSON a)
-         => String -- ^ Resource URL
-         -> HT.SimpleQuery -- ^ Query
-         -> C.Source (TW m) a
-statuses uri = apiWithPages u
-  where u = "statuses/" ++ uri
+import Network.HTTP.Client.MultipartFormData
+import Network.HTTP.Conduit
+import Data.Default
 
 -- * Timelines
 
-mentionsTimeline :: TwitterBaseM m => HT.SimpleQuery -> C.Source (TW m) Status
-mentionsTimeline = statuses "mentions_timeline.json"
+data StatusesMentionsTimeline
+mentionsTimeline :: APIRequest StatusesMentionsTimeline [Status]
+mentionsTimeline = APIRequestGet (endpoint ++ "statuses/mentions_timeline.json") def
+deriveHasParamInstances ''StatusesMentionsTimeline
+    [ "count"
+    , "since_id"
+    , "max_id"
+    , "trim_user"
+    , "contributor_details"
+    , "include_entities"
+    ]
 
-userTimeline :: TwitterBaseM m => HT.SimpleQuery -> C.Source (TW m) Status
-userTimeline = statuses "user_timeline.json"
+data StatusesUserTimeline
+userTimeline :: UserParam -> APIRequest StatusesUserTimeline [Status]
+userTimeline q = APIRequestGet (endpoint ++ "statuses/user_timeline.json") (mkUserParam q)
+deriveHasParamInstances ''StatusesUserTimeline
+    [ "count"
+    , "since_id"
+    , "max_id"
+    , "trim_user"
+    , "exclude_replies"
+    , "contributor_details"
+    , "include_rts"
+    ]
 
-homeTimeline :: TwitterBaseM m => HT.SimpleQuery -> C.Source (TW m) Status
-homeTimeline = statuses "home_timeline.json"
+data StatusesHomeTimeline
+homeTimeline :: APIRequest StatusesHomeTimeline [Status]
+homeTimeline = APIRequestGet (endpoint ++ "statuses/home_timeline.json") def
+deriveHasParamInstances ''StatusesHomeTimeline
+    [ "count"
+    , "since_id"
+    , "max_id"
+    , "trim_user"
+    , "exclude_replies"
+    , "contributor_details"
+    , "include_entities"
+    ]
 
-retweetsOfMe :: TwitterBaseM m => HT.SimpleQuery -> C.Source (TW m) Status
-retweetsOfMe = statuses "retweets_of_me.json"
+data StatusesRetweetsOfMe
+retweetsOfMe :: APIRequest StatusesRetweetsOfMe [Status]
+retweetsOfMe = APIRequestGet (endpoint ++ "statuses/retweets_of_me.json") def
+deriveHasParamInstances ''StatusesRetweetsOfMe
+    [ "count"
+    , "since_id"
+    , "max_id"
+    , "trim_user"
+    , "include_entities"
+    , "include_user_entities"
+    ]
 
 -- * Tweets
 
-retweetsId :: TwitterBaseM m => StatusId -> HT.SimpleQuery -> TW m [RetweetedStatus]
-retweetsId status_id = apiGet uri
-  where uri = "statuses/retweets/" ++ show status_id ++ ".json"
+data StatusesRetweetsId
+retweetsId :: StatusId -> APIRequest StatusesRetweetsId [RetweetedStatus]
+retweetsId status_id = APIRequestGet uri def
+  where uri = endpoint ++ "statuses/retweets/" ++ show status_id ++ ".json"
+deriveHasParamInstances ''StatusesRetweetsId
+    [ "count"
+    , "trim_user"
+    ]
 
-showId :: TwitterBaseM m => StatusId -> HT.SimpleQuery -> TW m Status
-showId status_id = apiGet uri
-  where uri = "statuses/show/" ++ show status_id ++ ".json"
+data StatusesShowId
+showId :: StatusId -> APIRequest StatusesShowId Status
+showId status_id = APIRequestGet uri def
+  where uri = endpoint ++ "statuses/show/" ++ show status_id ++ ".json"
+deriveHasParamInstances ''StatusesShowId
+    [ "trim_user"
+    , "include_my_retweet"
+    , "include_entities"
+    ]
 
-destroyId :: TwitterBaseM m => StatusId -> HT.SimpleQuery -> TW m Status
-destroyId status_id = apiPost uri
-  where uri = "statuses/destroy/" ++ show status_id ++ ".json"
+data StatusesDestroyId
+destroyId :: StatusId -> APIRequest StatusesDestroyId Status
+destroyId status_id = APIRequestPost uri def
+  where uri = endpoint ++ "statuses/destroy/" ++ show status_id ++ ".json"
+deriveHasParamInstances ''StatusesDestroyId
+    [ "trim_user"
+    ]
 
-update :: TwitterBaseM m => T.Text -> HT.SimpleQuery -> TW m Status
-update status query = apiPost "statuses/update.json" (("status", T.encodeUtf8 status):query)
+data StatusesUpdate
+update :: T.Text -> APIRequest StatusesUpdate Status
+update status = APIRequestPost uri [("status", T.encodeUtf8 status)]
+  where uri = endpoint ++ "statuses/update.json"
+deriveHasParamInstances ''StatusesUpdate
+    [ "in_reply_to_status_id"
+    -- , "lat_long"
+    -- , "place_id"
+    , "display_coordinates"
+    , "trim_user"
+    ]
 
-retweetId :: TwitterBaseM m => StatusId -> HT.SimpleQuery -> TW m RetweetedStatus
-retweetId status_id = apiPost uri
+data StatusesRetweetId
+retweetId :: StatusId -> APIRequest StatusesRetweetId RetweetedStatus
+retweetId status_id = APIRequestPost uri def
   where uri = "statuses/retweet/" ++ show status_id ++ ".json"
+deriveHasParamInstances ''StatusesRetweetId
+    [ "trim_user"
+    ]
 
--- updateWithMedia
--- oembed
--- retweetersIds
+data MediaData = MediaFromFile FilePath
+               | MediaRequestBody FilePath RequestBody
+
+data StatusesUpdateWithMedia
+updateWithMedia :: T.Text
+                -> MediaData
+                -> APIRequest StatusesUpdateWithMedia Status
+updateWithMedia tweet mediaData =
+    APIRequestPostMultipart uri [("status", T.encodeUtf8 tweet)] [mediaBody mediaData]
+  where
+    uri = endpoint ++ "statuses/update_with_media.json"
+    mediaBody (MediaFromFile fp) = partFileSource "media[]" fp
+    mediaBody (MediaRequestBody filename filebody) = partFileRequestBody "media[]" filename filebody
+deriveHasParamInstances ''StatusesUpdateWithMedia
+    [ "possibly_sensitive"
+    , "in_reply_to_status_id"
+    -- , "lat_long"
+    -- , "place_id"
+    , "display_coordinates"
+    ]

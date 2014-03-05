@@ -9,8 +9,6 @@ module Web.Twitter.Conduit.Utils
        , conduitJSON
        , conduitFromJSON
        , showBS
-       , insertQuery
-       , fromJSON'
        ) where
 
 import Control.Exception
@@ -23,8 +21,6 @@ import qualified Data.Conduit as C
 import qualified Data.Conduit.List as CL
 import qualified Data.Conduit.Attoparsec as CA
 import Data.Data
-import qualified Network.HTTP.Types as HT
-import qualified Data.Map as M
 import Text.Shakespeare.Text
 import Control.Monad.Logger
 
@@ -68,18 +64,3 @@ conduitFromJSON = CL.sequence sinkFromJSON
 
 showBS :: Show a => a -> ByteString
 showBS = B8.pack . show
-
--- | insert key-value pair to @SimpleQuery@.
---
--- >>> insertQuery ("Key1", "Value1") []
--- [("Key1","Value1")]
--- >>> insertQuery ("Key1", "Value1") [("Test","Input")]
--- [("Key1","Value1"),("Test","Input")]
-insertQuery :: (ByteString, ByteString) -> HT.SimpleQuery -> HT.SimpleQuery
-insertQuery (key, value) = mk
-  where mk = M.toList . M.insert key value . M.fromList
-
-fromJSON' :: FromJSON a => Value -> Maybe a
-fromJSON' = AT.parseMaybe parseJSON
-
-
