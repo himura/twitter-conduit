@@ -63,7 +63,6 @@ library
     Web.Twitter.Conduit.Parameters
     Web.Twitter.Conduit.Parameters.Internal
     Web.Twitter.Conduit.Parameters.TH
-    Web.Twitter.Conduit.Response
 
   other-modules:
     Web.Twitter.Conduit.Utils

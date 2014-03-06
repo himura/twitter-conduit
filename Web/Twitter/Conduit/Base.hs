@@ -28,8 +28,8 @@ module Web.Twitter.Conduit.Base
 import Web.Twitter.Conduit.Monad
 import Web.Twitter.Conduit.Utils
 import Web.Twitter.Conduit.Request
-import Web.Twitter.Conduit.Response
 import Web.Twitter.Conduit.Cursor
+import Web.Twitter.Types.Lens
 
 import Network.HTTP.Conduit
 import Network.HTTP.Client.MultipartFormData
@@ -46,6 +46,7 @@ import Control.Monad.Trans.Class (lift)
 import Text.Shakespeare.Text
 import Control.Monad.Logger
 import Control.Lens
+import Unsafe.Coerce
 
 #if __GLASGOW_HASKELL__ >= 704
 type TwitterBaseM m = ( C.MonadResource m
@@ -123,12 +124,12 @@ apiPost' url query = do
 
 call :: (TwitterBaseM m, A.FromJSON responseType)
      => APIRequest apiName responseType
-     -> TW m (APIResponse responseType)
-call = fmap APIResponse . call'
+     -> TW m responseType
+call = call'
 
-call' :: (TwitterBaseM m, A.FromJSON responseType)
+call' :: (TwitterBaseM m, A.FromJSON value)
       => APIRequest apiName responseType
-      -> TW m A.Value
+      -> TW m value
 call' (APIRequestGet u pa) = apiGet' u pa
 call' (APIRequestPost u pa) = apiPost' u pa
 call' (APIRequestPostMultipart u param prt) = do
@@ -141,6 +142,7 @@ call' (APIRequestPostMultipart u param prt) = do
 
 sourceWithMaxId :: ( TwitterBaseM m
                    , A.FromJSON responseType
+                   , AsStatus responseType
                    , HasMaxIdParam (APIRequest apiName [responseType])
                    )
                 => APIRequest apiName [responseType]
@@ -149,13 +151,28 @@ sourceWithMaxId = loop
   where
     loop req = do
         res <- lift $ call req
-        case (getMinId res, res ^. parsed) of
-            (Just mid, Just list) -> do
-                CL.sourceList list
+        case getMinId res of
+            Just mid -> do
+                CL.sourceList res
                 loop $ req & maxId ?~ mid - 1
-            (_, Just list) -> CL.sourceList list
-            (_, _) -> CL.sourceList []
-    getMinId = minimumOf (_Array . traverse . key "id" . _Integer)
+            Nothing -> CL.sourceList res
+    getMinId = minimumOf (traverse . status_id)
+
+sourceWithMaxId' :: ( TwitterBaseM m
+                    , HasMaxIdParam (APIRequest apiName [responseType])
+                    )
+                 => APIRequest apiName [responseType]
+                 -> C.Source (TW m) A.Value
+sourceWithMaxId' = loop
+  where
+    loop req = do
+        res <- lift $ call' req
+        case getMinId res of
+            Just mid -> do
+                CL.sourceList res
+                loop $ req & maxId ?~ mid - 1
+            Nothing -> CL.sourceList res
+    getMinId = minimumOf (traverse . key "id" . _Integer)
 
 sourceWithCursor :: ( TwitterBaseM m
                     , A.FromJSON responseType
@@ -169,10 +186,24 @@ sourceWithCursor req = loop (-1)
     loop 0 = CL.sourceNull
     loop cur = do
         res <- lift $ call $ req & cursor ?~ cur
-        case res ^. parsed of
-            Just wrapped -> do
-                CL.sourceList $ contents wrapped
-                loop $ nextCursor wrapped
-            Nothing ->
-                CL.sourceNull
+        CL.sourceList $ contents res
+        loop $ nextCursor res
 
+sourceWithCursor' :: ( TwitterBaseM m
+                     , A.FromJSON responseType
+                     , CursorKey ck
+                     , HasCursorParam (APIRequest apiName (WithCursor ck responseType))
+                     )
+                  => APIRequest apiName (WithCursor ck responseType)
+                  -> C.Source (TW m) A.Value
+sourceWithCursor' req = loop (-1)
+  where
+    relax :: A.FromJSON value
+          => APIRequest apiName (WithCursor ck responseType)
+          -> APIRequest apiName (WithCursor ck value)
+    relax = unsafeCoerce
+    loop 0 = CL.sourceNull
+    loop cur = do
+        res <- lift $ call $ relax $ req & cursor ?~ cur
+        CL.sourceList $ contents res
+        loop $ nextCursor res
