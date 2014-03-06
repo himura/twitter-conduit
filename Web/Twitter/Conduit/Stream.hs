@@ -23,7 +23,6 @@ module Web.Twitter.Conduit.Stream
 import Web.Twitter.Conduit.Base
 import Web.Twitter.Conduit.Monad
 import Web.Twitter.Types
-import Web.Twitter.Conduit.Utils
 import Web.Twitter.Conduit.Request
 
 import qualified Data.Conduit as C

@@ -55,8 +55,8 @@ library
     Web.Twitter.Conduit.Base
     Web.Twitter.Conduit.Cursor
     Web.Twitter.Conduit.Api
+    Web.Twitter.Conduit.Error
     Web.Twitter.Conduit.Monad
-    Web.Twitter.Conduit.Param
     Web.Twitter.Conduit.Stream
     Web.Twitter.Conduit.Status
     Web.Twitter.Conduit.Request
@@ -65,7 +65,6 @@ library
     Web.Twitter.Conduit.Parameters.TH
 
   other-modules:
-    Web.Twitter.Conduit.Utils
 
 test-suite hlint
   type: exitcode-stdio-1.0

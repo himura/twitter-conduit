@@ -19,10 +19,13 @@ module Web.Twitter.Conduit.Base
        , TwitterBaseM
        , endpoint
        , makeRequest
+       , sinkJSON
+       , sinkFromJSON
+       , showBS
        ) where
 
 import Web.Twitter.Conduit.Monad
-import Web.Twitter.Conduit.Utils
+import Web.Twitter.Conduit.Error
 import Web.Twitter.Conduit.Request
 import Web.Twitter.Conduit.Cursor
 import Web.Twitter.Types.Lens
@@ -33,10 +36,12 @@ import qualified Network.HTTP.Types as HT
 import qualified Data.Conduit as C
 import qualified Data.Conduit.List as CL
 
-import qualified Data.Aeson as A
+import Data.Aeson
 import Data.Aeson.Lens
+import qualified Data.Conduit.Attoparsec as CA
 import qualified Data.Text.Encoding as T
 import Data.ByteString (ByteString)
+import qualified Data.ByteString.Char8 as S8
 import Control.Monad.IO.Class
 import Control.Monad.Trans.Class (lift)
 import Text.Shakespeare.Text
@@ -88,7 +93,7 @@ apiRequest req = do
 endpoint :: String
 endpoint = "https://api.twitter.com/1.1/"
 
-apiValue :: (TwitterBaseM m, A.FromJSON a)
+apiValue :: (TwitterBaseM m, FromJSON a)
          => HT.Method -- ^ HTTP request method (GET or POST)
          -> String -- ^ API Resource URL
          -> HT.SimpleQuery -- ^ Query
@@ -97,12 +102,12 @@ apiValue m url query = do
     src <- api m url query
     src C.$$+- sinkFromJSON
 
-call :: (TwitterBaseM m, A.FromJSON responseType)
+call :: (TwitterBaseM m, FromJSON responseType)
      => APIRequest apiName responseType
      -> TW m responseType
 call = call'
 
-call' :: (TwitterBaseM m, A.FromJSON value)
+call' :: (TwitterBaseM m, FromJSON value)
       => APIRequest apiName responseType
       -> TW m value
 call' (APIRequestGet u pa) = apiValue "GET" u pa
@@ -116,7 +121,7 @@ call' (APIRequestPostMultipart u param prt) = do
     partParam = map (uncurry partBS . over _1 T.decodeUtf8) param
 
 sourceWithMaxId :: ( TwitterBaseM m
-                   , A.FromJSON responseType
+                   , FromJSON responseType
                    , AsStatus responseType
                    , HasMaxIdParam (APIRequest apiName [responseType])
                    )
@@ -137,7 +142,7 @@ sourceWithMaxId' :: ( TwitterBaseM m
                     , HasMaxIdParam (APIRequest apiName [responseType])
                     )
                  => APIRequest apiName [responseType]
-                 -> C.Source (TW m) A.Value
+                 -> C.Source (TW m) Value
 sourceWithMaxId' = loop
   where
     loop req = do
@@ -150,7 +155,7 @@ sourceWithMaxId' = loop
     getMinId = minimumOf (traverse . key "id" . _Integer)
 
 sourceWithCursor :: ( TwitterBaseM m
-                    , A.FromJSON responseType
+                    , FromJSON responseType
                     , CursorKey ck
                     , HasCursorParam (APIRequest apiName (WithCursor ck responseType))
                     )
@@ -165,15 +170,15 @@ sourceWithCursor req = loop (-1)
         loop $ nextCursor res
 
 sourceWithCursor' :: ( TwitterBaseM m
-                     , A.FromJSON responseType
+                     , FromJSON responseType
                      , CursorKey ck
                      , HasCursorParam (APIRequest apiName (WithCursor ck responseType))
                      )
                   => APIRequest apiName (WithCursor ck responseType)
-                  -> C.Source (TW m) A.Value
+                  -> C.Source (TW m) Value
 sourceWithCursor' req = loop (-1)
   where
-    relax :: A.FromJSON value
+    relax :: FromJSON value
           => APIRequest apiName (WithCursor ck responseType)
           -> APIRequest apiName (WithCursor ck value)
     relax = unsafeCoerce
@@ -182,3 +187,24 @@ sourceWithCursor' req = loop (-1)
         res <- lift $ call $ relax $ req & cursor ?~ cur
         CL.sourceList $ contents res
         loop $ nextCursor res
+
+sinkJSON :: ( C.MonadThrow m
+            , MonadLogger m
+            ) => C.Consumer ByteString m Value
+sinkJSON = do
+    js <- CA.sinkParser json
+    $(logDebug) [st|Response JSON: #{show js}|]
+    return js
+
+sinkFromJSON :: ( FromJSON a
+                , C.MonadThrow m
+                , MonadLogger m
+                ) => C.Consumer ByteString m a
+sinkFromJSON = do
+    v <- sinkJSON
+    case fromJSON v of
+        Error err -> lift $ C.monadThrow $ TwitterError err
+        Success r -> return r
+
+showBS :: Show a => a -> ByteString
+showBS = S8.pack . show
