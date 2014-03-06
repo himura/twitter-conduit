@@ -13,10 +13,6 @@
 module Web.Twitter.Conduit.Base
        ( api
        , apiRequest
-       , apiGet
-       , apiGet'
-       , apiPost
-       , apiPost'
        , call
        , sourceWithMaxId
        , sourceWithCursor
@@ -92,34 +88,13 @@ apiRequest req = do
 endpoint :: String
 endpoint = "https://api.twitter.com/1.1/"
 
-apiGet :: (TwitterBaseM m, A.FromJSON a)
-       => String -- ^ API Resource URL
-       -> HT.SimpleQuery -- ^ Query
-       -> TW m a
-apiGet u = apiGet' fu
-  where fu = endpoint ++ u
-
-apiPost :: (TwitterBaseM m, A.FromJSON a)
-        => String -- ^ API Resource URL
-        -> HT.SimpleQuery -- ^ Query
-        -> TW m a
-apiPost u = apiPost' fu
-  where fu = endpoint ++ u
-
-apiGet' :: (TwitterBaseM m, A.FromJSON a)
-        => String -- ^ API Resource URL
-        -> HT.SimpleQuery -- ^ Query
-        -> TW m a
-apiGet' url query = do
-    src <- api "GET" url query
-    src C.$$+- sinkFromJSON
-
-apiPost' :: (TwitterBaseM m, A.FromJSON a)
-         => String -- ^ API Resource URL
+apiValue :: (TwitterBaseM m, A.FromJSON a)
+         => HT.Method -- ^ HTTP request method (GET or POST)
+         -> String -- ^ API Resource URL
          -> HT.SimpleQuery -- ^ Query
          -> TW m a
-apiPost' url query = do
-    src <- api "POST" url query
+apiValue m url query = do
+    src <- api m url query
     src C.$$+- sinkFromJSON
 
 call :: (TwitterBaseM m, A.FromJSON responseType)
@@ -130,8 +105,8 @@ call = call'
 call' :: (TwitterBaseM m, A.FromJSON value)
       => APIRequest apiName responseType
       -> TW m value
-call' (APIRequestGet u pa) = apiGet' u pa
-call' (APIRequestPost u pa) = apiPost' u pa
+call' (APIRequestGet u pa) = apiValue "GET" u pa
+call' (APIRequestPost u pa) = apiValue "POST" u pa
 call' (APIRequestPostMultipart u param prt) = do
     req <- formDataBody body =<< makeRequest "POST" u []
     src <- apiRequest req

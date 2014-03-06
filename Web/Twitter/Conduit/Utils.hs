@@ -6,8 +6,6 @@ module Web.Twitter.Conduit.Utils
        (
          sinkJSON
        , sinkFromJSON
-       , conduitJSON
-       , conduitFromJSON
        , showBS
        ) where
 
@@ -18,7 +16,6 @@ import qualified Data.Aeson.Types as AT
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as B8
 import qualified Data.Conduit as C
-import qualified Data.Conduit.List as CL
 import qualified Data.Conduit.Attoparsec as CA
 import Data.Data
 import Text.Shakespeare.Text
@@ -50,17 +47,6 @@ sinkFromJSON = do
     case fromJSON v of
         AT.Error err -> lift $ C.monadThrow $ TwitterError err
         AT.Success r -> return r
-
-conduitJSON :: ( C.MonadThrow m
-               , MonadLogger m
-               ) => C.Conduit ByteString m Value
-conduitJSON = CL.sequence sinkJSON
-
-conduitFromJSON :: ( FromJSON a
-                   , C.MonadThrow m
-                   , MonadLogger m
-                   ) => C.Conduit ByteString m a
-conduitFromJSON = CL.sequence sinkFromJSON
 
 showBS :: Show a => a -> ByteString
 showBS = B8.pack . show
