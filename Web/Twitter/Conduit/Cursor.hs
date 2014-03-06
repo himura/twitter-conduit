@@ -16,7 +16,7 @@ import Data.Monoid
 import Control.Applicative
 
 -- $setup
--- >>> import Web.Twitter.Types
+-- >>> type UserId = Integer
 
 class CursorKey a where
     cursorKey :: a -> T.Text

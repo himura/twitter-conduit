@@ -13,7 +13,7 @@ import Control.Exception
 import Control.Monad.Trans.Class
 import Data.Aeson
 import Data.ByteString (ByteString)
-import qualified Data.ByteString.Char8 as B8
+import qualified Data.ByteString.Char8 as S8
 import qualified Data.Conduit as C
 import qualified Data.Conduit.Attoparsec as CA
 import Data.Data
@@ -45,4 +45,4 @@ sinkFromJSON = do
         Success r -> return r
 
 showBS :: Show a => a -> ByteString
-showBS = B8.pack . show
+showBS = S8.pack . show
