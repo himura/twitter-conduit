@@ -36,7 +36,7 @@ module Web.Twitter.Conduit.Api
 
        -- * Users
        -- , accountSettings
-       -- , accountVerifyCredentials
+       , accountVerifyCredentials
        -- , accountSettingsUpdate
        -- , accountUpdateDeliveryDevice
        -- , accountUpdateProfile
@@ -150,6 +150,14 @@ deriveHasParamInstances ''FriendsList
     , "count"
     , "skip_status"
     , "include_user_entities"
+    ]
+
+data AccountVerifyCredentials
+accountVerifyCredentials :: APIRequest AccountVerifyCredentials User
+accountVerifyCredentials = APIRequestGet (endpoint ++ "account/verify_credentials.json") []
+deriveHasParamInstances ''AccountVerifyCredentials
+    [ "include_entities"
+    , "skip_status"
     ]
 
 data UsersLookup
