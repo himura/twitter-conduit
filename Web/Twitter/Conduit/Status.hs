@@ -30,6 +30,7 @@ module Web.Twitter.Conduit.Status
 
 import Web.Twitter.Conduit.Base
 import Web.Twitter.Conduit.Request
+import Web.Twitter.Conduit.Parameters
 import Web.Twitter.Conduit.Parameters.TH
 import Web.Twitter.Types
 

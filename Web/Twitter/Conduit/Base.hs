@@ -26,6 +26,7 @@ module Web.Twitter.Conduit.Base
 
 import Web.Twitter.Conduit.Monad
 import Web.Twitter.Conduit.Error
+import Web.Twitter.Conduit.Parameters
 import Web.Twitter.Conduit.Request
 import Web.Twitter.Conduit.Cursor
 import Web.Twitter.Types.Lens
