@@ -12,6 +12,6 @@ main = withCF $ do
     [statusIdStr] <- liftIO getArgs
     let sId = read statusIdStr
     targetStatus <- call $ showId sId
-    liftIO . putStrLn $ "Unfavorite Tweet: " ++ targetStatus ^. parsed . _Just . to show
+    liftIO . putStrLn $ "Unfavorite Tweet: " ++ targetStatus ^. to show
     res <- call $ favoritesDestroy sId
     liftIO $ print res

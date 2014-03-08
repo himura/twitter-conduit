@@ -6,10 +6,8 @@ import qualified Data.Conduit as C
 import qualified Data.Conduit.List as CL
 import qualified Data.Text.IO as T
 import qualified Data.Text as T
-import qualified Data.ByteString.Char8 as S8
 import System.Process
 import Control.Monad
-import Control.Monad.Trans.Class
 import Control.Monad.IO.Class
 import Control.Applicative
 import System.FilePath
@@ -28,7 +26,7 @@ iconPath = (</> "icons") <$> confdir >>= ensureDirectoryExist
 main :: IO ()
 main = withCF $ do
     src <- stream userstream
-    src C.$$+- CL.mapM_ (^! parsed . _Just . act (liftIO . printTL))
+    src C.$$+- CL.mapM_ (^! act (liftIO . printTL))
 
 showStatus :: AsStatus s => s -> T.Text
 showStatus s = T.concat [ s ^. user . userScreenName

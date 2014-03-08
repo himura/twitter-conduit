@@ -13,6 +13,6 @@ main = withCF $ do
     [statusIdStr] <- liftIO getArgs
     let sId = read statusIdStr
     targetStatus <- call $ showId sId
-    liftIO . putStrLn $ "Favorite Tweet: " ++ targetStatus ^. parsed . _Just . to show
+    liftIO . putStrLn $ "Favorite Tweet: " ++ targetStatus ^. to show
     res <- call $ favoritesCreate sId
     liftIO $ print res

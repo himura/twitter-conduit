@@ -14,10 +14,7 @@ main = withCF $ do
     [keyword] <- liftIO getArgs
 
     res <- call . search $ T.pack keyword
-    case res ^. parsed of
-        Just pres -> do
-            let metadata = searchResultSearchMetadata pres
-            liftIO . putStrLn $ "search completed in: " ++ (show . searchMetadataCompletedIn $ metadata)
-            liftIO . putStrLn $ "search result max id: " ++ (show . searchMetadataMaxId $ metadata)
-            liftIO . print $ searchResultStatuses pres
-        Nothing -> return ()
+    let metadata = res ^. searchResultSearchMetadata
+    liftIO . putStrLn $ "search completed in: " ++ metadata ^. searchMetadataCompletedIn . to show
+    liftIO . putStrLn $ "search result max id: " ++ metadata ^. searchMetadataMaxId . to show
+    liftIO . print $ res ^. searchResultStatuses
