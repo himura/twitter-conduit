@@ -6,6 +6,7 @@ module Web.Twitter.Conduit.Parameters
        , HasSinceIdParam (..)
        , HasCountParam (..)
        , HasMaxIdParam (..)
+       , HasPageParam (..)
        , HasCursorParam (..)
        , HasTrimUserParam (..)
        , HasExcludeRepliesParam (..)
@@ -52,6 +53,7 @@ data ListParam = ListIdParam Integer | ListNameParam String
 defineHasParamClass "count" ''Integer 'readShow
 defineHasParamClass "since_id" ''Integer 'readShow
 defineHasParamClass "max_id" ''Integer 'readShow
+defineHasParamClass "page" ''Integer 'readShow
 defineHasParamClass "cursor" ''Integer 'readShow
 defineHasParamClass "trim_user" ''Bool 'booleanQuery
 defineHasParamClass "exclude_replies" ''Bool 'booleanQuery

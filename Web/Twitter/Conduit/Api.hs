@@ -15,10 +15,10 @@ module Web.Twitter.Conduit.Api
 
        -- * Direct Messages
        , directMessages
-       -- , directMessagesSent
-       -- , directMessagesShow
-       -- , directMessagesDestroy
-       -- , directMessagesNew
+       , directMessagesSent
+       , directMessagesShow
+       , directMessagesDestroy
+       , directMessagesNew
 
        -- * Friends & Followers
        -- , friendshipsNoRetweetsIds
@@ -116,6 +116,33 @@ deriveHasParamInstances ''DirectMessages
     , "include_entities"
     , "skip_status"
     ]
+
+data DirectMessagesSent
+directMessagesSent :: APIRequest DirectMessagesSent [DirectMessage]
+directMessagesSent = APIRequestGet (endpoint ++ "direct_messages/sent.json") def
+deriveHasParamInstances ''DirectMessagesSent
+    [ "since_id"
+    , "max_id"
+    , "count"
+    , "include_entities"
+    , "page"
+    , "skip_status"
+    ]
+
+data DirectMessagesShow
+directMessagesShow :: StatusId -> APIRequest DirectMessagesShow DirectMessage
+directMessagesShow sId = APIRequestGet (endpoint ++ "direct_messages/show.json") [("id", showBS sId)]
+
+data DirectMessagesDestroy
+directMessagesDestroy :: StatusId -> APIRequest DirectMessagesDestroy DirectMessage
+directMessagesDestroy sId = APIRequestPost (endpoint ++ "direct_messages/destroy.json") [("id", showBS sId)]
+deriveHasParamInstances ''DirectMessagesDestroy
+    [ "include_entities"
+    ]
+
+data DirectMessagesNew
+directMessagesNew :: UserParam -> T.Text -> APIRequest DirectMessagesNew DirectMessage
+directMessagesNew q msg = APIRequestPost (endpoint ++ "direct_messages/new.json") (("text", T.encodeUtf8 msg):mkUserParam q)
 
 data FriendsIds
 friendsIds :: UserParam -> APIRequest FriendsIds (WithCursor IdsCursorKey UserId)
