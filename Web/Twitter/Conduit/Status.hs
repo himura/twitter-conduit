@@ -226,9 +226,9 @@ data StatusesUpdate
 -- @
 --
 -- >>> update "Hello World"
--- APIRequestPost "https://api.twitter.com/1.1/statuses/update.json" [("text","Hello World")]
+-- APIRequestPost "https://api.twitter.com/1.1/statuses/update.json" [("status","Hello World")]
 -- >>> update "Hello World" & inReplyToStatusId ?~ 1234567890
--- APIRequestPost "https://api.twitter.com/1.1/statuses/update.json" [("in_reply_to_status_id","1234567890"),("text","Hello World")]
+-- APIRequestPost "https://api.twitter.com/1.1/statuses/update.json" [("in_reply_to_status_id","1234567890"),("status","Hello World")]
 update :: T.Text -> APIRequest StatusesUpdate Status
 update status = APIRequestPost uri [("status", T.encodeUtf8 status)]
   where uri = endpoint ++ "statuses/update.json"
