@@ -11,31 +11,42 @@
 module Web.Twitter.Conduit.Api
        (
        -- * Search
-         search
+         Search
+       , search
 
        -- * Direct Messages
+       , DirectMessages
        , directMessages
+       , DirectMessagesSent
        , directMessagesSent
+       , DirectMessagesShow
        , directMessagesShow
+       , DirectMessagesDestroy
        , directMessagesDestroy
+       , DirectMessagesNew
        , directMessagesNew
 
        -- * Friends & Followers
        -- , friendshipsNoRetweetsIds
+       , FriendsIds
        , friendsIds
+       , FollowersIds
        , followersIds
        -- , friendshipsLookup
        -- , friendshipsIncoming
        -- , friendshipsOutgoing
+       , FriendshipsCreate
        , friendshipsCreate
        -- , friendshipsDestroy
        -- , friendshipsUpdate
        -- , friendshipsShow
+       , FriendsList
        , friendsList
        -- , followersList
 
        -- * Users
        -- , accountSettings
+       , AccountVerifyCredentials
        , accountVerifyCredentials
        -- , accountSettingsUpdate
        -- , accountUpdateDeliveryDevice
@@ -48,7 +59,9 @@ module Web.Twitter.Conduit.Api
        -- , blocksCreate
        -- , blocksDestroy
 
+       , UsersLookup
        , usersLookup
+       , UsersShow
        , usersShow
        -- , usersSearch
        -- , usersContributees
@@ -64,7 +77,9 @@ module Web.Twitter.Conduit.Api
 
        -- * Favorites
        -- , favoritesList
+       , FavoritesDestroy
        , favoritesDestroy
+       , FavoritesCreate
        , favoritesCreate
 
        -- * Lists
@@ -73,6 +88,7 @@ module Web.Twitter.Conduit.Api
        -- , listsSubscribers
        -- , listsSubscribersShow
        -- , listsMembersShow
+       , ListsMembers
        , listsMembers
        -- , lists
        -- , listsShow
