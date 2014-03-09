@@ -21,10 +21,12 @@ import Control.Applicative
 class CursorKey a where
     cursorKey :: a -> T.Text
 
+-- | Phantom type to specify the key which point out the content in the response.
 data IdsCursorKey
 instance CursorKey IdsCursorKey where
     cursorKey = const "ids"
 
+-- | Phantom type to specify the key which point out the content in the response.
 data UsersCursorKey
 instance CursorKey UsersCursorKey where
     cursorKey = const "users"
