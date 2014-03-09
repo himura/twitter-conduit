@@ -250,10 +250,10 @@ data StatusesRetweetId
 -- @
 --
 -- >>> retweetId 1234567890
--- APIRequestPost "https://api.twitter.com/1.1/statuses/retweet/1234567890.json []
+-- APIRequestPost "https://api.twitter.com/1.1/statuses/retweet/1234567890.json" []
 retweetId :: StatusId -> APIRequest StatusesRetweetId RetweetedStatus
 retweetId status_id = APIRequestPost uri def
-  where uri = "statuses/retweet/" ++ show status_id ++ ".json"
+  where uri = endpoint ++ "statuses/retweet/" ++ show status_id ++ ".json"
 deriveHasParamInstances ''StatusesRetweetId
     [ "trim_user"
     ]
