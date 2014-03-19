@@ -8,7 +8,7 @@ import Common
 import Control.Lens
 
 main :: IO ()
-main = withCF $ do
+main = runTwitterFromEnv' $ do
     [statusIdStr] <- liftIO getArgs
     let sId = read statusIdStr
     targetStatus <- call $ showId sId

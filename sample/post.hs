@@ -11,7 +11,7 @@ import System.Environment
 import Common
 
 main :: IO ()
-main = withCF $ do
+main = runTwitterFromEnv' $ do
     status <- T.concat . map T.pack <$> liftIO getArgs
     liftIO $ T.putStrLn $ "Post message: " <> status
     res <- call $ update status

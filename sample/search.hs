@@ -10,7 +10,7 @@ import qualified Data.Text as T
 import Control.Lens
 
 main :: IO ()
-main = withCF $ do
+main = runTwitterFromEnv' $ do
     [keyword] <- liftIO getArgs
 
     res <- call . search $ T.pack keyword

@@ -20,11 +20,19 @@ import Web.Twitter.Conduit
 import Common
 import Control.Lens
 
+ensureDirectoryExist :: FilePath -> IO FilePath
+ensureDirectoryExist dir = do
+    createDirectoryIfMissing True dir
+    return dir
+
+confdir :: IO FilePath
+confdir = fmap (</> ".twitter-conduit") getHomeDirectory >>= ensureDirectoryExist
+
 iconPath :: IO FilePath
 iconPath = (</> "icons") <$> confdir >>= ensureDirectoryExist
 
 main :: IO ()
-main = withCF $ do
+main = runTwitterFromEnv' $ do
     src <- stream userstream
     src C.$$+- CL.mapM_ (^! act (liftIO . printTL))
 
