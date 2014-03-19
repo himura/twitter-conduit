@@ -8,7 +8,7 @@ import System.Environment
 import Common
 
 main :: IO ()
-main = withCF $ do
+main = runTwitterFromEnv' $ do
     [status, filepath] <- liftIO getArgs
     liftIO $ putStrLn $ "Post message: " ++ status
     res <- call $ updateWithMedia (T.pack status) (MediaFromFile filepath)

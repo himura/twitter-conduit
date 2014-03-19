@@ -11,7 +11,7 @@ import Web.Twitter.Conduit
 import Common
 
 main :: IO ()
-main = withCF $ do
+main = runTwitterFromEnv' $ do
     [screenName] <- liftIO getArgs
     let sn = ScreenNameParam screenName
     folids <- sourceWithCursor (followersIds sn) C.$$ CL.consume
