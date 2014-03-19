@@ -171,3 +171,24 @@ executable oauth_callback
       , twitter-conduit
       , scotty >= 0.7
 
+executable oauth_pin
+  main-is: oauth_pin.hs
+  hs-source-dirs: sample/
+
+  if !flag(build-samples)
+    buildable: False
+  else
+    build-depends:
+        base >= 4.0 && < 5
+      , containers
+      , transformers-base
+      , transformers
+      , monad-control
+      , bytestring
+      , text
+      , resourcet
+      , conduit
+      , http-types
+      , http-conduit
+      , authenticate-oauth
+      , twitter-conduit
