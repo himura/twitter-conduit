@@ -1,0 +1,73 @@
+{-# LANGUAGE OverloadedStrings #-}
+
+module Main where
+
+import Web.Scotty
+import qualified Network.HTTP.Types as HT
+import Web.Twitter.Conduit hiding (text)
+import Web.Authenticate.OAuth (OAuth(..), Credential(..))
+import qualified Web.Authenticate.OAuth as OA
+import qualified Network.HTTP.Conduit as HTTP
+import qualified Data.Text.Lazy as LT
+import qualified Data.ByteString as S
+import qualified Data.ByteString.Char8 as S8
+import qualified Data.Map as M
+import Data.IORef
+import Control.Monad.IO.Class
+import System.IO.Unsafe
+
+callback :: String
+callback = "http://localhost:3000/callback"
+
+tokens :: OAuth
+tokens = twitterOAuth
+    { oauthConsumerKey = error "You MUST specify oauthConsumerKey parameter."
+    , oauthConsumerSecret = error "You MUST specify oauthConsumerSecret parameter."
+    , oauthCallback = Just $ S8.pack callback
+    }
+
+type OAuthToken = S.ByteString
+
+usersToken :: IORef (M.Map OAuthToken Credential)
+usersToken = unsafePerformIO $ newIORef M.empty
+
+takeCredential :: OAuthToken -> IORef (M.Map OAuthToken Credential) -> IO (Maybe Credential)
+takeCredential k ioref =
+    atomicModifyIORef ioref $ \m ->
+        let (res, newm) = M.updateLookupWithKey (\_ _ -> Nothing) k m in
+        (newm, res)
+
+storeCredential :: OAuthToken -> Credential -> IORef (M.Map OAuthToken Credential) -> IO ()
+storeCredential k cred ioref =
+    atomicModifyIORef ioref $ \m -> (M.insert k cred m, ())
+
+main :: IO ()
+main = do
+    putStrLn $ "browse URL: " ++ callback
+    scotty 3000 app
+
+app :: ScottyM ()
+app = do
+    get "/callback" $ do
+        temporaryToken <- param "oauth_token"
+        oauthVerifier <- param "oauth_verifier"
+        mcred <- liftIO $ takeCredential temporaryToken usersToken
+        case mcred of
+            Just cred -> do
+                accessTokens <- liftIO $ HTTP.withManager $ OA.getAccessToken tokens (OA.insert "oauth_verifier" oauthVerifier cred)
+                liftIO $ print accessTokens
+                text . LT.pack $ show accessTokens
+            Nothing -> do
+                status HT.status404
+                text "temporary token is not found"
+
+    get "/signIn" $ do
+        cred <- liftIO $ HTTP.withManager $ OA.getTemporaryCredential tokens
+        case lookup "oauth_token" $ unCredential cred of
+            Just temporaryToken -> do
+                liftIO $ storeCredential temporaryToken cred usersToken
+                let url = OA.authorizeUrl tokens cred
+                redirect $ LT.pack url
+            Nothing -> do
+                status HT.status500
+                text "Failed to obtain the temporary token."
