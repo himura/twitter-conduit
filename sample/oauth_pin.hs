@@ -1,6 +1,11 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE FlexibleContexts #-}
 
+-- Example:
+--   $ export OAUTH_CONSUMER_KEY="your consumer key"
+--   $ export OAUTH_CONSUMER_SECRET="your consumer secret"
+--   $ runhaskell oauth_pin.hs
+
 module Main where
 
 import Web.Twitter.Conduit
@@ -10,14 +15,19 @@ import qualified Data.Conduit as C
 import qualified Data.ByteString.Char8 as S8
 import Control.Monad.Trans.Control
 import Control.Monad.IO.Class
+import System.Environment
 import System.IO (hFlush, stdout)
 
-tokens :: OAuth
-tokens = twitterOAuth
-    { oauthConsumerKey = error "You MUST specify oauthConsumerKey parameter."
-    , oauthConsumerSecret = error "You MUST specify oauthConsumerSecret parameter."
-    , oauthCallback = Just "oob"
-    }
+getTokens :: IO OAuth
+getTokens = do
+    consumerKey <- getEnv "OAUTH_CONSUMER_KEY"
+    consumerSecret <- getEnv "OAUTH_CONSUMER_SECRET"
+    return $
+        twitterOAuth
+        { oauthConsumerKey = S8.pack consumerKey
+        , oauthConsumerSecret = S8.pack consumerSecret
+        , oauthCallback = Just "oob"
+        }
 
 authorize :: (MonadBaseControl IO m, C.MonadResource m)
           => OAuth -- ^ OAuth Consumer key and secret
@@ -37,5 +47,6 @@ authorize oauth mgr = do
 
 main :: IO ()
 main = do
+    tokens <- getTokens
     cred <- liftIO $ withManager $ authorize tokens
     print cred

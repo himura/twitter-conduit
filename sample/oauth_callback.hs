@@ -1,5 +1,10 @@
 {-# LANGUAGE OverloadedStrings #-}
 
+-- Example:
+--   $ export OAUTH_CONSUMER_KEY="your consumer key"
+--   $ export OAUTH_CONSUMER_SECRET="your consumer secret"
+--   $ runhaskell oauth_callback.hs
+
 module Main where
 
 import Web.Scotty
@@ -14,17 +19,22 @@ import qualified Data.ByteString.Char8 as S8
 import qualified Data.Map as M
 import Data.IORef
 import Control.Monad.IO.Class
+import System.Environment
 import System.IO.Unsafe
 
 callback :: String
 callback = "http://localhost:3000/callback"
 
-tokens :: OAuth
-tokens = twitterOAuth
-    { oauthConsumerKey = error "You MUST specify oauthConsumerKey parameter."
-    , oauthConsumerSecret = error "You MUST specify oauthConsumerSecret parameter."
-    , oauthCallback = Just $ S8.pack callback
-    }
+getTokens :: IO OAuth
+getTokens = do
+    consumerKey <- getEnv "OAUTH_CONSUMER_KEY"
+    consumerSecret <- getEnv "OAUTH_CONSUMER_SECRET"
+    return $
+        twitterOAuth
+        { oauthConsumerKey = S8.pack consumerKey
+        , oauthConsumerSecret = S8.pack consumerSecret
+        , oauthCallback = Just $ S8.pack callback
+        }
 
 type OAuthToken = S.ByteString
 
@@ -43,11 +53,12 @@ storeCredential k cred ioref =
 
 main :: IO ()
 main = do
+    tokens <- getTokens
     putStrLn $ "browse URL: " ++ callback
-    scotty 3000 app
+    scotty 3000 $ app tokens
 
-app :: ScottyM ()
-app = do
+app :: OAuth -> ScottyM ()
+app tokens = do
     get "/callback" $ do
         temporaryToken <- param "oauth_token"
         oauthVerifier <- param "oauth_verifier"
