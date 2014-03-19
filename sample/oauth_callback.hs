@@ -54,7 +54,7 @@ storeCredential k cred ioref =
 main :: IO ()
 main = do
     tokens <- getTokens
-    putStrLn $ "browse URL: " ++ callback
+    putStrLn $ "browse URL: http://localhost:3000/signIn"
     scotty 3000 $ app tokens
 
 app :: OAuth -> ScottyM ()
