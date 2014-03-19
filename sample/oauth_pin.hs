@@ -13,6 +13,8 @@ import Web.Authenticate.OAuth as OA
 import Network.HTTP.Conduit
 import qualified Data.Conduit as C
 import qualified Data.ByteString.Char8 as S8
+import Data.Maybe
+import Data.Monoid
 import Control.Monad.Trans.Control
 import Control.Monad.IO.Class
 import System.Environment
@@ -48,5 +50,12 @@ authorize oauth mgr = do
 main :: IO ()
 main = do
     tokens <- getTokens
-    cred <- liftIO $ withManager $ authorize tokens
+    Credential cred <- liftIO $ withManager $ authorize tokens
     print cred
+
+    S8.putStrLn . S8.intercalate "\n" $
+        [ "export OAUTH_CONSUMER_KEY=\"" <> oauthConsumerKey tokens <> "\""
+        , "export OAUTH_CONSUMER_SECRET=\"" <> oauthConsumerSecret tokens <> "\""
+        , "export OAUTH_ACCESS_TOKEN=\"" <> fromMaybe "" (lookup "oauth_token" cred) <> "\""
+        , "export OAUTH_ACCESS_SECRET=\"" <> fromMaybe "" (lookup "oauth_token_secret" cred) <> "\""
+        ]

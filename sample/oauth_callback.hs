@@ -17,6 +17,8 @@ import qualified Data.Text.Lazy as LT
 import qualified Data.ByteString as S
 import qualified Data.ByteString.Char8 as S8
 import qualified Data.Map as M
+import Data.Maybe
+import Data.Monoid
 import Data.IORef
 import Control.Monad.IO.Class
 import System.Environment
@@ -57,6 +59,15 @@ main = do
     putStrLn $ "browse URL: http://localhost:3000/signIn"
     scotty 3000 $ app tokens
 
+makeMessage :: OAuth -> Credential -> S.ByteString
+makeMessage tokens (Credential cred) =
+    S8.intercalate "\n"
+        [ "export OAUTH_CONSUMER_KEY=\"" <> oauthConsumerKey tokens <> "\""
+        , "export OAUTH_CONSUMER_SECRET=\"" <> oauthConsumerSecret tokens <> "\""
+        , "export OAUTH_ACCESS_TOKEN=\"" <> fromMaybe "" (lookup "oauth_token" cred) <> "\""
+        , "export OAUTH_ACCESS_SECRET=\"" <> fromMaybe "" (lookup "oauth_token_secret" cred) <> "\""
+        ]
+
 app :: OAuth -> ScottyM ()
 app tokens = do
     get "/callback" $ do
@@ -67,7 +78,11 @@ app tokens = do
             Just cred -> do
                 accessTokens <- liftIO $ HTTP.withManager $ OA.getAccessToken tokens (OA.insert "oauth_verifier" oauthVerifier cred)
                 liftIO $ print accessTokens
-                text . LT.pack $ show accessTokens
+
+                let message = makeMessage tokens accessTokens
+                liftIO . S8.putStrLn $ message
+                text . LT.pack . S8.unpack $ message
+
             Nothing -> do
                 status HT.status404
                 text "temporary token is not found"
