@@ -32,14 +32,14 @@ type TW m = ReaderT TWEnv m
 data TWToken = TWToken
     { twOAuth :: OAuth
     , twCredential :: Credential
-    }
+    } deriving Show
 instance Default TWToken where
     def = TWToken twitterOAuth (Credential [])
 
 data TWInfo = TWInfo
     { twToken :: TWToken
     , twProxy :: Maybe Proxy
-    }
+    } deriving Show
 instance Default TWInfo where
     def = TWInfo
         { twToken = def
