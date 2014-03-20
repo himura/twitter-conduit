@@ -14,6 +14,7 @@ module Web.Twitter.Conduit.Base
        ( api
        , apiRequest
        , call
+       , call'
        , sourceWithMaxId
        , sourceWithCursor
        , TwitterBaseM
