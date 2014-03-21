@@ -46,6 +46,10 @@ import Control.Monad.Logger
 import Control.Monad.IO.Class
 import Control.Lens
 
+#ifdef HLINT
+{-# ANN module "HLint: ignore Use import/export shortcut" #-}
+#endif
+
 -- $howto
 --
 -- The main module of twitter-conduit is "Web.Twitter.Conduit".
