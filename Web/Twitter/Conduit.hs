@@ -1,4 +1,5 @@
 {-# LANGUAGE CPP #-}
+{-# OPTIONS_GHC -fno-warn-unused-imports #-}
 
 -- |
 -- Module:      Web.Twitter.Conduit
@@ -35,6 +36,16 @@ import Web.Twitter.Conduit.Request
 import Web.Twitter.Conduit.Parameters
 import Web.Twitter.Types.Lens
 
+-- for haddock
+import Web.Authenticate.OAuth
+import Data.Conduit
+import qualified Data.Conduit.List as CL
+import qualified Data.Text as T
+import qualified Data.Text.IO as T
+import Control.Monad.Logger
+import Control.Monad.IO.Class
+import Control.Lens
+
 -- $howto
 --
 -- The main module of twitter-conduit is "Web.Twitter.Conduit".
@@ -58,11 +69,13 @@ import Web.Twitter.Types.Lens
 -- First, you should obtain consumer token and secret from <https://apps.twitter.com/ Twitter>,
 -- and prepare 'OAuth' variables as follows:
 --
--- > tokens :: OAuth
--- > tokens = twitterOAuth
--- >     { oauthConsumerKey = "YOUR CONSUMER KEY"
--- >     , oauthConsumerSecret = "YOUR CONSUMER SECRET"
--- >     }
+-- @
+-- tokens :: 'OAuth'
+-- tokens = 'twitterOAuth'
+--     { 'oauthConsumerKey' = \"YOUR CONSUMER KEY\"
+--     , 'oauthConsumerSecret' = \"YOUR CONSUMER SECRET\"
+--     }
+-- @
 --
 -- Second, you should obtain access token and secret.
 -- You can find examples obtaining those tokens in
@@ -74,19 +87,23 @@ import Web.Twitter.Types.Lens
 --
 -- You should set an access token to 'Credential' variable:
 --
--- > credential :: Credential
--- > credential = Credential
--- >     [ ("oauth_token", "YOUR ACCESS TOKEN")
--- >     , ("oauth_token_secret", "YOUR ACCESS TOKEN SECRET")
--- >     ]
+-- @
+-- credential :: 'Credential'
+-- credential = 'Credential'
+--     [ (\"oauth_token\", \"YOUR ACCESS TOKEN\")
+--     , (\"oauth_token_secret\", \"YOUR ACCESS TOKEN SECRET\")
+--     ]
+-- @
 --
 -- You should also set up the 'TWToken' and 'TWInfo' variables as below:
 --
--- > twInfo :: TWInfo
--- > twInfo = def
--- >     { twToken = def { twOAuth = tokens, twCredential = credential }
--- >     , twProxy = Nothing
--- >     }
+-- @
+-- twInfo :: 'TWInfo'
+-- twInfo = 'def'
+--     { 'twToken' = 'def' { 'twOAuth' = tokens, 'twCredential' = credential }
+--     , 'twProxy' = Nothing
+--     }
+-- @
 --
 -- Or, simply as follows:
 --
