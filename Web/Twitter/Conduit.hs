@@ -158,9 +158,9 @@ import Control.Lens
 --         $= CL.isolate 60
 --         $$ CL.mapM_ $ \status -> liftIO $ do
 --             T.putStrLn $ T.concat [ T.pack . show $ status ^. statusId
---                                   , ": "
+--                                   , \": \"
 --                                   , status ^. statusUser . userScreenName
---                                   , ": "
+--                                   , \": \"
 --                                   , status ^. statusText
 --                                   ]
 -- @
