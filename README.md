@@ -6,6 +6,8 @@
 
 This is an conduit based Twitter API library for Haskell, including Streaming API supports.
 
+Documentation is available in [hackage](http://hackage.haskell.org/package/twitter-conduit).
+
 ## Usage ##
 
     $ cabal update
@@ -16,7 +18,7 @@ This is an conduit based Twitter API library for Haskell, including Streaming AP
 For a runnable example, see [sample/simple.hs](https://github.com/himura/twitter-conduit/blob/master/sample/simple.hs).
 You can find other various examples in [sample](https://github.com/himura/twitter-conduit/tree/master/sample/) directory.
 
-## Samples ##
+## Run Samples ##
 
 ### Build ###
 
