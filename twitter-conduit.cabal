@@ -48,7 +48,7 @@ library
     , shakespeare
     , http-types
     , http-conduit >= 2.0
-    , http-client-multipart
+    , http-client
     , aeson >= 0.7
     , attoparsec >= 0.10
     , attoparsec-conduit >= 1.0
