@@ -21,6 +21,12 @@ description:
   .
   This package is under development. If you find something that has not been implemented yet, please send a pull request or open an issue on GitHub.
 
+extra-source-files:
+  .gitignore
+  .travis.yml
+  README.md
+  sample/*.hs
+
 source-repository head
   type: git
   location: git://github.com/himura/twitter-conduit.git
