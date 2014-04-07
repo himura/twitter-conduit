@@ -41,13 +41,13 @@ library
     , monad-control >= 0.3
     , lens >= 4.0
     , authenticate-oauth >= 1.3
-    , resourcet >= 0.4.3
-    , conduit >= 1.0
+    , resourcet >= 0.4.3 && < 0.5
+    , conduit >= 1.0 && < 1.1
     , failure >= 0.2
     , monad-logger
-    , shakespeare
+    , shakespeare >= 2.0
     , http-types
-    , http-conduit >= 2.0
+    , http-conduit >= 2.0 && < 2.1
     , http-client-multipart
     , aeson >= 0.7
     , attoparsec >= 0.10
