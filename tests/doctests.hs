@@ -15,6 +15,9 @@ main = do
            , "-idist/build/autogen"
            , "-optP-include"
            , "-optPdist/build/autogen/cabal_macros.h"
+           , "-fhpc"
+           , "-hpcdir"
+           , "dist/hpc/mix/doctests"
            ]
 
 findSources :: FilePath -> IO [FilePath]
