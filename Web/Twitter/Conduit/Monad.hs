@@ -101,7 +101,7 @@ getProxy = asks (twProxy . twInfo)
 getManager :: Monad m => TW m Manager
 getManager = asks twManager
 
-signOAuthTW :: MonadUnsafeIO m
+signOAuthTW :: MonadIO m
             => Request
             -> TW m Request
 signOAuthTW req = do

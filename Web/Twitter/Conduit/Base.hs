@@ -46,18 +46,19 @@ import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as S8
 import Control.Monad.IO.Class
 import Control.Monad.Trans.Class (lift)
+import Control.Monad.Trans.Resource (MonadResource, MonadThrow, monadThrow)
 import Text.Shakespeare.Text
 import Control.Monad.Logger
 import Control.Lens
 import Unsafe.Coerce
 
 #if __GLASGOW_HASKELL__ >= 704
-type TwitterBaseM m = ( C.MonadResource m
+type TwitterBaseM m = ( MonadResource m
                       , MonadLogger m
                       )
 #else
-class (C.MonadResource m, MonadLogger m) => TwitterBaseM m
-instance (C.MonadResource m, MonadLoger m) => TwitterBaseM m
+class (MonadResource m, MonadLogger m) => TwitterBaseM m
+instance (MonadResource m, MonadLoger m) => TwitterBaseM m
 #endif
 
 makeRequest :: MonadIO m
@@ -190,7 +191,7 @@ sourceWithCursor' req = loop (-1)
         CL.sourceList $ contents res
         loop $ nextCursor res
 
-sinkJSON :: ( C.MonadThrow m
+sinkJSON :: ( MonadThrow m
             , MonadLogger m
             ) => C.Consumer ByteString m Value
 sinkJSON = do
@@ -199,13 +200,13 @@ sinkJSON = do
     return js
 
 sinkFromJSON :: ( FromJSON a
-                , C.MonadThrow m
+                , MonadThrow m
                 , MonadLogger m
                 ) => C.Consumer ByteString m a
 sinkFromJSON = do
     v <- sinkJSON
     case fromJSON v of
-        Error err -> lift $ C.monadThrow $ TwitterError err
+        Error err -> lift $ monadThrow $ TwitterError err
         Success r -> return r
 
 showBS :: Show a => a -> ByteString
