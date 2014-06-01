@@ -7,12 +7,16 @@
 .DS_Store
 .gdb_history
 TAGS
-# Object files
+# Object files, etc
 *.a
 *.o
 *.so
 *.hi
 *.p_hi
+*.chi
+*.chs.h
+*.tix
+.hpc
 a.out
 # autotool
 autom4te.cache
@@ -22,5 +26,5 @@ stamp-h1
 Main
 dist/
 cabal-dev/
+.cabal-sandbox/
 cabal.sandbox.config
-.cabal-sandbox
