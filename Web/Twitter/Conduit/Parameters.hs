@@ -24,7 +24,6 @@ module Web.Twitter.Conduit.Parameters
        , HasSkipStatusParam (..)
        , HasFollowParam (..)
        , HasMapParam (..)
-       , HasIdParam (..)
 
        , UserParam(..)
        , UserListParam(..)
@@ -53,8 +52,6 @@ data UserListParam = UserIdListParam [UserId] | ScreenNameListParam [String]
 data ListParam = ListIdParam Integer | ListNameParam String
                deriving (Show, Eq)
 
-type IntList = [ Integer ]
-
 defineHasParamClass "count" ''Integer 'readShow
 defineHasParamClass "since_id" ''Integer 'readShow
 defineHasParamClass "max_id" ''Integer 'readShow
@@ -76,7 +73,6 @@ defineHasParamClass "until" ''Day 'readShow
 defineHasParamClass "skip_status" ''Bool 'booleanQuery
 defineHasParamClass "follow" ''Bool 'booleanQuery
 defineHasParamClass "map" ''Bool 'booleanQuery
-defineHasParamClass "id" ''IntList 'intListQuery
 
 -- | converts 'UserParam' to 'HT.SimpleQuery'.
 --

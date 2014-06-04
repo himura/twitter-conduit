@@ -40,19 +40,19 @@ module Web.Twitter.Conduit.Status
        , lookup
        ) where
 
-import Prelude hiding ( lookup , id )
+import Prelude hiding ( lookup )
 import Web.Twitter.Conduit.Base
 import Web.Twitter.Conduit.Request
 import Web.Twitter.Conduit.Parameters
 import Web.Twitter.Conduit.Parameters.TH
 import Web.Twitter.Types
 
+import qualified Data.ByteString as S
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
 import Network.HTTP.Client.MultipartFormData
 import Network.HTTP.Conduit
 import Data.Default
-import Control.Lens
 
 -- $setup
 -- >>> :set -XOverloadedStrings
@@ -309,10 +309,9 @@ data StatusesLookup
 -- >>> lookup [10, 432656548536401920] & includeEntities ?~ True
 -- APIRequestGet "https://api.twitter.com/1.1/statuses/lookup.json" [("include_entities","true"),("id","10,432656548536401920")]
 lookup :: [ StatusId ] -> APIRequest StatusesLookup [Status]
-lookup ids = APIRequestGet (endpoint ++ "statuses/lookup.json") def & id ?~ ids
+lookup ids = APIRequestGet (endpoint ++ "statuses/lookup.json") [("id", S.intercalate "," . Prelude.map showBS $ ids)]
 deriveHasParamInstances ''StatusesLookup
-    [ "id"
-    , "include_entities"
+    [ "include_entities"
     , "trim_user"
     , "map"
     ]

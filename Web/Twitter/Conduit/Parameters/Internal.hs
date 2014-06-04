@@ -5,7 +5,6 @@ module Web.Twitter.Conduit.Parameters.Internal
        ( Parameters(..)
        , readShow
        , booleanQuery
-       , intListQuery
        , wrappedParam
        ) where
 
@@ -53,13 +52,6 @@ booleanQuery = prism' bs sb
     sb "1" = Just True
     sb "t" = Just True
     sb _ = Just False
-
--- | This 'Prism' convert from a 'ByteString' to '[Integer]' value.
-intListQuery :: Prism' S.ByteString [ Integer ]
-intListQuery = prism' bs sb
-  where
-    bs l = S8.pack . init . tail . show $ l
-    sb s = Just . read $ "[" ++ S8.unpack s ++ "]"
 
 wrappedParam :: Parameters p => S.ByteString -> Prism' S.ByteString a -> Lens' p (Maybe a)
 wrappedParam key aSBS = lens getter setter
