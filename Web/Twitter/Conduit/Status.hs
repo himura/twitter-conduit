@@ -36,7 +36,6 @@ module Web.Twitter.Conduit.Status
        , updateWithMedia
        -- , oembed
        -- , retweetersIds
-       -- , lookup
        , StatusesLookup
        , lookup
        ) where
@@ -295,18 +294,20 @@ deriveHasParamInstances ''StatusesUpdateWithMedia
     ]
 
 data StatusesLookup
--- | Returns query data asks a collection of the most recentTweets and retweets posted by the authenticating user and the users they follow.
+-- | Returns fully-hydrated tweet objects for up to 100 tweets per request, as specified by comma-separated values passed to the id parameter.
 --
--- You can perform a search query using 'call':
+-- You can perform a request using 'call':
 --
 -- @
--- res <- 'call' 'homeTimeline'
+-- res <- 'call' '$' 'lookup' [20, 432656548536401920]
 -- @
 --
--- >>> homeTimeline
--- APIRequestGet "https://api.twitter.com/1.1/statuses/home_timeline.json" []
--- >>> homeTimeline & count ?~ 200
--- APIRequestGet "https://api.twitter.com/1.1/statuses/home_timeline.json" [("count","200")]
+-- >>> lookup [10]
+-- APIRequestGet "https://api.twitter.com/1.1/statuses/lookup.json" [("id","10")]
+-- >>> lookup [10, 432656548536401920]
+-- APIRequestGet "https://api.twitter.com/1.1/statuses/lookup.json" [("id","10,432656548536401920")]
+-- >>> lookup [10, 432656548536401920] & includeEntities ?~ True
+-- APIRequestGet "https://api.twitter.com/1.1/statuses/lookup.json" [("include_entities","true"),("id","10,432656548536401920")]
 lookup :: [ StatusId ] -> APIRequest StatusesLookup [Status]
 lookup ids = APIRequestGet (endpoint ++ "statuses/lookup.json") def & id ?~ ids
 deriveHasParamInstances ''StatusesLookup
