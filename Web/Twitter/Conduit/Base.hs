@@ -25,6 +25,7 @@ module Web.Twitter.Conduit.Base
        , showBS
        ) where
 
+import Prelude as P
 import Web.Twitter.Conduit.Monad
 import Web.Twitter.Conduit.Error
 import Web.Twitter.Conduit.Parameters
@@ -120,7 +121,7 @@ call' (APIRequestPostMultipart u param prt) = do
     src C.$$+- sinkFromJSON
   where
     body = prt ++ partParam
-    partParam = map (uncurry partBS . over _1 T.decodeUtf8) param
+    partParam = P.map (uncurry partBS . over _1 T.decodeUtf8) param
 
 sourceWithMaxId :: ( TwitterBaseM m
                    , FromJSON responseType
