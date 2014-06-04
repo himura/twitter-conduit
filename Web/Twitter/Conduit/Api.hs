@@ -27,17 +27,20 @@ module Web.Twitter.Conduit.Api
        , directMessagesNew
 
        -- * Friends & Followers
-       -- , friendshipsNoRetweetsIds
+       , FriendshipsNoRetweetsIds
+       , friendshipsNoRetweetsIds
        , FriendsIds
        , friendsIds
        , FollowersIds
        , followersIds
-       -- , friendshipsLookup
-       -- , friendshipsIncoming
-       -- , friendshipsOutgoing
+       , FriendshipsIncoming
+       , friendshipsIncoming
+       , FriendshipsOutgoing
+       , friendshipsOutgoing
        , FriendshipsCreate
        , friendshipsCreate
-       -- , friendshipsDestroy
+       , FriendshipsDestroy
+       , friendshipsDestroy
        -- , friendshipsUpdate
        -- , friendshipsShow
        , FriendsList
@@ -233,6 +236,20 @@ data DirectMessagesNew
 directMessagesNew :: UserParam -> T.Text -> APIRequest DirectMessagesNew DirectMessage
 directMessagesNew q msg = APIRequestPost (endpoint ++ "direct_messages/new.json") (("text", T.encodeUtf8 msg):mkUserParam q)
 
+data FriendshipsNoRetweetsIds
+-- | Returns a collection of user_ids that the currently authenticated user does not want to receive retweets from.
+--
+-- You can perform a request using 'call':
+--
+-- @
+-- res <- 'call' '$' 'friendshipsNoRetweetsIds'
+-- @
+--
+-- >>> friendshipsNoRetweetsIds
+-- APIRequestGet "https://api.twitter.com/1.1/friendships/no_retweets/ids.json" []
+friendshipsNoRetweetsIds :: APIRequest FriendshipsNoRetweetsIds [UserId]
+friendshipsNoRetweetsIds = APIRequestGet (endpoint ++ "friendships/no_retweets/ids.json") []
+
 data FriendsIds
 -- | Returns query data which asks a collection of user IDs for every user the specified user is following.
 --
@@ -287,6 +304,54 @@ deriveHasParamInstances ''FollowersIds
     , "count"
     ]
 
+data FriendshipsIncoming
+-- | Returns a collection of numeric IDs for every user who has a pending request to follow the authenticating user.
+--
+-- You can perform a request by using 'call':
+--
+-- @
+-- res <- 'call' '$' 'friendshipsIncoming'
+-- @
+--
+-- Or, you can iterate with 'sourceWithCursor':
+--
+-- @
+-- 'sourceWithCursor' 'friendshipsIncoming' $$ CL.consume
+-- @
+--
+-- >>> friendshipsIncoming
+-- APIRequestGet "https://api.twitter.com/1.1/friendships/incoming.json" []
+friendshipsIncoming :: APIRequest FriendshipsIncoming (WithCursor IdsCursorKey UserId)
+friendshipsIncoming = APIRequestGet (endpoint ++ "friendships/incoming.json") def
+deriveHasParamInstances ''FriendshipsIncoming
+    [ "cursor"
+    -- , "stringify_ids" -- (needless)
+    ]
+
+data FriendshipsOutgoing
+-- | Returns a collection of numeric IDs for every protected user for whom the authenticating user has a pending follow request.
+--
+-- You can perform a request by using 'call':
+--
+-- @
+-- res <- 'call' '$' 'friendshipsOutgoing'
+-- @
+--
+-- Or, you can iterate with 'sourceWithCursor':
+--
+-- @
+-- 'sourceWithCursor' 'friendshipsOutgoing' $$ CL.consume
+-- @
+--
+-- >>> friendshipsOutgoing
+-- APIRequestGet "https://api.twitter.com/1.1/friendships/outgoing.json" []
+friendshipsOutgoing :: APIRequest FriendshipsOutgoing (WithCursor IdsCursorKey UserId)
+friendshipsOutgoing = APIRequestGet (endpoint ++ "friendships/outgoing.json") def
+deriveHasParamInstances ''FriendshipsOutgoing
+    [ "cursor"
+    -- , "stringify_ids" -- (needless)
+    ]
+
 data FriendshipsCreate
 -- | Returns post data which follows the user specified in the ID parameter.
 --
@@ -305,6 +370,22 @@ friendshipsCreate user = APIRequestPost (endpoint ++ "friendships/create.json") 
 deriveHasParamInstances ''FriendshipsCreate
     [ "follow"
     ]
+
+data FriendshipsDestroy
+-- | Returns post data which follows the user specified in the ID parameter.
+--
+-- You can perform request by using 'call':
+--
+-- @
+-- res <- 'call' '$' 'friendshipsDestroy' ('ScreenNameParam' \"thimura\")
+-- @
+--
+-- >>> friendshipsDestroy (ScreenNameParam "thimura")
+-- APIRequestPost "https://api.twitter.com/1.1/friendships/destroy.json" [("screen_name","thimura")]
+-- >>> friendshipsDestroy (UserIdParam 69179963)
+-- APIRequestPost "https://api.twitter.com/1.1/friendships/destroy.json" [("user_id","69179963")]
+friendshipsDestroy :: UserParam -> APIRequest FriendshipsDestroy User
+friendshipsDestroy user = APIRequestPost (endpoint ++ "friendships/destroy.json") (mkUserParam user)
 
 data FriendsList
 -- | Returns query data which asks a cursored collection of user objects for every user the specified users is following.
