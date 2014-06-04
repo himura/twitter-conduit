@@ -36,8 +36,12 @@ module Web.Twitter.Conduit.Status
        , updateWithMedia
        -- , oembed
        -- , retweetersIds
+       -- , lookup
+       , StatusesLookup
+       , lookup
        ) where
 
+import Prelude hiding ( lookup , id )
 import Web.Twitter.Conduit.Base
 import Web.Twitter.Conduit.Request
 import Web.Twitter.Conduit.Parameters
@@ -49,6 +53,7 @@ import qualified Data.Text.Encoding as T
 import Network.HTTP.Client.MultipartFormData
 import Network.HTTP.Conduit
 import Data.Default
+import Control.Lens
 
 -- $setup
 -- >>> :set -XOverloadedStrings
@@ -287,4 +292,26 @@ deriveHasParamInstances ''StatusesUpdateWithMedia
     -- , "lat_long"
     -- , "place_id"
     , "display_coordinates"
+    ]
+
+data StatusesLookup
+-- | Returns query data asks a collection of the most recentTweets and retweets posted by the authenticating user and the users they follow.
+--
+-- You can perform a search query using 'call':
+--
+-- @
+-- res <- 'call' 'homeTimeline'
+-- @
+--
+-- >>> homeTimeline
+-- APIRequestGet "https://api.twitter.com/1.1/statuses/home_timeline.json" []
+-- >>> homeTimeline & count ?~ 200
+-- APIRequestGet "https://api.twitter.com/1.1/statuses/home_timeline.json" [("count","200")]
+lookup :: [ StatusId ] -> APIRequest StatusesLookup [Status]
+lookup ids = APIRequestGet (endpoint ++ "statuses/lookup.json") def & id ?~ ids
+deriveHasParamInstances ''StatusesLookup
+    [ "id"
+    , "include_entities"
+    , "trim_user"
+    , "map"
     ]

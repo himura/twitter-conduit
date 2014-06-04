@@ -23,6 +23,8 @@ module Web.Twitter.Conduit.Parameters
        , HasUntilParam (..)
        , HasSkipStatusParam (..)
        , HasFollowParam (..)
+       , HasMapParam (..)
+       , HasIdParam (..)
 
        , UserParam(..)
        , UserListParam(..)
@@ -32,6 +34,7 @@ module Web.Twitter.Conduit.Parameters
        , mkListParam
        ) where
 
+import Prelude as P
 import Web.Twitter.Conduit.Parameters.Internal
 import Web.Twitter.Conduit.Parameters.TH
 import Web.Twitter.Types
@@ -49,6 +52,8 @@ data UserListParam = UserIdListParam [UserId] | ScreenNameListParam [String]
                    deriving (Show, Eq)
 data ListParam = ListIdParam Integer | ListNameParam String
                deriving (Show, Eq)
+
+type IntList = [ Integer ]
 
 defineHasParamClass "count" ''Integer 'readShow
 defineHasParamClass "since_id" ''Integer 'readShow
@@ -70,6 +75,8 @@ defineHasParamClass "locale" ''Text 'utf8
 defineHasParamClass "until" ''Day 'readShow
 defineHasParamClass "skip_status" ''Bool 'booleanQuery
 defineHasParamClass "follow" ''Bool 'booleanQuery
+defineHasParamClass "map" ''Bool 'booleanQuery
+defineHasParamClass "id" ''IntList 'intListQuery
 
 -- | converts 'UserParam' to 'HT.SimpleQuery'.
 --
@@ -91,7 +98,7 @@ mkUserParam (ScreenNameParam sn) = [("screen_name", S8.pack sn)]
 -- [("screen_name","thimura,NikaidouShinku")]
 mkUserListParam :: UserListParam -> HT.SimpleQuery
 mkUserListParam (UserIdListParam uids) =  [("user_id", uids ^.. traversed . re readShow & S8.intercalate ",")]
-mkUserListParam (ScreenNameListParam sns) = [("screen_name", S8.intercalate "," . map S8.pack $ sns)]
+mkUserListParam (ScreenNameListParam sns) = [("screen_name", S8.intercalate "," . P.map S8.pack $ sns)]
 
 -- | converts 'ListParam' to 'HT.SimpleQuery'.
 --
