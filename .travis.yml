@@ -18,9 +18,11 @@ before_install:
 
 install:
   - export PATH=$HOME/.cabal/bin:$PATH
+  - which cabal
   - cabal update
   - cabal install happy
   - cabal install --only-dependencies --enable-tests
+  - ghc-pkg list
 
 script:
   - cabal configure --enable-tests
