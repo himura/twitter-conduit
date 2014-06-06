@@ -20,6 +20,7 @@ install:
   - export PATH=$HOME/.cabal/bin:$PATH
   - which cabal
   - cabal update
+  - cabal install happy --constraint="transformers < 0.4"
   - cabal install --only-dependencies --enable-tests
   - ghc-pkg list
 
