@@ -13,7 +13,7 @@ import qualified Network.HTTP.Types as HT
 import Control.Applicative
 
 -- $setup
--- >>> :set -XOverloadedStrings -XRank2Types -XEmptyDataDecls -XFlexibleInstances
+-- >>> :set -XOverloadedStrings -XRank2Types -XEmptyDataDecls -XFlexibleInstances -XOverlappingInstances
 -- >>> import Control.Lens
 -- >>> import Data.Default
 -- >>> data SampleApi
