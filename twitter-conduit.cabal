@@ -14,8 +14,8 @@ homepage:          https://github.com/himura/twitter-conduit
 description:
   This package provides bindings to Twitter's APIs (see <https://dev.twitter.com/>).
   .
-  This package uses http-conduit package for access Twitter API (see <http://hackage.haskell.org/package/http-conduit>).
-  This package also depends to twitter-types package (see <http://hackage.haskell.org/package/twitter-types>).
+  This package uses the http-conduit package for accessing the Twitter API (see <http://hackage.haskell.org/package/http-conduit>).
+  This package also depends on the twitter-types package (see <http://hackage.haskell.org/package/twitter-types>).
   .
   You can find basic examples in the <https://github.com/himura/twitter-conduit/tree/master/sample> directory.
   .
