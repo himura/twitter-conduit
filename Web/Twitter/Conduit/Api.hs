@@ -11,7 +11,8 @@
 module Web.Twitter.Conduit.Api
        (
        -- * Search
-         Search
+         SearchTweets
+       , searchTweets
        , search
 
        -- * Direct Messages
@@ -113,24 +114,24 @@ import Data.Default
 -- >>> :set -XOverloadedStrings
 -- >>> import Control.Lens
 
-data Search
+data SearchTweets
 -- | Returns search query.
 --
 -- You can perform a search query using 'call':
 --
 -- @
--- res <- 'call' ('search' \"search text\")
+-- res <- 'call' ('searchTweets' \"search text\")
 -- 'liftIO' . 'print' $ res ^. 'searchResultStatuses'
 -- @
 --
--- >>> search "search text"
+-- >>> searchTweets "search text"
 -- APIRequestGet "https://api.twitter.com/1.1/search/tweets.json" [("q","search text")]
--- >>> search "search text" & lang ?~ "ja" & count ?~ 100
+-- >>> searchTweets "search text" & lang ?~ "ja" & count ?~ 100
 -- APIRequestGet "https://api.twitter.com/1.1/search/tweets.json" [("count","100"),("lang","ja"),("q","search text")]
-search :: T.Text -- ^ search string
-       -> APIRequest Search (SearchResult [SearchStatus])
-search q = APIRequestGet (endpoint ++ "search/tweets.json") [("q", T.encodeUtf8 q)]
-deriveHasParamInstances ''Search
+searchTweets :: T.Text -- ^ search string
+             -> APIRequest SearchTweets (SearchResult [SearchStatus])
+searchTweets q = APIRequestGet (endpoint ++ "search/tweets.json") [("q", T.encodeUtf8 q)]
+deriveHasParamInstances ''SearchTweets
     [ "lang"
     , "locale"
     -- , "result_type"
@@ -141,6 +142,11 @@ deriveHasParamInstances ''Search
     , "include_entities"
     -- , "callback"  (needless)
     ]
+
+-- | Alias of 'searchTweets', for backward compatibility
+search :: T.Text -- ^ search string
+       -> APIRequest SearchTweets (SearchResult [SearchStatus])
+search = searchTweets
 
 data DirectMessages
 -- | Returns query data which asks recent direct messages sent to the authenticating user.
