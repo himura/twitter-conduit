@@ -8,7 +8,7 @@
 
 module Main where
 
-import Web.Twitter.Conduit
+import Web.Twitter.Conduit hiding (lookup)
 import Web.Authenticate.OAuth as OA
 import Network.HTTP.Conduit
 import qualified Data.Conduit as C
