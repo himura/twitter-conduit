@@ -1,6 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE CPP #-}
 
 module TestUtils (runTwitterFromEnv, run) where
 
@@ -58,8 +59,10 @@ runTwitterFromEnv task = do
     let env = (setCredential oa cred def) { twProxy = pr }
     runTW env task
 
--- run :: (MonadIO m, MonadBaseControl IO m) => TW (ResourceT (LoggingT m)) a -> m a
--- run = runStderrLoggingT . runTwitterFromEnv
-
+#ifdef USE_DEBUG_OUTPUT
+run :: (MonadIO m, MonadBaseControl IO m) => TW (ResourceT (LoggingT m)) a -> m a
+run = runStderrLoggingT . runTwitterFromEnv
+#else
 run :: (MonadIO m, MonadBaseControl IO m) => TW (ResourceT (NoLoggingT m)) a -> m a
 run = runNoLoggingT . runTwitterFromEnv
+#endif
