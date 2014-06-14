@@ -101,6 +101,37 @@ test-suite doctests
     , directory
     , doctest
 
+test-suite spec_main
+  type: exitcode-stdio-1.0
+  main-is: spec_main.hs
+  hs-source-dirs: tests
+
+  build-depends:
+      base >= 4.0 && < 5
+    , transformers-base
+    , transformers
+    , monad-control
+    , lens
+    , bytestring
+    , text
+    , data-default
+    , resourcet
+    , conduit
+    , http-conduit
+    , monad-logger
+    , authenticate-oauth
+    , case-insensitive
+    , network
+    , containers
+    , hspec
+    , twitter-types
+    , twitter-conduit
+  other-modules:
+    Spec
+    ApiSpec
+    StatusSpec
+    TestUtils
+
 executable simple
   main-is: simple.hs
   hs-source-dirs: sample/
