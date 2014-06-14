@@ -47,6 +47,7 @@ module Web.Twitter.Conduit.Api
        , FriendsList
        , friendsList
        -- , followersList
+       -- , friendshipsLookup
 
        -- * Users
        -- , accountSettings
@@ -72,7 +73,11 @@ module Web.Twitter.Conduit.Api
        -- , usersContributors
        -- , accuntRemoveProfileBanner
        -- , accuntUpdateProfileBanner
-       -- , accuntProfileBanner
+       -- , usersProfileBanner
+       -- , mutesUsersCreate
+       -- , mutesUsersDestroy
+       -- , mutesUsersIds
+       -- , mutesUsersList
 
        -- * Suggested Users
        -- , usersSuggestionsSlug
@@ -87,16 +92,39 @@ module Web.Twitter.Conduit.Api
        , favoritesCreate
 
        -- * Lists
+       -- , listsList
        -- , listsStatuses
+       -- , listsMembersDestroy
        -- , listsMemberships
        -- , listsSubscribers
+       -- , listsSubscribersCreate
        -- , listsSubscribersShow
+       -- , listsSubscribersDestroy
+       -- , listsSubscribersCreateAll
        -- , listsMembersShow
        , ListsMembers
        , listsMembers
-       -- , lists
+       -- , listsMembersCreate
+       -- , listsDestroy
+       -- , listsUpdate
+       -- , listsCreate
        -- , listsShow
        -- , listsSubscriptions
+       -- , listsMembersDestroyAll
+       -- , listsOwnerships
+
+       -- * Saved Searches
+       -- savedSearchesList
+       -- savedSearchesShowId
+       -- savedSearchesCreate
+       -- savedSearchesDestroyId
+
+       -- * Places & Geo
+       -- geoIdPlaceId
+       -- geoReverseGeocode
+       -- geoSearch
+       -- geoSimilarPlaces
+       -- geoPlace
        ) where
 
 import Web.Twitter.Types
