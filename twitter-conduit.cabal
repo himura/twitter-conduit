@@ -39,6 +39,10 @@ flag use-debug-output
   description: use debug output when running testsuites
   default: False
 
+flag run-integrated-test
+  description: use debug output when running testsuites
+  default: False
+
 library
   ghc-options: -Wall
 
@@ -111,6 +115,9 @@ test-suite spec_main
   hs-source-dirs: tests, .
   if flag(use-debug-output)
     CPP-Options: -DUSE_DEBUG_OUTPUT
+
+  if flag(run-integrated-test)
+    CPP-Options: -DRUN_INTEGRATED_TEST
 
   build-depends:
       base >= 4.0 && < 5

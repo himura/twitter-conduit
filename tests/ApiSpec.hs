@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE CPP #-}
 
 module ApiSpec where
 
@@ -21,6 +22,16 @@ self = unsafePerformIO . run . call $ accountVerifyCredentials
 
 spec :: Spec
 spec = do
+    unit
+#ifdef RUN_INTEGRATED_TEST
+    integrated
+#endif
+
+unit :: Spec
+unit = return ()
+
+integrated :: Spec
+integrated = do
     describe "friendsIds" $ do
         it "returns a cursored collection of users IDs" $ do
             res <- run . call $ friendsIds (Param.ScreenNameParam "thimura")

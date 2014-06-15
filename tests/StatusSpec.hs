@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE CPP #-}
 
 module StatusSpec where
 
@@ -20,6 +21,16 @@ self = unsafePerformIO . run . call $ accountVerifyCredentials
 
 spec :: Spec
 spec = do
+    unit
+#ifdef RUN_INTEGRATED_TEST
+    integrated
+#endif
+
+unit :: Spec
+unit = return ()
+
+integrated :: Spec
+integrated = do
     describe "mentionsTimeline" $ do
         it "returns the 20 most resent mentions for user" $ do
             res <- run $ call mentionsTimeline
