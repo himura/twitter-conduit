@@ -38,20 +38,19 @@ spec = do
                    $ userTimeline (Param.ScreenNameParam "thimura")
                    & Param.count ?~ 100 & Param.includeRts ?~ True
             res `shouldSatisfy` (anyOf (folded . statusRetweet . _Just . statusUser . userScreenName) (/= "thimura"))
-
-    describe "homeTimeline" $ do
-        it "returns the most recent tweets in home timeline" $ do
-            res <- run $ call homeTimeline
-            length res `shouldSatisfy` (> 0)
-
         it "iterate with sourceWithMaxId" $ do
             tl <- run $ do
-                let src = sourceWithMaxId $ homeTimeline & Param.count ?~ 200
+                let src = sourceWithMaxId $ userTimeline (Param.ScreenNameParam "thimura") & Param.count ?~ 200
                 src $$ CL.isolate 600 =$ CL.consume
             length tl `shouldSatisfy` (== 600)
 
             let ids = tl ^.. traversed . statusId
             zip ids (tail ids) `shouldSatisfy` all (\(a, b) -> a > b)
+
+    describe "homeTimeline" $ do
+        it "returns the most recent tweets in home timeline" $ do
+            res <- run $ call homeTimeline
+            length res `shouldSatisfy` (> 0)
 
     describe "retweetsOfMe" $ do
         let response = unsafePerformIO . run . call $ retweetsOfMe
