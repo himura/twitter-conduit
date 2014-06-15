@@ -32,7 +32,7 @@ install:
   - travis_retry cabal update
   - cabal install happy --constraint="transformers < 0.4"
   - cabal install --only-dependencies --enable-tests
-  - "[ -n \"$USE_COVERALLS\" ] && travis_retry cabal install hpc-coveralls"
+  - "[ -n \"$USE_COVERALLS\" ] && travis_retry cabal install hpc-coveralls || true"
   - ghc-pkg list
 
 script:
@@ -46,4 +46,4 @@ script:
     fi
 
 after_script:
-  - "[ -n \"$USE_COVERALLS\" ] && hpc-coveralls spec_main"
+  - "[ -n \"$USE_COVERALLS\" ] && hpc-coveralls spec_main || true"
