@@ -42,7 +42,12 @@ install:
   - ghc-pkg list
 
 script:
-  - cabal configure --enable-tests --enable-library-coverage
+  - |
+    if [ -n "$USE_COVERALLS" ]; then
+      cabal configure --enable-tests --enable-library-coverage
+    else
+      cabal configure --enable-tests
+    fi
   - cabal build
   - |
     if [ -n "$USE_COVERALLS" ]; then
