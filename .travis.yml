@@ -25,16 +25,17 @@ before_install:
   - travis_retry sudo apt-get update
   - travis_retry sudo apt-get install cabal-install-1.18 ghc-$GHCVER
   - export PATH=/opt/ghc/$GHCVER/bin:/opt/cabal/1.18/bin:$PATH
+  - travis_retry cabal update
+  - travis_retry cabal install hpc-coveralls
 
 install:
   - export PATH=$HOME/.cabal/bin:$PATH
   - which cabal
-  - cabal update
   - cabal install happy --constraint="transformers < 0.4"
   - cabal install --only-dependencies --enable-tests
   - ghc-pkg list
 
 script:
-  - cabal configure --enable-tests
+  - cabal configure --enable-tests --enable-library-coverage
   - cabal build
-  - cabal test --show-details=always
+  - run-cabal-test --show-details=always
