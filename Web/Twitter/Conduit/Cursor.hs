@@ -53,7 +53,7 @@ data WithCursor cursorKey wrapped = WithCursor
     { previousCursor :: Integer
     , nextCursor :: Integer
     , contents :: [wrapped]
-    }
+    } deriving Show
 
 instance (FromJSON wrapped, CursorKey c) =>
          FromJSON (WithCursor c wrapped) where
