@@ -46,4 +46,4 @@ script:
     fi
 
 after_script:
-  - "[ -n \"$USE_COVERALLS\" ] && hpc-coveralls tests"
+  - "[ -n \"$USE_COVERALLS\" ] && hpc-coveralls spec_main"
