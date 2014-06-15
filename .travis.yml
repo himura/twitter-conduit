@@ -1,10 +1,20 @@
 language: haskell
 
 env:
-  - GHCVER=7.4.2
-  - GHCVER=7.6.3
-  - GHCVER=7.8.2
-  - GHCVER=head
+  global:
+    # OAUTH_CONSUMER_KEY
+    - secure: "U3hh6wJf87tdZmwLtPyMQ0ci39ouKvTm/JCi0CCz2jaPvWZR+4Tt7aYV5WYqzjSmgfBOqKpXTpwFBcvvWRty8rI1b8OtrlljC1zUcgf/hsz3hfPtv+GKW/ldYnqg7znyeAdxWEF1a4JszKgOJaGMdX7zSpFewgwEq7T4jAlebLA="
+    # OAUTH_CONSUMER_SECRET
+    - secure: "I4BGd16zNQE3WjnwgdT7OM5sIIMtT9DMFPNdnWJPcgYndDovnFAUDoTomaGo0Wue4h64vGWl26f2Nm04i2upJXxkzFFtU5Az6cwUjzkOve1yqrkkyPFTXC8MLQYX3Zz8scQ8h1IJCn0Luu5HsHsool6IFZpiUovLZbDXmY44yH4="
+    # OAUTH_ACCESS_TOKEN
+    - secure: "dW2pYRplxJ7HmJEo3lMgLlzfdOylBvWiV4PJt1j4GMDPJBOu3RM0h3zNkkxDoS9D0wWRkBEH0iN2Bh08v2z7sJtF3f/kgLvPlOy5mNSYcozwMdHJRlJEcXaGULHbZ4p79lVIOdTAhY2WU2QdP7PEv0BiqqVcysnfK0TGkTa+KEc="
+    # OAUTH_ACCESS_SECRET
+    - secure: "I5hzi7sONDn8KJAhmkroHsGNJ2zUxYq2iGamTV9lgMUDH0bwpMx+guzfZr+fGesdlUphM0t+ZCh9YH8BoVJsjZ/db9u/lotg78DKp1QwhrWnISqWj6TIfXrSLPkBwY+xFtxl6Ihsjyl+ileiK5sb0C9mC+zXidgBqEM73miAokY="
+  matrix:
+    - GHCVER=7.4.2
+    - GHCVER=7.6.3
+    - GHCVER=7.8.2
+    - GHCVER=head
 
 matrix:
   allow_failures:
