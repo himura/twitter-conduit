@@ -1,30 +1,60 @@
 language: haskell
 
 env:
-  - GHCVER=7.4.2
-  - GHCVER=7.6.3
-  - GHCVER=7.8.2
-  - GHCVER=head
+  global:
+    # OAUTH_CONSUMER_KEY
+    - secure: "U3hh6wJf87tdZmwLtPyMQ0ci39ouKvTm/JCi0CCz2jaPvWZR+4Tt7aYV5WYqzjSmgfBOqKpXTpwFBcvvWRty8rI1b8OtrlljC1zUcgf/hsz3hfPtv+GKW/ldYnqg7znyeAdxWEF1a4JszKgOJaGMdX7zSpFewgwEq7T4jAlebLA="
+    # OAUTH_CONSUMER_SECRET
+    - secure: "I4BGd16zNQE3WjnwgdT7OM5sIIMtT9DMFPNdnWJPcgYndDovnFAUDoTomaGo0Wue4h64vGWl26f2Nm04i2upJXxkzFFtU5Az6cwUjzkOve1yqrkkyPFTXC8MLQYX3Zz8scQ8h1IJCn0Luu5HsHsool6IFZpiUovLZbDXmY44yH4="
+    # OAUTH_ACCESS_TOKEN
+    - secure: "dW2pYRplxJ7HmJEo3lMgLlzfdOylBvWiV4PJt1j4GMDPJBOu3RM0h3zNkkxDoS9D0wWRkBEH0iN2Bh08v2z7sJtF3f/kgLvPlOy5mNSYcozwMdHJRlJEcXaGULHbZ4p79lVIOdTAhY2WU2QdP7PEv0BiqqVcysnfK0TGkTa+KEc="
+    # OAUTH_ACCESS_SECRET
+    - secure: "I5hzi7sONDn8KJAhmkroHsGNJ2zUxYq2iGamTV9lgMUDH0bwpMx+guzfZr+fGesdlUphM0t+ZCh9YH8BoVJsjZ/db9u/lotg78DKp1QwhrWnISqWj6TIfXrSLPkBwY+xFtxl6Ihsjyl+ileiK5sb0C9mC+zXidgBqEM73miAokY="
+  matrix:
+    - GHCVER=7.4.2
+    - GHCVER=7.6.3
+    - GHCVER=7.8.2 USE_COVERALLS=1
+    - GHCVER=head
 
 matrix:
   allow_failures:
     - env: GHCVER=head
 
 before_install:
-  - travis_retry sudo add-apt-repository -y ppa:hvr/ghc
-  - travis_retry sudo apt-get update
-  - travis_retry sudo apt-get install cabal-install-1.18 ghc-$GHCVER
-  - export PATH=/opt/ghc/$GHCVER/bin:/opt/cabal/1.18/bin:$PATH
+  - |
+    if [ $GHCVER = `ghc --numeric-version` ]; then
+      echo "use system ghc: `which ghc` `ghc --numeric-version`"
+    else
+      travis_retry sudo add-apt-repository -y ppa:hvr/ghc
+      travis_retry sudo apt-get update
+      travis_retry sudo apt-get install  -y --force-yes cabal-install-1.18 ghc-$GHCVER
+      export PATH=/opt/ghc/$GHCVER/bin:/opt/cabal/1.18/bin:$PATH
+      echo "use ppa:hvr/ghc: `which ghc` `ghc --numeric-version`"
+    fi
 
 install:
   - export PATH=$HOME/.cabal/bin:$PATH
   - which cabal
-  - cabal update
+  - travis_retry cabal update
   - cabal install happy --constraint="transformers < 0.4"
   - cabal install --only-dependencies --enable-tests
+  - "[ -n \"$USE_COVERALLS\" ] && travis_retry cabal install hpc-coveralls || true"
   - ghc-pkg list
 
 script:
-  - cabal configure --enable-tests
+  - |
+    if [ -n "$USE_COVERALLS" ]; then
+      cabal configure --enable-tests --enable-library-coverage
+    else
+      cabal configure --enable-tests
+    fi
   - cabal build
-  - cabal test --show-details=always
+  - |
+    if [ -n "$USE_COVERALLS" ]; then
+      run-cabal-test --show-details=always
+    else
+      cabal test --show-details=always
+    fi
+
+after_script:
+  - "[ -n \"$USE_COVERALLS\" ] && hpc-coveralls spec_main || true"
