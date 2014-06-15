@@ -108,22 +108,30 @@ test-suite doctests
 test-suite spec_main
   type: exitcode-stdio-1.0
   main-is: spec_main.hs
-  hs-source-dirs: tests
+  hs-source-dirs: tests, .
   if flag(use-debug-output)
     CPP-Options: -DUSE_DEBUG_OUTPUT
 
   build-depends:
       base >= 4.0 && < 5
+    , template-haskell
     , transformers-base
     , transformers
     , monad-control
     , lens
     , bytestring
+    , time
     , text
+    , aeson
+    , attoparsec >= 0.10
+    , attoparsec-conduit >= 1.0
+    , shakespeare
     , data-default
     , resourcet
     , conduit
+    , http-types
     , http-conduit
+    , http-client
     , monad-logger
     , authenticate-oauth
     , case-insensitive
@@ -131,7 +139,6 @@ test-suite spec_main
     , containers
     , hspec
     , twitter-types
-    , twitter-conduit
   other-modules:
     Spec
     ApiSpec
