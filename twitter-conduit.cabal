@@ -71,10 +71,10 @@ library
 
   exposed-modules:
     Web.Twitter.Conduit
+    Web.Twitter.Conduit.Types
     Web.Twitter.Conduit.Base
     Web.Twitter.Conduit.Cursor
     Web.Twitter.Conduit.Api
-    Web.Twitter.Conduit.Error
     Web.Twitter.Conduit.Monad
     Web.Twitter.Conduit.Stream
     Web.Twitter.Conduit.Status

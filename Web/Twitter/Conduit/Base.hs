@@ -22,13 +22,13 @@ module Web.Twitter.Conduit.Base
 
 import Prelude as P
 import Web.Twitter.Conduit.Monad
-import Web.Twitter.Conduit.Error
+import Web.Twitter.Conduit.Types
 import Web.Twitter.Conduit.Parameters
 import Web.Twitter.Conduit.Request
 import Web.Twitter.Conduit.Cursor
 import Web.Twitter.Types.Lens
 
-import Network.HTTP.Conduit
+import qualified Network.HTTP.Conduit as HTTP
 import Network.HTTP.Client.MultipartFormData
 import qualified Network.HTTP.Types as HT
 import qualified Data.Conduit as C
@@ -56,13 +56,13 @@ makeRequest :: MonadIO m
             => HT.Method -- ^ HTTP request method (GET or POST)
             -> String -- ^ API Resource URL
             -> HT.SimpleQuery -- ^ Query
-            -> TW m Request
+            -> TW m HTTP.Request
 makeRequest m url query = do
     p <- getProxy
-    req <- liftIO $ parseUrl url
-    return $ req { method = m
-                 , queryString = HT.renderSimpleQuery False query
-                 , proxy = p }
+    req <- liftIO $ HTTP.parseUrl url
+    return $ req { HTTP.method = m
+                 , HTTP.queryString = HT.renderSimpleQuery False query
+                 , HTTP.proxy = p }
 
 api :: TwitterBaseM m
     => HT.Method -- ^ HTTP request method (GET or POST)
@@ -73,16 +73,16 @@ api m url query =
     apiRequest =<< makeRequest m url query
 
 apiRequest :: TwitterBaseM m
-           => Request
+           => HTTP.Request
            -> TW m (C.ResumableSource (TW m) ByteString)
 apiRequest req = do
     signedReq <- signOAuthTW req
     $(logDebug) [st|Signed Request: #{show signedReq}|]
     mgr <- getManager
-    res <- http signedReq mgr
-    $(logDebug) [st|Response Status: #{show $ responseStatus res}|]
-    $(logDebug) [st|Response Header: #{show $ responseHeaders res}|]
-    return $ responseBody res
+    res <- HTTP.http signedReq mgr
+    $(logDebug) [st|Response Status: #{show $ HTTP.responseStatus res}|]
+    $(logDebug) [st|Response Header: #{show $ HTTP.responseHeaders res}|]
+    return $ HTTP.responseBody res
 
 endpoint :: String
 endpoint = "https://api.twitter.com/1.1/"
