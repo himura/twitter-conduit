@@ -47,7 +47,7 @@ library
   ghc-options: -Wall
 
   build-depends:
-      base >= 4 && < 5
+      base >= 4.5 && < 5
     , transformers >= 0.2.2
     , transformers-base
     , template-haskell
@@ -120,7 +120,7 @@ test-suite spec_main
     CPP-Options: -DRUN_INTEGRATED_TEST
 
   build-depends:
-      base >= 4.0 && < 5
+      base >= 4.5 && < 5
     , template-haskell
     , transformers-base
     , transformers
@@ -160,7 +160,7 @@ executable simple
     buildable: False
   else
     build-depends:
-        base >= 4.0 && < 5
+        base >= 4.5 && < 5
       , transformers-base
       , transformers
       , monad-control
@@ -183,7 +183,7 @@ executable userstream
     buildable: False
   else
     build-depends:
-        base >= 4.0 && < 5
+        base >= 4.5 && < 5
       , containers
       , transformers-base
       , transformers
@@ -213,7 +213,7 @@ executable oauth_callback
     buildable: False
   else
     build-depends:
-        base >= 4.0 && < 5
+        base >= 4.5 && < 5
       , containers
       , transformers-base
       , transformers
@@ -236,7 +236,7 @@ executable oauth_pin
     buildable: False
   else
     build-depends:
-        base >= 4.0 && < 5
+        base >= 4.5 && < 5
       , containers
       , transformers-base
       , transformers

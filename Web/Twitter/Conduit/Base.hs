@@ -3,12 +3,7 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE QuasiQuotes #-}
-#if __GLASGOW_HASKELL__ >= 704
 {-# LANGUAGE ConstraintKinds #-}
-#else
-{-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE UndecidableInstances #-}
-#endif
 
 module Web.Twitter.Conduit.Base
        ( api
@@ -53,14 +48,9 @@ import Control.Monad.Logger
 import Control.Lens
 import Unsafe.Coerce
 
-#if __GLASGOW_HASKELL__ >= 704
 type TwitterBaseM m = ( MonadResource m
                       , MonadLogger m
                       )
-#else
-class (MonadResource m, MonadLogger m) => TwitterBaseM m
-instance (MonadResource m, MonadLoger m) => TwitterBaseM m
-#endif
 
 makeRequest :: MonadIO m
             => HT.Method -- ^ HTTP request method (GET or POST)
