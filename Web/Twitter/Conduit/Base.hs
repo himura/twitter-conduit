@@ -197,7 +197,7 @@ sinkFromJSON :: ( FromJSON a
 sinkFromJSON = do
     v <- sinkJSON
     case fromJSON v of
-        Error err -> lift $ monadThrow $ TwitterError err
+        Error err -> lift $ monadThrow $ ParseError err
         Success r -> return r
 
 showBS :: Show a => a -> ByteString
