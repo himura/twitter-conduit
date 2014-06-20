@@ -125,15 +125,21 @@ module Web.Twitter.Conduit.Api
        -- geoSearch
        -- geoSimilarPlaces
        -- geoPlace
+
+       -- * media
+       , MediaUpload
+       , mediaUpload
        ) where
 
 import Web.Twitter.Types
+import Web.Twitter.Conduit.Types
 import Web.Twitter.Conduit.Parameters
 import Web.Twitter.Conduit.Parameters.TH
 import Web.Twitter.Conduit.Base
 import Web.Twitter.Conduit.Request
 import Web.Twitter.Conduit.Cursor
 
+import Network.HTTP.Client.MultipartFormData
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
 import Data.Default
@@ -555,3 +561,33 @@ deriveHasParamInstances ''ListsMembers
     , "skip_status"
     ]
 
+data MediaUpload
+-- | Upload media and returns the media data.
+--
+-- You can update your status with multiple media by calling 'mediaUpload' and 'update' successively.
+--
+-- First, you should upload media with 'mediaUpload':
+--
+-- @
+-- res1 <- 'call' '$' 'mediaUpload' ('MediaFromFile' \"\/path\/to\/upload\/file1.png\")
+-- res2 <- 'call' '$' 'mediaUpload' ('MediaRequestBody' \"file2.png\" \"[.. file body ..]\")
+-- @
+--
+-- and then collect the resulting media IDs and update your status by calling 'update':
+--
+-- @
+-- 'call' '$' 'update' \"Hello World\" '&' 'mediaIds' '?~' ['mediaId' res1, 'mediaId' res2]
+-- @
+--
+-- See: <https://dev.twitter.com/docs/api/multiple-media-extended-entities>
+--
+-- >>> mediaUpload (MediaFromFile "/home/test/test.png")
+-- APIRequestPostMultipart "https://upload.twitter.com/1.1/media/upload.json" []
+mediaUpload :: MediaData
+            -> APIRequest MediaUpload UploadedMedia
+mediaUpload mediaData =
+    APIRequestPostMultipart uri [] [mediaBody mediaData]
+  where
+    uri = "https://upload.twitter.com/1.1/media/upload.json"
+    mediaBody (MediaFromFile fp) = partFileSource "media" fp
+    mediaBody (MediaRequestBody filename filebody) = partFileRequestBody "media" filename filebody

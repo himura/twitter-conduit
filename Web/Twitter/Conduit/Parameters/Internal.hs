@@ -5,12 +5,14 @@ module Web.Twitter.Conduit.Parameters.Internal
        ( Parameters(..)
        , readShow
        , booleanQuery
+       , integerArrayQuery
        , wrappedParam
        ) where
 
 import qualified Network.HTTP.Types as HT
 import qualified Data.ByteString as S
 import qualified Data.ByteString.Char8 as S8
+import Data.Maybe
 import Control.Lens
 
 class Parameters a where
@@ -52,6 +54,28 @@ booleanQuery = prism' bs sb
     sb "1" = Just True
     sb "t" = Just True
     sb _ = Just False
+
+-- | This 'Prism' convert from a 'ByteString' to the array of 'Integer' value.
+--
+-- >>> integerArrayQuery # [1]
+-- "1"
+-- >>> integerArrayQuery # [1,2234,3]
+-- "1,2234,3"
+-- >>> "1,2234,3" ^? integerArrayQuery
+-- Just [1,2234,3]
+-- >>> "" ^? integerArrayQuery
+-- Just []
+-- >>> "hoge,2" ^? integerArrayQuery
+-- Nothing
+integerArrayQuery :: Prism' S.ByteString [Integer]
+integerArrayQuery = prism' bs_arr arr_bs
+  where
+    bs_arr xs = S8.intercalate "," $ xs ^.. traversed . re readShow
+    arr_bs str = chkValid $ map (^? readShow) $ S8.split ',' str
+    chkValid arr =
+        if all isJust arr
+        then Just (catMaybes arr)
+        else Nothing
 
 wrappedParam :: Parameters p => S.ByteString -> Prism' S.ByteString a -> Lens' p (Maybe a)
 wrappedParam key aSBS = lens getter setter

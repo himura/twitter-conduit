@@ -29,19 +29,23 @@ defineHasParamClass :: String -- ^ parameter name
                     -> Name -- ^ parameter type
                     -> Name -- ^ a Prism
                     -> Q [Dec]
-defineHasParamClass paramName typeN prismN =
-    defineHasParamClass' cNameS fNameS paramName typeN prismN
+defineHasParamClass paramName typeN =
+    defineHasParamClass' paramName (conT typeN)
+
+defineHasParamClass' :: String -> TypeQ -> Name -> Q [Dec]
+defineHasParamClass' paramName typeQ =
+    defineHasParamClass'' cNameS fNameS paramName typeQ
   where
     cNameS = paramNameToClassName paramName
     fNameS = snakeToLowerCamel paramName
 
-defineHasParamClass' :: String -> String -> String -> Name -> Name -> Q [Dec]
-defineHasParamClass' cNameS fNameS paramName typeN prismN = do
+defineHasParamClass'' :: String -> String -> String -> TypeQ -> Name -> Q [Dec]
+defineHasParamClass'' cNameS fNameS paramName typeQ prismN = do
     a <- newName "a"
     cName <- newName cNameS
     fName <- newName fNameS
     let cCxt = cxt [classP ''Parameters [varT a]]
-        tySig = sigD fName (appT (appT (conT ''Lens') (varT a)) (appT (conT ''Maybe) (conT typeN)))
+        tySig = sigD fName (appT (appT (conT ''Lens') (varT a)) (appT (conT ''Maybe) typeQ))
         valDef = valD (varP fName) (normalB (appE (appE (varE 'wrappedParam) (litE (stringL paramName))) (varE prismN))) []
     dec <- classD cCxt cName [PlainTV a] [] [tySig, valDef]
     return [dec]
