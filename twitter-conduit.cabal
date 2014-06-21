@@ -196,6 +196,7 @@ executable userstream
       , data-default
       , resourcet
       , conduit
+      , conduit-extra
       , http-conduit
       , monad-logger
       , authenticate-oauth

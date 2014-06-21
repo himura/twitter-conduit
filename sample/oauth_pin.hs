@@ -16,6 +16,7 @@ import qualified Data.ByteString.Char8 as S8
 import Data.Maybe
 import Data.Monoid
 import Control.Monad.Trans.Control
+import Control.Monad.Trans.Resource
 import Control.Monad.IO.Class
 import System.Environment
 import System.IO (hFlush, stdout)
@@ -31,7 +32,7 @@ getTokens = do
         , oauthCallback = Just "oob"
         }
 
-authorize :: (MonadBaseControl IO m, C.MonadResource m)
+authorize :: (MonadBaseControl IO m, MonadResource m)
           => OAuth -- ^ OAuth Consumer key and secret
           -> Manager
           -> m Credential

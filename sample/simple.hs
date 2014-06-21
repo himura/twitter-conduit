@@ -26,7 +26,7 @@ tokens = twitterOAuth
     , oauthConsumerSecret = error "You MUST specify oauthConsumerSecret parameter."
     }
 
-authorize :: (MonadBaseControl IO m, C.MonadResource m)
+authorize :: (MonadBaseControl IO m, MonadResource m)
           => OAuth -- ^ OAuth Consumer key and secret
           -> (String -> m String) -- ^ PIN prompt
           -> Manager
