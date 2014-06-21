@@ -12,6 +12,7 @@ module Web.Twitter.Conduit.Parameters.Internal
 import qualified Network.HTTP.Types as HT
 import qualified Data.ByteString as S
 import qualified Data.ByteString.Char8 as S8
+import qualified Data.Attoparsec.ByteString.Char8 as Atto
 import Data.Maybe
 import Control.Lens
 
@@ -56,6 +57,13 @@ booleanQuery = prism' bs sb
     sb _ = Just False
 
 -- | This 'Prism' convert from a 'ByteString' to the array of 'Integer' value.
+--
+-- This is not a valid Prism, for example:
+--
+-- @
+-- "1, 2" ^? integerArrayQuery == Just [1,2]
+-- integerArrayQuery # [1,2] != "1, 2"
+-- @
 --
 -- >>> integerArrayQuery # [1]
 -- "1"
