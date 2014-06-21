@@ -43,6 +43,7 @@ module Web.Twitter.Conduit.Status
 import Prelude hiding ( lookup )
 import Web.Twitter.Conduit.Base
 import Web.Twitter.Conduit.Request
+import Web.Twitter.Conduit.Types
 import Web.Twitter.Conduit.Parameters
 import Web.Twitter.Conduit.Parameters.TH
 import Web.Twitter.Types
@@ -51,7 +52,6 @@ import qualified Data.ByteString as S
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
 import Network.HTTP.Client.MultipartFormData
-import Network.HTTP.Conduit
 import Data.Default
 
 -- $setup
@@ -242,6 +242,7 @@ deriveHasParamInstances ''StatusesUpdate
     -- , "place_id"
     , "display_coordinates"
     , "trim_user"
+    , "media_ids"
     ]
 
 data StatusesRetweetId
@@ -261,9 +262,6 @@ retweetId status_id = APIRequestPost uri def
 deriveHasParamInstances ''StatusesRetweetId
     [ "trim_user"
     ]
-
-data MediaData = MediaFromFile FilePath
-               | MediaRequestBody FilePath RequestBody
 
 data StatusesUpdateWithMedia
 -- | Returns post data which updates the authenticating user's current status and attaches media for upload.

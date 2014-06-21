@@ -24,6 +24,7 @@ module Web.Twitter.Conduit.Parameters
        , HasSkipStatusParam (..)
        , HasFollowParam (..)
        , HasMapParam (..)
+       , HasMediaIdsParam (..)
 
        , UserParam(..)
        , UserListParam(..)
@@ -73,6 +74,7 @@ defineHasParamClass "until" ''Day 'readShow
 defineHasParamClass "skip_status" ''Bool 'booleanQuery
 defineHasParamClass "follow" ''Bool 'booleanQuery
 defineHasParamClass "map" ''Bool 'booleanQuery
+defineHasParamClass' "media_ids" [t|[Integer]|] 'integerArrayQuery
 
 -- | converts 'UserParam' to 'HT.SimpleQuery'.
 --

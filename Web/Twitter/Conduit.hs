@@ -25,8 +25,19 @@ module Web.Twitter.Conduit
        , module Web.Twitter.Conduit.Request
        , module Web.Twitter.Conduit.Parameters
        , module Web.Twitter.Types.Lens
+
+       , MediaData (..)
+       , UploadedMedia
+       , mediaId
+       , mediaSize
+       , mediaImage
+       , ImageSizeType
+       , imageWidth
+       , imageHeight
+       , imageType
        ) where
 
+import Web.Twitter.Conduit.Types
 import Web.Twitter.Conduit.Base
 import Web.Twitter.Conduit.Api
 import Web.Twitter.Conduit.Status
