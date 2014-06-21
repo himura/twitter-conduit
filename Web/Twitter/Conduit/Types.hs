@@ -8,7 +8,7 @@
 module Web.Twitter.Conduit.Types
        ( Response (..)
        , TwitterError (..)
-       , TwitterErrorCode (..)
+       , TwitterErrorMessage (..)
        , MediaData (..)
        , UploadedMedia (..)
        , ImageSizeType (..)
@@ -59,34 +59,35 @@ data Response responseType = Response
 
 data TwitterError
     = ParseError String
-    | TwitterStatusError Status ResponseHeaders TwitterErrorCode
+    | TwitterErrorResponse Status ResponseHeaders [TwitterErrorMessage]
+    | TwitterStatusError Status ResponseHeaders Value
     deriving (Show, Typeable)
 
 instance Exception TwitterError
 
--- | Twitter Error Codes
+-- | Twitter Error Messages
 --
 -- see detail: <https://dev.twitter.com/docs/error-codes-responses>
-data TwitterErrorCode = TwitterErrorCode
+data TwitterErrorMessage = TwitterErrorMessage
     { twitterErrorCode :: Int
     , twitterErrorMessage :: T.Text
     } deriving (Show, Data, Typeable)
 
-instance Eq TwitterErrorCode where
-    TwitterErrorCode { twitterErrorCode = a } == TwitterErrorCode { twitterErrorCode = b }
+instance Eq TwitterErrorMessage where
+    TwitterErrorMessage { twitterErrorCode = a } == TwitterErrorMessage { twitterErrorCode = b }
         = a == b
 
-instance Ord TwitterErrorCode where
-    compare TwitterErrorCode { twitterErrorCode = a } TwitterErrorCode { twitterErrorCode = b }
+instance Ord TwitterErrorMessage where
+    compare TwitterErrorMessage { twitterErrorCode = a } TwitterErrorMessage { twitterErrorCode = b }
         = a `compare` b
 
-instance Enum TwitterErrorCode where
+instance Enum TwitterErrorMessage where
     fromEnum = twitterErrorCode
-    toEnum a = TwitterErrorCode a T.empty
+    toEnum a = TwitterErrorMessage a T.empty
 
-instance FromJSON TwitterErrorCode where
+instance FromJSON TwitterErrorMessage where
     parseJSON (Object o) =
-        TwitterErrorCode
+        TwitterErrorMessage
         <$> o .:  "code"
         <*> o .:  "message"
     parseJSON v = fail $ "unexpected: " ++ show v
