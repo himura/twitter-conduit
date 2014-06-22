@@ -121,7 +121,7 @@ getValueOrThrow :: (MonadThrow m, MonadLogger m, FromJSON a)
                 => Response (C.ResumableSource (TW m) ByteString)
                 -> TW m a
 getValueOrThrow res = do
-    val <- getValueOrThrow res
+    val <- getValueOrThrow' res
     case fromJSON val of
         Success r -> return r
         Error err -> monadThrow $ ParseError err
