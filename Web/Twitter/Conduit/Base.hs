@@ -4,12 +4,14 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE ConstraintKinds #-}
+{-# LANGUAGE RecordWildCards #-}
 
 module Web.Twitter.Conduit.Base
        ( api
        , apiRequest
        , call
        , call'
+       , checkResponse
        , sourceWithMaxId
        , sourceWithCursor
        , TwitterBaseM
@@ -62,19 +64,21 @@ makeRequest m url query = do
     req <- liftIO $ HTTP.parseUrl url
     return $ req { HTTP.method = m
                  , HTTP.queryString = HT.renderSimpleQuery False query
-                 , HTTP.proxy = p }
+                 , HTTP.proxy = p
+                 , HTTP.checkStatus = \_ _ _ -> Nothing
+                 }
 
 api :: TwitterBaseM m
     => HT.Method -- ^ HTTP request method (GET or POST)
     -> String -- ^ API Resource URL
     -> HT.SimpleQuery -- ^ Query
-    -> TW m (C.ResumableSource (TW m) ByteString)
+    -> TW m (Response (C.ResumableSource (TW m) ByteString))
 api m url query =
     apiRequest =<< makeRequest m url query
 
 apiRequest :: TwitterBaseM m
            => HTTP.Request
-           -> TW m (C.ResumableSource (TW m) ByteString)
+           -> TW m (Response (C.ResumableSource (TW m) ByteString))
 apiRequest req = do
     signedReq <- signOAuthTW req
     $(logDebug) [st|Signed Request: #{show signedReq}|]
@@ -82,10 +86,54 @@ apiRequest req = do
     res <- HTTP.http signedReq mgr
     $(logDebug) [st|Response Status: #{show $ HTTP.responseStatus res}|]
     $(logDebug) [st|Response Header: #{show $ HTTP.responseHeaders res}|]
-    return $ HTTP.responseBody res
+    return
+        Response { responseStatus = HTTP.responseStatus res
+                 , responseHeaders = HTTP.responseHeaders res
+                 , responseBody = HTTP.responseBody res
+                 }
 
 endpoint :: String
 endpoint = "https://api.twitter.com/1.1/"
+
+getValue :: (MonadLogger m, MonadThrow m)
+         => Response (C.ResumableSource (TW m) ByteString)
+         -> TW m (Response Value)
+getValue res = do
+    value <- responseBody res C.$$+- sinkJSON
+    return $ res { responseBody = value }
+
+checkResponse :: Response Value
+              -> Either TwitterError Value
+checkResponse Response{..} =
+    case responseBody ^? key "errors" of
+        Just errs ->
+            case fromJSON errs of
+                Success errList -> Left $ TwitterErrorResponse responseStatus responseHeaders errList
+                Error msg -> Left $ ParseError msg
+        Nothing ->
+            if sci < 200 || sci > 400
+                then Left $ TwitterStatusError responseStatus responseHeaders responseBody
+                else Right responseBody
+  where
+    sci = HT.statusCode responseStatus
+
+getValueOrThrow :: (MonadThrow m, MonadLogger m, FromJSON a)
+                => Response (C.ResumableSource (TW m) ByteString)
+                -> TW m a
+getValueOrThrow res = do
+    val <- getValueOrThrow res
+    case fromJSON val of
+        Success r -> return r
+        Error err -> monadThrow $ ParseError err
+
+getValueOrThrow' :: (MonadLogger m, MonadThrow m)
+                 => Response (C.ResumableSource (TW m) ByteString)
+                 -> TW m Value
+getValueOrThrow' res = do
+    res' <- getValue res
+    case checkResponse res' of
+        Left err -> monadThrow err
+        Right v -> return v
 
 apiValue :: (TwitterBaseM m, FromJSON a)
          => HT.Method -- ^ HTTP request method (GET or POST)
@@ -94,7 +142,7 @@ apiValue :: (TwitterBaseM m, FromJSON a)
          -> TW m a
 apiValue m url query = do
     src <- api m url query
-    src C.$$+- sinkFromJSON
+    getValueOrThrow src
 
 call :: (TwitterBaseM m, FromJSON responseType)
      => APIRequest apiName responseType
@@ -109,7 +157,7 @@ call' (APIRequestPost u pa) = apiValue "POST" u pa
 call' (APIRequestPostMultipart u param prt) = do
     req <- formDataBody body =<< makeRequest "POST" u []
     src <- apiRequest req
-    src C.$$+- sinkFromJSON
+    getValueOrThrow src
   where
     body = prt ++ partParam
     partParam = P.map (uncurry partBS . over _1 T.decodeUtf8) param

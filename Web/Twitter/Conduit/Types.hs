@@ -1,5 +1,4 @@
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE DeriveFoldable #-}
 {-# LANGUAGE DeriveFunctor #-}
@@ -53,15 +52,15 @@ instance FromJSON UploadedMedia where
 
 data Response responseType = Response
     { responseStatus :: Status
-    , responseBody :: responseType
     , responseHeaders :: ResponseHeaders
+    , responseBody :: responseType
     } deriving (Show, Eq, Typeable, Functor, Foldable, Traversable)
 
 data TwitterError
     = ParseError String
     | TwitterErrorResponse Status ResponseHeaders [TwitterErrorMessage]
     | TwitterStatusError Status ResponseHeaders Value
-    deriving (Show, Typeable)
+    deriving (Show, Typeable, Eq)
 
 instance Exception TwitterError
 
