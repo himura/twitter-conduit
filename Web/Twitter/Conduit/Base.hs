@@ -109,7 +109,7 @@ checkResponse Response{..} =
         Just errs ->
             case fromJSON errs of
                 Success errList -> Left $ TwitterErrorResponse responseStatus responseHeaders errList
-                Error msg -> Left $ ParseError msg
+                Error msg -> Left $ FromJSONError msg
         Nothing ->
             if sci < 200 || sci > 400
                 then Left $ TwitterStatusError responseStatus responseHeaders responseBody
@@ -124,7 +124,7 @@ getValueOrThrow res = do
     val <- getValueOrThrow' res
     case fromJSON val of
         Success r -> return r
-        Error err -> monadThrow $ ParseError err
+        Error err -> monadThrow $ FromJSONError err
 
 getValueOrThrow' :: (MonadLogger m, MonadThrow m)
                  => Response (C.ResumableSource (TW m) ByteString)
@@ -245,7 +245,7 @@ sinkFromJSON :: ( FromJSON a
 sinkFromJSON = do
     v <- sinkJSON
     case fromJSON v of
-        Error err -> lift $ monadThrow $ ParseError err
+        Error err -> monadThrow $ FromJSONError err
         Success r -> return r
 
 showBS :: Show a => a -> ByteString

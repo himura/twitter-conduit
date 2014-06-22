@@ -57,7 +57,7 @@ data Response responseType = Response
     } deriving (Show, Eq, Typeable, Functor, Foldable, Traversable)
 
 data TwitterError
-    = ParseError String
+    = FromJSONError String
     | TwitterErrorResponse Status ResponseHeaders [TwitterErrorMessage]
     | TwitterStatusError Status ResponseHeaders Value
     deriving (Show, Typeable, Eq)
