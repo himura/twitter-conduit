@@ -4,18 +4,19 @@ module BaseSpec where
 
 import Web.Twitter.Conduit.Base
 import Web.Twitter.Conduit.Types
-import qualified Web.Twitter.Conduit.Types.Lens as Lens
 
+import Control.Applicative
 import Control.Lens
+import Control.Monad.Logger (runStderrLoggingT)
 import Data.Aeson
+import Data.Aeson.Lens
 import Data.Conduit
-import qualified Data.Conduit.List as CL
+import qualified Data.Conduit.Attoparsec as CA
 import Data.Maybe
 import qualified Data.Text as T
 import qualified Network.HTTP.Types as HT
 
 import Test.Hspec
-import TestUtils
 
 spec :: Spec
 spec = do
@@ -46,3 +47,43 @@ unit = do
                         hdr `shouldBe` []
                         body `shouldBe` errorMessage
                     _ -> expectationFailure $ "Unexpected " ++ show result
+
+    describe "sinkJSON" $ do
+        describe "when valid JSON input" $ do
+            let input = "{\"test\": \"input\", \"status\": 200 }"
+            it "can consume the input from Source and returns JSON Value" $ do
+                res <- runStderrLoggingT $ yield input $$ sinkJSON
+                res ^. key "test" . _String `shouldBe` "input"
+                res ^? key "status" . _Integer `shouldBe` Just 200
+        describe "when invalid JSON input" $ do
+            let input = "{]"
+            it "should raise Data.Conduit.Attoparsec.ParseError" $ do
+                let parseErrorException (CA.ParseError {}) = True
+                    parseErrorException _ = False
+                    action = runStderrLoggingT $ yield input $$ sinkJSON
+                action `shouldThrow` parseErrorException
+
+    describe "sinkFromJSON" $ do
+        describe "when valid JSON input" $ do
+            let input = "{\"test\": \"input\", \"status\": 200 }"
+            it "can consume the input from Source and returns a value which type is the specified one" $ do
+                res <- runStderrLoggingT $ yield input $$ sinkFromJSON
+                res `shouldBe` TestJSON "input" 200
+        describe "when the JSON value does not have expected format" $ do
+            let input = "{\"status\": 200}"
+            it "should raise FromJSONError" $ do
+                let fromJSONException (FromJSONError {}) = True
+                    fromJSONException _ = False
+                    action :: IO TestJSON
+                    action = runStderrLoggingT $ yield input $$ sinkFromJSON
+                action `shouldThrow` fromJSONException
+
+data TestJSON = TestJSON
+    { testField :: T.Text
+    , testStatus :: Int
+    } deriving (Show, Eq)
+instance FromJSON TestJSON where
+    parseJSON (Object o) =
+        TestJSON <$> o .: "test"
+                 <*> o .: "status"
+    parseJSON v = fail $ "Unexpected: " ++ show v
