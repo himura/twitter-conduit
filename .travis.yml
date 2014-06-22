@@ -57,4 +57,4 @@ script:
     fi
 
 after_script:
-  - "[ -n \"$USE_COVERALLS\" ] && hpc-coveralls spec_main || true"
+  - "[ -n \"$USE_COVERALLS\" ] && hpc-coveralls --exclude-dir=tests spec_main || true"
