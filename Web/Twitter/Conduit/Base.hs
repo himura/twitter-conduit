@@ -42,7 +42,6 @@ import qualified Data.Conduit.Attoparsec as CA
 import qualified Data.Text.Encoding as T
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as S8
-import Control.Monad.IO.Class
 import Control.Monad.Trans.Class (lift)
 import Control.Monad.Trans.Resource (MonadResource, MonadThrow, monadThrow)
 import Text.Shakespeare.Text
@@ -54,14 +53,14 @@ type TwitterBaseM m = ( MonadResource m
                       , MonadLogger m
                       )
 
-makeRequest :: MonadIO m
+makeRequest :: MonadThrow m
             => HT.Method -- ^ HTTP request method (GET or POST)
             -> String -- ^ API Resource URL
             -> HT.SimpleQuery -- ^ Query
             -> TW m HTTP.Request
 makeRequest m url query = do
     p <- getProxy
-    req <- liftIO $ HTTP.parseUrl url
+    req <- HTTP.parseUrl url
     return $ req { HTTP.method = m
                  , HTTP.queryString = HT.renderSimpleQuery False query
                  , HTTP.proxy = p
