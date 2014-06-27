@@ -75,7 +75,6 @@ library
     Web.Twitter.Conduit.Types.Lens
     Web.Twitter.Conduit.Types.TH
     Web.Twitter.Conduit.Base
-    Web.Twitter.Conduit.Cursor
     Web.Twitter.Conduit.Api
     Web.Twitter.Conduit.Monad
     Web.Twitter.Conduit.Stream
