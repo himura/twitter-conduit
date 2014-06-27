@@ -5,6 +5,10 @@ module Web.Twitter.Conduit.Types.Lens
        , responseStatus
        , responseBody
        , responseHeaders
+       , TT.WithCursor
+       , previousCursor
+       , nextCursor
+       , contents
        , TT.ImageSizeType
        , imageWidth
        , imageHeight
@@ -21,6 +25,7 @@ module Web.Twitter.Conduit.Types.Lens
 import qualified Web.Twitter.Conduit.Types as TT
 import Web.Twitter.Conduit.Types.TH
 
+makeLenses ''TT.WithCursor
 makeLenses ''TT.ImageSizeType
 makeLenses ''TT.UploadedMedia
 makeLenses ''TT.Response
