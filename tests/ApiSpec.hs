@@ -7,7 +7,7 @@ import Data.Conduit
 import qualified Data.Conduit.List as CL
 import Web.Twitter.Conduit (call, sourceWithCursor)
 import Web.Twitter.Conduit.Api
-import Web.Twitter.Conduit.Cursor (contents)
+import Web.Twitter.Conduit.Types.Lens
 import qualified Web.Twitter.Conduit.Parameters as Param
 import Web.Twitter.Types.Lens
 import Control.Lens
@@ -35,7 +35,7 @@ integrated = do
     describe "friendsIds" $ do
         it "returns a cursored collection of users IDs" $ do
             res <- run . call $ friendsIds (Param.ScreenNameParam "thimura")
-            length (contents res) `shouldSatisfy` (> 0)
+            res ^. contents . to length `shouldSatisfy` (> 0)
 
         it "iterate with sourceWithCursor" $ do
             friends <- run $ do
@@ -46,7 +46,7 @@ integrated = do
     describe "listsMembers" $ do
         it "returns a cursored collection of the member of specified list" $ do
             res <- run . call $ listsMembers (Param.ListNameParam "thimura/haskell")
-            length (contents res) `shouldSatisfy` (>= 0)
+            res ^. contents . to length `shouldSatisfy` (>= 0)
 
         it "should raise error when specified list does not exists" $ do
             let action = run . call $ listsMembers (Param.ListNameParam "thimura/haskell_ne")
