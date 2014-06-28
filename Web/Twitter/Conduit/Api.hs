@@ -137,7 +137,6 @@ import Web.Twitter.Conduit.Parameters
 import Web.Twitter.Conduit.Parameters.TH
 import Web.Twitter.Conduit.Base
 import Web.Twitter.Conduit.Request
-import Web.Twitter.Conduit.Cursor
 
 import Network.HTTP.Client.MultipartFormData
 import qualified Data.Text as T

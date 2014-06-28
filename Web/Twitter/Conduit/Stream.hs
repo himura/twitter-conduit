@@ -20,6 +20,7 @@ module Web.Twitter.Conduit.Stream
        , stream
   ) where
 
+import Web.Twitter.Conduit.Types
 import Web.Twitter.Conduit.Base
 import Web.Twitter.Conduit.Monad
 import Web.Twitter.Types
@@ -52,10 +53,10 @@ stream' :: (TwitterBaseM m, FromJSON value)
         -> TW m (C.ResumableSource (TW m) value)
 stream' (APIRequestGet u pa) = do
     rsrc <- api "GET" u pa
-    rsrc $=+ CL.sequence sinkFromJSON
+    responseBody rsrc $=+ CL.sequence sinkFromJSON
 stream' (APIRequestPost u pa) = do
     rsrc <- api "POST" u pa
-    rsrc $=+ CL.sequence sinkFromJSON
+    responseBody rsrc $=+ CL.sequence sinkFromJSON
 stream' APIRequestPostMultipart {} =
     error "APIRequestPostMultipart is not supported by stream function."
 
