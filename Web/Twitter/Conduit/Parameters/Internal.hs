@@ -12,7 +12,6 @@ module Web.Twitter.Conduit.Parameters.Internal
 import qualified Network.HTTP.Types as HT
 import qualified Data.ByteString as S
 import qualified Data.ByteString.Char8 as S8
-import qualified Data.Attoparsec.ByteString.Char8 as Atto
 import Data.Maybe
 import Control.Lens
 
