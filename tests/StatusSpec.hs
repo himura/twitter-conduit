@@ -63,15 +63,6 @@ integrated = do
             res <- run $ call homeTimeline
             length res `shouldSatisfy` (> 0)
 
-    describe "retweetsOfMe" $ do
-        let response = unsafePerformIO . run . call $ retweetsOfMe
-        it "returns the most recent tweets authored by the authenticating user" $ do
-             let screenNames = response ^.. traversed . statusUser . userScreenName
-             screenNames `shouldSatisfy` allOf folded (== (self ^. userScreenName))
-             length screenNames `shouldSatisfy` (== length response)
-        it "returns the most recent tweets that have been retweeted by other" $ do
-            response `shouldSatisfy` allOf (traversed . statusRetweetCount . _Just) (> 0)
-
     describe "showId" $ do
         it "works for the known tweets" $ do
             res <- run . call $ showId 477833886768959488
