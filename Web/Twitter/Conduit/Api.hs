@@ -85,7 +85,8 @@ module Web.Twitter.Conduit.Api
        -- , usersSuggestionsSlugMembers
 
        -- * Favorites
-       -- , favoritesList
+       , FavoritesList
+       , favoritesList
        , FavoritesDestroy
        , favoritesDestroy
        , FavoritesCreate
@@ -504,6 +505,33 @@ usersShow :: UserParam -> APIRequest UsersShow User
 usersShow q = APIRequestGet (endpoint ++ "users/show.json") (mkUserParam q)
 deriveHasParamInstances ''UsersShow
     [ "include_entities"
+    ]
+
+data FavoritesList
+-- | Returns the 20 most recent Tweets favorited by the specified user.
+--
+-- You can perform request by using 'call':
+--
+-- @
+-- res <- 'call' '$' 'favoritesList' (ScreenNameParam \"thimura\")
+-- @
+--
+-- >>> favoritesList Nothing
+-- APIRequestGet "https://api.twitter.com/1.1/favorites/list.json" []
+-- >>> favoritesList (Just (ScreenNameParam "thimura"))
+-- APIRequestGet "https://api.twitter.com/1.1/favorites/list.json" [("screen_name","thimura")]
+-- >>> favoritesList (Just (UserIdParam 69179963))
+-- APIRequestGet "https://api.twitter.com/1.1/favorites/list.json" [("user_id","69179963")]
+favoritesList :: Maybe UserParam -> APIRequest FavoritesList Status
+favoritesList mbuser = APIRequestGet (endpoint ++ "favorites/list.json") (mkParam mbuser)
+  where
+    mkParam Nothing = []
+    mkParam (Just usr) = mkUserParam usr
+deriveHasParamInstances ''FavoritesList
+    [ "count"
+    , "since_id"
+    , "max_id"
+    , "include_entities"
     ]
 
 data FavoritesCreate
