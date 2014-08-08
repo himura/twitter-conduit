@@ -522,7 +522,7 @@ data FavoritesList
 -- APIRequestGet "https://api.twitter.com/1.1/favorites/list.json" [("screen_name","thimura")]
 -- >>> favoritesList (Just (UserIdParam 69179963))
 -- APIRequestGet "https://api.twitter.com/1.1/favorites/list.json" [("user_id","69179963")]
-favoritesList :: Maybe UserParam -> APIRequest FavoritesList Status
+favoritesList :: Maybe UserParam -> APIRequest FavoritesList [Status]
 favoritesList mbuser = APIRequestGet (endpoint ++ "favorites/list.json") (mkParam mbuser)
   where
     mkParam Nothing = []
