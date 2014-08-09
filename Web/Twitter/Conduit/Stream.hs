@@ -18,6 +18,7 @@ module Web.Twitter.Conduit.Stream
        -- , sitestream
        -- , sitestream'
        , stream
+       , stream'
   ) where
 
 import Web.Twitter.Conduit.Types
