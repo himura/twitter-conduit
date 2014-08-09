@@ -142,7 +142,7 @@ test-suite spec_main
     , network
     , containers
     , hspec
-    , twitter-types
+    , twitter-types >= 0.4.0
   other-modules:
     Spec
     ApiSpec

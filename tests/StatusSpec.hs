@@ -48,7 +48,7 @@ integrated = do
             res <- run . call
                    $ userTimeline (Param.ScreenNameParam "thimura")
                    & Param.count ?~ 100 & Param.includeRts ?~ True
-            res `shouldSatisfy` (anyOf (folded . statusRetweet . _Just . statusUser . userScreenName) (/= "thimura"))
+            res `shouldSatisfy` (anyOf (folded . statusRetweetedStatus . _Just . statusUser . userScreenName) (/= "thimura"))
         it "iterate with sourceWithMaxId" $ do
             tl <- run $ do
                 let src = sourceWithMaxId $ userTimeline (Param.ScreenNameParam "thimura") & Param.count ?~ 200
