@@ -13,7 +13,9 @@ module Web.Twitter.Conduit.Base
        , call'
        , checkResponse
        , sourceWithMaxId
+       , sourceWithMaxId'
        , sourceWithCursor
+       , sourceWithCursor'
        , TwitterBaseM
        , endpoint
        , makeRequest
