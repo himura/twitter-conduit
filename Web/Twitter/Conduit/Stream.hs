@@ -9,7 +9,9 @@
 module Web.Twitter.Conduit.Stream
        (
        -- * StreamingAPI
-         userstream
+         Userstream
+       , userstream
+       , StatusesFilter
        , statusesFilterByFollow
        , statusesFilterByTrack
        -- , statusesFilterByLocation
