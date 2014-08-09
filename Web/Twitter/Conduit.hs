@@ -24,7 +24,6 @@ module Web.Twitter.Conduit
        , module Web.Twitter.Conduit.Stream
        , module Web.Twitter.Conduit.Request
        , module Web.Twitter.Conduit.Parameters
-       , module Web.Twitter.Types.Lens
 
        , MediaData (..)
        , UploadedMedia
@@ -45,7 +44,6 @@ import Web.Twitter.Conduit.Monad
 import Web.Twitter.Conduit.Stream
 import Web.Twitter.Conduit.Request
 import Web.Twitter.Conduit.Parameters
-import Web.Twitter.Types.Lens
 
 -- for haddock
 import Web.Authenticate.OAuth
