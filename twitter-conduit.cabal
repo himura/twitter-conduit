@@ -56,7 +56,6 @@ library
     , conduit >= 1.1
     , conduit-extra >= 1.1
     , monad-logger
-    , shakespeare >= 2.0
     , http-types
     , http-conduit >= 2.0 && < 2.2
     , http-client >= 0.3
@@ -128,7 +127,6 @@ test-suite spec_main
     , text
     , aeson
     , attoparsec >= 0.10
-    , shakespeare
     , data-default
     , resourcet
     , conduit

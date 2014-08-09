@@ -40,13 +40,13 @@ import qualified Data.Conduit.List as CL
 import Data.Aeson
 import Data.Aeson.Lens
 import qualified Data.Conduit.Attoparsec as CA
+import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as S8
 import Control.Monad.IO.Class
 import Control.Monad.Trans.Class (lift)
 import Control.Monad.Trans.Resource (MonadResource, MonadThrow, monadThrow)
-import Text.Shakespeare.Text
 import Control.Monad.Logger
 import Control.Lens
 import Unsafe.Coerce
@@ -93,11 +93,11 @@ getResponse :: TwitterBaseM m
 getResponse req = do
     proxy <- getProxy
     signedReq <- signOAuthTW $ req { HTTP.proxy = proxy }
-    $(logDebug) [st|Signed Request: #{show signedReq}|]
+    $(logDebug) $ T.pack $ "Signed Request: " ++ show signedReq
     mgr <- getManager
     res <- HTTP.http signedReq mgr
-    $(logDebug) [st|Response Status: #{show $ HTTP.responseStatus res}|]
-    $(logDebug) [st|Response Header: #{show $ HTTP.responseHeaders res}|]
+    $(logDebug) $ T.pack $ "Response Status: " ++ show (HTTP.responseStatus res)
+    $(logDebug) $ T.pack $ "Response Header: " ++ show (HTTP.responseHeaders res)
     return
         Response { responseStatus = HTTP.responseStatus res
                  , responseHeaders = HTTP.responseHeaders res
@@ -232,7 +232,7 @@ sinkJSON :: ( MonadThrow m
             ) => C.Consumer ByteString m Value
 sinkJSON = do
     js <- CA.sinkParser json
-    $(logDebug) [st|Response JSON: #{show js}|]
+    $(logDebug) $ T.pack $ "Response JSON: " ++ show js
     return js
 
 sinkFromJSON :: ( FromJSON a
