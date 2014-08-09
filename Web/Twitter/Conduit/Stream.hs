@@ -52,14 +52,9 @@ stream = stream'
 stream' :: (TwitterBaseM m, FromJSON value)
         => APIRequest apiName responseType
         -> TW m (C.ResumableSource (TW m) value)
-stream' (APIRequestGet u pa) = do
-    rsrc <- api "GET" u pa
+stream' req = do
+    rsrc <- getResponse =<< makeRequest req
     responseBody rsrc $=+ CL.sequence sinkFromJSON
-stream' (APIRequestPost u pa) = do
-    rsrc <- api "POST" u pa
-    responseBody rsrc $=+ CL.sequence sinkFromJSON
-stream' APIRequestPostMultipart {} =
-    error "APIRequestPostMultipart is not supported by stream function."
 
 data Userstream
 userstream :: APIRequest Userstream StreamingAPI
