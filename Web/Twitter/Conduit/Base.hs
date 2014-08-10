@@ -24,7 +24,6 @@ module Web.Twitter.Conduit.Base
        , showBS
        ) where
 
-import Prelude as P
 import Web.Twitter.Conduit.Monad
 import Web.Twitter.Conduit.Types
 import Web.Twitter.Conduit.Parameters
@@ -64,7 +63,7 @@ makeRequest (APIRequestPostMultipart u param prt) =
     formDataBody body =<< makeRequest' "POST" u []
   where
     body = prt ++ partParam
-    partParam = P.map (uncurry partBS . over _1 T.decodeUtf8) param
+    partParam = Prelude.map (uncurry partBS . over _1 T.decodeUtf8) param
 
 makeRequest' :: MonadThrow m
              => HT.Method -- ^ HTTP request method (GET or POST)
