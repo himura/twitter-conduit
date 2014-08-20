@@ -46,7 +46,8 @@ module Web.Twitter.Conduit.Api
        -- , friendshipsShow
        , FriendsList
        , friendsList
-       -- , followersList
+       , FollowersList
+       , followersList
        -- , friendshipsLookup
 
        -- * Users
@@ -449,6 +450,34 @@ data FriendsList
 friendsList :: UserParam -> APIRequest FriendsList (WithCursor UsersCursorKey User)
 friendsList q = APIRequestGet (endpoint ++ "friends/list.json") (mkUserParam q)
 deriveHasParamInstances ''FriendsList
+    [ "cursor"
+    , "count"
+    , "skip_status"
+    , "include_user_entities"
+    ]
+
+data FollowersList
+-- | Returns query data which asks a cursored collection of user objects for users following the specified user.
+--
+-- You can perform request by using 'call':
+--
+-- @
+-- res <- 'call' '$' 'followersList' ('ScreenNameParam' \"thimura\")
+-- @
+--
+-- Or, you can iterate with 'sourceWithCursor':
+--
+-- @
+-- 'sourceWithCursor' ('followersList' ('ScreenNameParam' \"thimura\")) $$ CL.consume
+-- @
+--
+-- >>> followersList (ScreenNameParam "thimura")
+-- APIRequestGet "https://api.twitter.com/1.1/followers/list.json" [("screen_name","thimura")]
+-- >>> followersList (UserIdParam 69179963)
+-- APIRequestGet "https://api.twitter.com/1.1/followers/list.json" [("user_id","69179963")]
+followersList :: UserParam -> APIRequest FollowersList (WithCursor UsersCursorKey User)
+followersList q = APIRequestGet (endpoint ++ "followers/list.json") (mkUserParam q)
+deriveHasParamInstances ''FollowersList
     [ "cursor"
     , "count"
     , "skip_status"
