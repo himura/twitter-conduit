@@ -31,6 +31,10 @@ source-repository head
   type: git
   location: git://github.com/himura/twitter-conduit.git
 
+flag network-uri
+  description: Get Network.URI from the network-uri package
+  default: True
+
 flag build-samples
   description: build samples
   default: False
@@ -137,10 +141,15 @@ test-suite spec_main
     , monad-logger
     , authenticate-oauth
     , case-insensitive
-    , network
     , containers
     , hspec
     , twitter-types >= 0.4.0
+
+  if flag(network-uri)
+    build-depends: network-uri >= 2.6
+  else
+    build-depends: network < 2.6
+
   other-modules:
     Spec
     ApiSpec
@@ -187,7 +196,6 @@ executable userstream
       , text
       , filepath
       , directory
-      , network
       , process
       , case-insensitive
       , lens
@@ -200,6 +208,11 @@ executable userstream
       , monad-logger
       , authenticate-oauth
       , twitter-conduit
+
+  if flag(network-uri)
+    build-depends: network-uri >= 2.6
+  else
+    build-depends: network < 2.6
 
 executable oauth_callback
   main-is: oauth_callback.hs
