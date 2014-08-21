@@ -27,14 +27,13 @@ import Web.Twitter.Conduit.Types
 import Web.Twitter.Conduit.Base
 import Web.Twitter.Conduit.Monad
 import Web.Twitter.Types
+import Web.Twitter.Conduit.Parameters
 import Web.Twitter.Conduit.Request
 
 import qualified Data.Conduit as C
 import qualified Data.Conduit.List as CL
 import qualified Data.Conduit.Internal as CI
 import qualified Data.Text as T
-import qualified Data.Text.Encoding as T
-import qualified Data.ByteString as S
 import Control.Monad.IO.Class
 import Data.Aeson
 
@@ -72,9 +71,9 @@ statusesFilterEndpoint = "https://stream.twitter.com/1.1/statuses/filter.json"
 data StatusesFilter
 statusesFilterByFollow :: [UserId] -> APIRequest StatusesFilter StreamingAPI
 statusesFilterByFollow userIds =
-    APIRequestPost statusesFilterEndpoint [("follow", S.intercalate "," . map showBS $ userIds)]
+    APIRequestPost statusesFilterEndpoint [("follow", PVIntegerArray userIds)]
 
 statusesFilterByTrack :: T.Text -- ^ keyword
                       -> APIRequest StatusesFilter StreamingAPI
 statusesFilterByTrack keyword =
-    APIRequestPost statusesFilterEndpoint [("track", T.encodeUtf8 keyword)]
+    APIRequestPost statusesFilterEndpoint [("track", PVString keyword)]

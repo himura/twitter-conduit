@@ -48,9 +48,7 @@ import Web.Twitter.Conduit.Parameters
 import Web.Twitter.Conduit.Parameters.TH
 import Web.Twitter.Types
 
-import qualified Data.ByteString as S
 import qualified Data.Text as T
-import qualified Data.Text.Encoding as T
 import Network.HTTP.Client.MultipartFormData
 import Data.Default
 
@@ -234,7 +232,7 @@ data StatusesUpdate
 -- >>> update "Hello World" & inReplyToStatusId ?~ 1234567890
 -- APIRequestPost "https://api.twitter.com/1.1/statuses/update.json" [("in_reply_to_status_id","1234567890"),("status","Hello World")]
 update :: T.Text -> APIRequest StatusesUpdate Status
-update status = APIRequestPost uri [("status", T.encodeUtf8 status)]
+update status = APIRequestPost uri [("status", PVString status)]
   where uri = endpoint ++ "statuses/update.json"
 deriveHasParamInstances ''StatusesUpdate
     [ "in_reply_to_status_id"
@@ -278,7 +276,7 @@ updateWithMedia :: T.Text
                 -> MediaData
                 -> APIRequest StatusesUpdateWithMedia Status
 updateWithMedia tweet mediaData =
-    APIRequestPostMultipart uri [("status", T.encodeUtf8 tweet)] [mediaBody mediaData]
+    APIRequestPostMultipart uri [("status", PVString tweet)] [mediaBody mediaData]
   where
     uri = endpoint ++ "statuses/update_with_media.json"
     mediaBody (MediaFromFile fp) = partFileSource "media[]" fp
@@ -306,8 +304,8 @@ data StatusesLookup
 -- APIRequestGet "https://api.twitter.com/1.1/statuses/lookup.json" [("id","10,432656548536401920")]
 -- >>> lookup [10, 432656548536401920] & includeEntities ?~ True
 -- APIRequestGet "https://api.twitter.com/1.1/statuses/lookup.json" [("include_entities","true"),("id","10,432656548536401920")]
-lookup :: [ StatusId ] -> APIRequest StatusesLookup [Status]
-lookup ids = APIRequestGet (endpoint ++ "statuses/lookup.json") [("id", S.intercalate "," . Prelude.map showBS $ ids)]
+lookup :: [StatusId] -> APIRequest StatusesLookup [Status]
+lookup ids = APIRequestGet (endpoint ++ "statuses/lookup.json") [("id", PVIntegerArray ids)]
 deriveHasParamInstances ''StatusesLookup
     [ "include_entities"
     , "trim_user"

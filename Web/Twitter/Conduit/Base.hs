@@ -57,13 +57,13 @@ type TwitterBaseM m = ( MonadResource m
 makeRequest :: (MonadThrow m, MonadIO m)
             => APIRequest apiName responseType
             -> m HTTP.Request
-makeRequest (APIRequestGet u pa) = makeRequest' "GET" u pa
-makeRequest (APIRequestPost u pa) = makeRequest' "POST" u pa
+makeRequest (APIRequestGet u pa) = makeRequest' "GET" u (makeSimpleQuery pa)
+makeRequest (APIRequestPost u pa) = makeRequest' "POST" u (makeSimpleQuery pa)
 makeRequest (APIRequestPostMultipart u param prt) =
     formDataBody body =<< makeRequest' "POST" u []
   where
     body = prt ++ partParam
-    partParam = Prelude.map (uncurry partBS . over _1 T.decodeUtf8) param
+    partParam = Prelude.map (uncurry partBS . over _1 T.decodeUtf8) (makeSimpleQuery param)
 
 makeRequest' :: MonadThrow m
              => HT.Method -- ^ HTTP request method (GET or POST)

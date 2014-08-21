@@ -10,7 +10,6 @@ module Web.Twitter.Conduit.Request
 import Web.Twitter.Conduit.Parameters
 
 import Network.HTTP.Client.MultipartFormData
-import qualified Network.HTTP.Types as HT
 import Control.Applicative
 
 -- In GHC 7.4.2, the following test fails with Overlapping instances error.
@@ -50,22 +49,22 @@ import Control.Applicative
 -- And update request parameters.
 --
 -- >>> (sampleApiRequest & count ?~ 100 & maxId ?~ 1234567890) ^. params
--- [("max_id","1234567890"),("count","100")]
+-- [("max_id",PVInteger {unPVInteger = 1234567890}),("count",PVInteger {unPVInteger = 100})]
 -- >>> (sampleApiRequest & count ?~ 100 & maxId ?~ 1234567890 & count .~ Nothing) ^. params
--- [("max_id","1234567890")]
+-- [("max_id",PVInteger {unPVInteger = 1234567890})]
 #endif
 data APIRequest apiName responseType
     = APIRequestGet
       { _url :: String
-      , _params :: HT.SimpleQuery
+      , _params :: APIQuery
       }
     | APIRequestPost
       { _url :: String
-      , _params :: HT.SimpleQuery
+      , _params :: APIQuery
       }
     | APIRequestPostMultipart
       { _url :: String
-      , _params :: HT.SimpleQuery
+      , _params :: APIQuery
       , _part :: [Part]
       }
 instance Parameters (APIRequest apiName responseType) where
@@ -74,6 +73,6 @@ instance Parameters (APIRequest apiName responseType) where
     params f (APIRequestPostMultipart u pa prt) =
         (\p -> APIRequestPostMultipart u p prt) <$> f pa
 instance Show (APIRequest apiName responseType) where
-    show (APIRequestGet u p) = "APIRequestGet " ++ show u ++ " " ++ show p
-    show (APIRequestPost u p) = "APIRequestPost " ++ show u ++ " " ++ show p
-    show (APIRequestPostMultipart u p _) = "APIRequestPostMultipart " ++ show u ++ " " ++ show p
+    show (APIRequestGet u p) = "APIRequestGet " ++ show u ++ " " ++ show (makeSimpleQuery p)
+    show (APIRequestPost u p) = "APIRequestPost " ++ show u ++ " " ++ show (makeSimpleQuery p)
+    show (APIRequestPostMultipart u p _) = "APIRequestPostMultipart " ++ show u ++ " " ++ show (makeSimpleQuery p)
