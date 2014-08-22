@@ -43,7 +43,6 @@ module Web.Twitter.Conduit.Status
 import Prelude hiding ( lookup )
 import Web.Twitter.Conduit.Base
 import Web.Twitter.Conduit.Request
-import Web.Twitter.Conduit.Types
 import Web.Twitter.Conduit.Parameters
 import Web.Twitter.Conduit.Parameters.TH
 import Web.Twitter.Types

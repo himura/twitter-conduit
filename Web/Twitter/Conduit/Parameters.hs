@@ -34,16 +34,17 @@ module Web.Twitter.Conduit.Parameters
        , UserParam(..)
        , UserListParam(..)
        , ListParam(..)
+       , MediaData(..)
        , mkUserParam
        , mkUserListParam
        , mkListParam
        ) where
 
-import Prelude as P
-import Web.Twitter.Conduit.Parameters.Internal
-import Web.Twitter.Conduit.Parameters.TH
-import Web.Twitter.Types
 import qualified Data.Text as T
+import Network.HTTP.Client (RequestBody)
+import Web.Twitter.Conduit.Parameters.TH
+import Web.Twitter.Conduit.Request
+import Web.Twitter.Types
 
 data UserParam = UserIdParam UserId | ScreenNameParam String
                deriving (Show, Eq)
@@ -51,6 +52,8 @@ data UserListParam = UserIdListParam [UserId] | ScreenNameListParam [String]
                    deriving (Show, Eq)
 data ListParam = ListIdParam Integer | ListNameParam String
                deriving (Show, Eq)
+data MediaData = MediaFromFile FilePath
+               | MediaRequestBody FilePath RequestBody
 
 defineHasParamClassInteger "count"
 defineHasParamClassInteger "since_id"
@@ -95,7 +98,7 @@ mkUserParam (ScreenNameParam sn) = [("screen_name", PVString . T.pack $ sn)]
 -- [("screen_name","thimura,NikaidouShinku")]
 mkUserListParam :: UserListParam -> APIQuery
 mkUserListParam (UserIdListParam uids) =  [("user_id", PVIntegerArray uids)]
-mkUserListParam (ScreenNameListParam sns) = [("screen_name", PVStringArray (P.map T.pack sns))]
+mkUserListParam (ScreenNameListParam sns) = [("screen_name", PVStringArray (Prelude.map T.pack sns))]
 
 -- | converts 'ListParam' to 'HT.SimpleQuery'.
 --

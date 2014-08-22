@@ -83,20 +83,19 @@ library
     Web.Twitter.Conduit
     Web.Twitter.Conduit.Types
     Web.Twitter.Conduit.Types.Lens
-    Web.Twitter.Conduit.Types.TH
-    Web.Twitter.Conduit.Base
     Web.Twitter.Conduit.Api
-    Web.Twitter.Conduit.Monad
     Web.Twitter.Conduit.Stream
     Web.Twitter.Conduit.Status
+
+  other-modules:
+    Web.Twitter.Conduit.Types.TH
+    Web.Twitter.Conduit.Base
+    Web.Twitter.Conduit.Monad
     Web.Twitter.Conduit.Request
     Web.Twitter.Conduit.Response
     Web.Twitter.Conduit.Cursor
     Web.Twitter.Conduit.Parameters
-    Web.Twitter.Conduit.Parameters.Internal
     Web.Twitter.Conduit.Parameters.TH
-
-  other-modules:
 
 test-suite hlint
   type: exitcode-stdio-1.0
@@ -189,6 +188,7 @@ executable simple
       , http-conduit
       , monad-logger
       , authenticate-oauth
+      , twitter-types
       , twitter-conduit
       , twitter-types
 

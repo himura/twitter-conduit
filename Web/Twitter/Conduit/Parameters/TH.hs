@@ -4,7 +4,7 @@
 
 module Web.Twitter.Conduit.Parameters.TH where
 
-import Web.Twitter.Conduit.Parameters.Internal
+import Web.Twitter.Conduit.Request
 import Language.Haskell.TH
 import Control.Lens
 import qualified Data.ByteString as S

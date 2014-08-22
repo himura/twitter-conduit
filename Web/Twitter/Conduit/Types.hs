@@ -3,7 +3,7 @@
 {-# LANGUAGE CPP #-}
 
 module Web.Twitter.Conduit.Types
-       ( MediaData (..)
+       (
 #if !MIN_VERSION_twitter_types(0,5,0)
        , UploadedMedia (..)
        , ImageSizeType (..)
@@ -13,10 +13,6 @@ module Web.Twitter.Conduit.Types
 import Control.Applicative
 import Data.Aeson
 import qualified Data.Text as T
-import Network.HTTP.Client (RequestBody)
-
-data MediaData = MediaFromFile FilePath
-               | MediaRequestBody FilePath RequestBody
 
 #if !MIN_VERSION_twitter_types(0,5,0)
 data ImageSizeType = ImageSizeType
