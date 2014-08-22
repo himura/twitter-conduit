@@ -2,8 +2,8 @@
 
 module BaseSpec where
 
+import Web.Twitter.Conduit.Response
 import Web.Twitter.Conduit.Base
-import Web.Twitter.Conduit.Types
 
 import Control.Applicative
 import Control.Lens

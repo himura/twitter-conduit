@@ -25,9 +25,10 @@ module Web.Twitter.Conduit.Base
        ) where
 
 import Web.Twitter.Conduit.Monad
-import Web.Twitter.Conduit.Types
 import Web.Twitter.Conduit.Parameters
 import Web.Twitter.Conduit.Request
+import Web.Twitter.Conduit.Response
+import Web.Twitter.Conduit.Cursor
 import Web.Twitter.Types.Lens
 
 import qualified Network.HTTP.Conduit as HTTP

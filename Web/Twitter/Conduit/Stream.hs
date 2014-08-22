@@ -23,12 +23,12 @@ module Web.Twitter.Conduit.Stream
        , stream'
   ) where
 
-import Web.Twitter.Conduit.Types
 import Web.Twitter.Conduit.Base
 import Web.Twitter.Conduit.Monad
 import Web.Twitter.Types
 import Web.Twitter.Conduit.Parameters
 import Web.Twitter.Conduit.Request
+import Web.Twitter.Conduit.Response
 
 import qualified Data.Conduit as C
 import qualified Data.Conduit.List as CL
