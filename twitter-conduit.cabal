@@ -35,6 +35,10 @@ flag network-uri
   description: Get Network.URI from the network-uri package
   default: True
 
+flag lens-aeson
+  description: Get Data.Aeson.Lens from the lens-aeson package
+  default: True
+
 flag build-samples
   description: build samples
   default: False
@@ -71,6 +75,9 @@ library
     , containers
     , time
     , twitter-types >= 0.2
+
+  if flag(lens-aeson)
+    build-depends: lens-aeson >= 1
 
   exposed-modules:
     Web.Twitter.Conduit
