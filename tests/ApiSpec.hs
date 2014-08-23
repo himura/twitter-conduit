@@ -7,7 +7,7 @@ import Data.Conduit
 import qualified Data.Conduit.List as CL
 import Web.Twitter.Conduit (call, sourceWithCursor)
 import Web.Twitter.Conduit.Api
-import Web.Twitter.Conduit.Types.Lens
+import Web.Twitter.Conduit.Lens
 import qualified Web.Twitter.Conduit.Parameters as Param
 import Web.Twitter.Types.Lens
 import Control.Lens

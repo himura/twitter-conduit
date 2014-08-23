@@ -49,7 +49,6 @@ import Web.Twitter.Conduit.Request
 import Web.Twitter.Conduit.Response
 import Web.Twitter.Conduit.Status
 import Web.Twitter.Conduit.Stream
-import Web.Twitter.Conduit.Types
 
 -- for haddock
 import Web.Authenticate.OAuth
@@ -76,6 +75,7 @@ import Control.Lens
 -- > {-# LANGUAGE OverloadedStrings #-}
 -- >
 -- > import Web.Twitter.Conduit
+-- > import Web.Twitter.Types
 -- > import Web.Authenticate.OAuth
 -- > import Data.Conduit
 -- > import qualified Data.Conduit.List as CL

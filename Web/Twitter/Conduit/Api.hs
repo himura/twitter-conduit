@@ -145,7 +145,6 @@ module Web.Twitter.Conduit.Api
        ) where
 
 import Web.Twitter.Types
-import Web.Twitter.Conduit.Types
 import Web.Twitter.Conduit.Parameters
 import Web.Twitter.Conduit.Parameters.TH
 import Web.Twitter.Conduit.Base

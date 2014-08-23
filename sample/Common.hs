@@ -4,7 +4,7 @@
 
 module Common where
 
-import Web.Twitter.Conduit
+import Web.Twitter.Conduit.Lens
 
 import Web.Authenticate.OAuth as OA
 import qualified Network.URI as URI

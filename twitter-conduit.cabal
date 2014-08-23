@@ -1,5 +1,5 @@
 name:              twitter-conduit
-version:           0.0.5.8
+version:           0.0.6
 license:           BSD3
 license-file:      LICENSE
 author:            HATTORI Hiroki, Hideyuki Tanaka, Takahiro HIMURA
@@ -74,21 +74,19 @@ library
     , text >= 0.11
     , containers
     , time
-    , twitter-types >= 0.2
+    , twitter-types >= 0.5
 
   if flag(lens-aeson)
     build-depends: lens-aeson >= 1
 
   exposed-modules:
     Web.Twitter.Conduit
-    Web.Twitter.Conduit.Types
-    Web.Twitter.Conduit.Types.Lens
+    Web.Twitter.Conduit.Lens
     Web.Twitter.Conduit.Api
     Web.Twitter.Conduit.Stream
     Web.Twitter.Conduit.Status
 
   other-modules:
-    Web.Twitter.Conduit.Types.TH
     Web.Twitter.Conduit.Base
     Web.Twitter.Conduit.Monad
     Web.Twitter.Conduit.Request

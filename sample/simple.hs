@@ -3,7 +3,7 @@
 
 module Main where
 
-import Web.Twitter.Conduit
+import Web.Twitter.Conduit.Lens
 import Web.Twitter.Types.Lens
 import Control.Lens
 import Web.Authenticate.OAuth (OAuth(..), Credential(..))
