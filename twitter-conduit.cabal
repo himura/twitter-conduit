@@ -157,6 +157,9 @@ test-suite spec_main
   else
     build-depends: network < 2.6
 
+  if flag(lens-aeson)
+    build-depends: lens-aeson >= 1
+
   other-modules:
     Spec
     ApiSpec
