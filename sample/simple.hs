@@ -4,6 +4,7 @@
 module Main where
 
 import Web.Twitter.Conduit
+import Web.Twitter.Types.Lens
 import Control.Lens
 import Web.Authenticate.OAuth (OAuth(..), Credential(..))
 import qualified Web.Authenticate.OAuth as OA
