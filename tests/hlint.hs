@@ -8,5 +8,5 @@ import System.Exit
 main :: IO ()
 main = do
   args <- getArgs
-  hints <- hlint $ ["Web", "--cpp-define=HLINT", "--cpp-ansi"] ++ args
+  hints <- hlint $ ["Web", "--cpp-define=HLINT", "--cpp-ansi", "--cpp-file=dist/build/autogen/cabal_macros.h"] ++ args
   unless (null hints) exitFailure
