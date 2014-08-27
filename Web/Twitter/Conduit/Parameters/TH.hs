@@ -11,7 +11,7 @@ import Data.Char
 
 snakeToLowerCamel :: String -> String
 snakeToLowerCamel [] = []
-snakeToLowerCamel ('_':[]) = []
+snakeToLowerCamel "_" = []
 snakeToLowerCamel ('_':x:xs) = toUpper x : snakeToLowerCamel xs
 snakeToLowerCamel str = f ++ snakeToLowerCamel next
   where (f, next) = span (/= '_') str
