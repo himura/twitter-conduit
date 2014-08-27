@@ -16,8 +16,10 @@ module Web.Twitter.Conduit.Types
        , UsersCursorKey
        , WithCursor (..)
        , MediaData (..)
+#if !MIN_VERSION_twitter_types(0,5,0)
        , UploadedMedia (..)
        , ImageSizeType (..)
+#endif
        ) where
 
 
@@ -84,6 +86,7 @@ instance (FromJSON wrapped, CursorKey c) =>
 data MediaData = MediaFromFile FilePath
                | MediaRequestBody FilePath RequestBody
 
+#if !MIN_VERSION_twitter_types(0,5,0)
 data ImageSizeType = ImageSizeType
     { imageWidth :: Int
     , imageHeight :: Int
@@ -107,6 +110,7 @@ instance FromJSON UploadedMedia where
                       <*> o .:  "size"
                       <*> o .:  "image"
     parseJSON v = fail $ "unknown value: " ++ show v
+#endif
 
 data Response responseType = Response
     { responseStatus :: Status

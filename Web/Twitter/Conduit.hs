@@ -26,6 +26,7 @@ module Web.Twitter.Conduit
        , module Web.Twitter.Conduit.Parameters
 
        , MediaData (..)
+#if !MIN_VERSION_twitter_types(0,5,0)
        , UploadedMedia
        , mediaId
        , mediaSize
@@ -34,6 +35,7 @@ module Web.Twitter.Conduit
        , imageWidth
        , imageHeight
        , imageType
+#endif
        ) where
 
 import Web.Twitter.Conduit.Types
