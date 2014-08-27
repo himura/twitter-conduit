@@ -29,9 +29,6 @@ import Web.Twitter.Conduit.Monad
 import Web.Twitter.Types
 import Web.Twitter.Conduit.Request
 
-#if MIN_VERSION_conduit(1,0,16)
-import Data.Conduit (($=+))
-#endif
 import qualified Data.Conduit as C
 import qualified Data.Conduit.List as CL
 import qualified Data.Conduit.Internal as CI
@@ -41,11 +38,13 @@ import qualified Data.ByteString as S
 import Control.Monad.IO.Class
 import Data.Aeson
 
-#if !MIN_VERSION_conduit(1,0,16)
+#if MIN_VERSION_conduit(1,0,16)
 ($=+) :: MonadIO m
       => CI.ResumableSource m a
       -> CI.Conduit a m o
       -> m (CI.ResumableSource m o)
+($=+) = (return .) . (C.$=+)
+#else
 rsrc $=+ cndt = do
     (src, finalizer) <- C.unwrapResumable rsrc
     return $ CI.ResumableSource (src C.$= cndt) finalizer
