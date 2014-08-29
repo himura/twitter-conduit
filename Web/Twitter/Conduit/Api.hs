@@ -600,7 +600,7 @@ deriveHasParamInstances ''FavoritesDestroy
     ]
 
 data ListsSubscriptions
--- | Returns query data asks the members of the specified list.
+-- | Returns the request parameter which obtains a collection of the lists the specified user is subscribed to.
 --
 -- You can perform request by using 'call':
 --
@@ -622,7 +622,7 @@ deriveHasParamInstances ''ListsSubscriptions
     ]
 
 data ListsOwnerships
--- | Returns query data asks the members of the specified list.
+-- | Returns the request parameter which asks the lists owned by the specified Twitter user.
 --
 -- You can perform request by using 'call':
 --
