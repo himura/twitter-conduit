@@ -105,7 +105,7 @@ module Web.Twitter.Conduit.Api
        -- , listsSubscribersCreate
        -- , listsSubscribersShow
        -- , listsSubscribersDestroy
-       -- , listsSubscribersCreateAll
+       -- , listsMembersCreateAll
        -- , listsMembersShow
        , ListsMembers
        , listsMembers
