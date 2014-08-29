@@ -100,7 +100,8 @@ module Web.Twitter.Conduit.Api
        , listsMembersDestroy
        , ListsMemberships
        , listsMemberships
-       -- , listsSubscribers
+       , ListsSubscribers
+       , listsSubscribers
        -- , listsSubscribersCreate
        -- , listsSubscribersShow
        -- , listsSubscribersDestroy
@@ -639,6 +640,27 @@ listsMemberships q = APIRequestGet (endpoint ++ "lists/memberships.json") $ mayb
 deriveHasParamInstances ''ListsMemberships
     [ "cursor"
     , "count"
+    ]
+
+data ListsSubscribers
+-- | Returns the request parameter which asks the subscribers of the specified list.
+--
+-- You can perform request by using 'call':
+--
+-- @
+-- res <- 'call' '$' 'listsSubscribers' ('ListNameParam' "thimura/haskell")
+-- @
+--
+-- >>> listsSubscribers (ListNameParam "thimura/haskell")
+-- APIRequestGet "https://api.twitter.com/1.1/lists/subscribers.json" [("slug","haskell"),("owner_screen_name","thimura")]
+-- >>> listsSubscribers (ListIdParam 20849097)
+-- APIRequestGet "https://api.twitter.com/1.1/lists/subscribers.json" [("list_id","20849097")]
+listsSubscribers :: ListParam -> APIRequest ListsSubscribers (WithCursor UsersCursorKey User)
+listsSubscribers q = APIRequestGet (endpoint ++ "lists/subscribers.json") (mkListParam q)
+deriveHasParamInstances ''ListsSubscribers
+    [ "cursor"
+    , "count"
+    , "skip_status"
     ]
 
 data ListsSubscriptions
