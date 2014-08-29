@@ -96,7 +96,8 @@ module Web.Twitter.Conduit.Api
        -- * Lists
        -- , listsList
        -- , listsStatuses
-       -- , listsMembersDestroy
+       , ListsMembersDestroy
+       , listsMembersDestroy
        , ListsMemberships
        , listsMemberships
        -- , listsSubscribers
@@ -600,6 +601,22 @@ favoritesDestroy sid = APIRequestPost (endpoint ++ "favorites/destroy.json") [("
 deriveHasParamInstances ''FavoritesDestroy
     [ "include_entities"
     ]
+
+data ListsMembersDestroy
+-- | Returns the post parameter which removes the specified member from the list.
+--
+-- You can perform request by using 'call':
+--
+-- @
+-- res <- 'call' '$' 'listsMembersDestroy' ('ListNameParam' "thimura/haskell") ('ScreenNameParam' "thimura")
+-- @
+--
+-- >>> listsMembersDestroy (ListNameParam "thimura/haskell") (ScreenNameParam "thimura")
+-- APIRequestPost "https://api.twitter.com/1.1/lists/members/destroy.json" [("slug","haskell"),("owner_screen_name","thimura"),("screen_name","thimura")]
+-- >>> listsMembersDestroy (ListIdParam 20849097) (UserIdParam 69179963)
+-- APIRequestPost "https://api.twitter.com/1.1/lists/members/destroy.json" [("list_id","20849097"),("user_id","69179963")]
+listsMembersDestroy :: ListParam -> UserParam -> APIRequest ListsMembersDestroy List
+listsMembersDestroy list user = APIRequestPost (endpoint ++ "lists/members/destroy.json") (mkListParam list ++ mkUserParam user)
 
 data ListsMemberships
 -- | Returns the request parameters which asks the lists the specified user has been added to.
