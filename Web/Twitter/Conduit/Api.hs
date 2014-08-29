@@ -97,7 +97,8 @@ module Web.Twitter.Conduit.Api
        -- , listsList
        -- , listsStatuses
        -- , listsMembersDestroy
-       -- , listsMemberships
+       , ListsMemberships
+       , listsMemberships
        -- , listsSubscribers
        -- , listsSubscribersCreate
        -- , listsSubscribersShow
@@ -597,6 +598,29 @@ favoritesDestroy :: StatusId -> APIRequest FavoritesDestroy Status
 favoritesDestroy sid = APIRequestPost (endpoint ++ "favorites/destroy.json") [("id", showBS sid)]
 deriveHasParamInstances ''FavoritesDestroy
     [ "include_entities"
+    ]
+
+data ListsMemberships
+-- | Returns the request parameters which asks the lists the specified user has been added to.
+-- If 'UserParam' are not provided, the memberships for the authenticating user are returned.
+--
+-- You can perform request by using 'call':
+--
+-- @
+-- res <- 'call' '$' 'listsMemberships' ('ListNameParam' "thimura/haskell")
+-- @
+--
+-- >>> listsMemberships Nothing
+-- APIRequestGet "https://api.twitter.com/1.1/lists/memberships.json" []
+-- >>> listsMemberships (Just (ScreenNameParam "thimura"))
+-- APIRequestGet "https://api.twitter.com/1.1/lists/memberships.json" [("screen_name","thimura")]
+-- >>> listsMemberships (Just (UserIdParam 69179963))
+-- APIRequestGet "https://api.twitter.com/1.1/lists/memberships.json" [("user_id","69179963")]
+listsMemberships :: Maybe UserParam -> APIRequest ListsMemberships (WithCursor ListsCursorKey List)
+listsMemberships q = APIRequestGet (endpoint ++ "lists/memberships.json") $ maybe [] mkUserParam q
+deriveHasParamInstances ''ListsMemberships
+    [ "cursor"
+    , "count"
     ]
 
 data ListsSubscriptions
