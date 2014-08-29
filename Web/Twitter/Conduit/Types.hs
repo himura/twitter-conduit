@@ -14,6 +14,7 @@ module Web.Twitter.Conduit.Types
        , CursorKey (..)
        , IdsCursorKey
        , UsersCursorKey
+       , ListsCursorKey
        , WithCursor (..)
        , MediaData (..)
 #if !MIN_VERSION_twitter_types(0,5,0)
@@ -51,6 +52,11 @@ instance CursorKey IdsCursorKey where
 data UsersCursorKey
 instance CursorKey UsersCursorKey where
     cursorKey = const "users"
+
+-- | Phantom type to specify the key which point out the content in the response.
+data ListsCursorKey
+instance CursorKey ListsCursorKey where
+    cursorKey = const "lists"
 
 #if __GLASGOW_HASKELL__ >= 706
 -- | A wrapper for API responses which have "next_cursor" field.

@@ -111,9 +111,11 @@ module Web.Twitter.Conduit.Api
        -- , listsUpdate
        -- , listsCreate
        -- , listsShow
-       -- , listsSubscriptions
+       , ListsSubscriptions
+       , listsSubscriptions
        -- , listsMembersDestroyAll
-       -- , listsOwnerships
+       , ListsOwnerships
+       , listsOwnerships
 
        -- * Saved Searches
        -- savedSearchesList
@@ -595,6 +597,50 @@ favoritesDestroy :: StatusId -> APIRequest FavoritesDestroy Status
 favoritesDestroy sid = APIRequestPost (endpoint ++ "favorites/destroy.json") [("id", showBS sid)]
 deriveHasParamInstances ''FavoritesDestroy
     [ "include_entities"
+    ]
+
+data ListsSubscriptions
+-- | Returns query data asks the members of the specified list.
+--
+-- You can perform request by using 'call':
+--
+-- @
+-- res <- 'call' '$' 'listsSubscriptions' ('ListNameParam' "thimura/haskell")
+-- @
+--
+-- >>> listsSubscriptions Nothing
+-- APIRequestGet "https://api.twitter.com/1.1/lists/subscriptions.json" []
+-- >>> listsSubscriptions (Just (ScreenNameParam "thimura"))
+-- APIRequestGet "https://api.twitter.com/1.1/lists/subscriptions.json" [("screen_name","thimura")]
+-- >>> listsSubscriptions (Just (UserIdParam 69179963))
+-- APIRequestGet "https://api.twitter.com/1.1/lists/subscriptions.json" [("user_id","69179963")]
+listsSubscriptions :: Maybe UserParam -> APIRequest ListsSubscriptions (WithCursor ListsCursorKey List)
+listsSubscriptions q = APIRequestGet (endpoint ++ "lists/subscriptions.json") $ maybe [] mkUserParam q
+deriveHasParamInstances ''ListsSubscriptions
+    [ "cursor"
+    , "count"
+    ]
+
+data ListsOwnerships
+-- | Returns query data asks the members of the specified list.
+--
+-- You can perform request by using 'call':
+--
+-- @
+-- res <- 'call' '$' 'listsOwnerships' ('ListNameParam' "thimura/haskell")
+-- @
+--
+-- >>> listsOwnerships Nothing
+-- APIRequestGet "https://api.twitter.com/1.1/lists/ownerships.json" []
+-- >>> listsOwnerships (Just (ScreenNameParam "thimura"))
+-- APIRequestGet "https://api.twitter.com/1.1/lists/ownerships.json" [("screen_name","thimura")]
+-- >>> listsOwnerships (Just (UserIdParam 69179963))
+-- APIRequestGet "https://api.twitter.com/1.1/lists/ownerships.json" [("user_id","69179963")]
+listsOwnerships :: Maybe UserParam -> APIRequest ListsOwnerships (WithCursor ListsCursorKey List)
+listsOwnerships q = APIRequestGet (endpoint ++ "lists/ownerships.json") $ maybe [] mkUserParam q
+deriveHasParamInstances ''ListsOwnerships
+    [ "cursor"
+    , "count"
     ]
 
 data ListsMembers
