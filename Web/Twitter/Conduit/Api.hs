@@ -111,10 +111,14 @@ module Web.Twitter.Conduit.Api
        , listsMembers
        , ListsMembersCreate
        , listsMembersCreate
-       -- , listsDestroy
-       -- , listsUpdate
-       -- , listsCreate
-       -- , listsShow
+       , ListsDestroy
+       , listsDestroy
+       , ListsUpdate
+       , listsUpdate
+       , ListsCreate
+       , listsCreate
+       , ListsShow
+       , listsShow
        , ListsSubscriptions
        , listsSubscriptions
        -- , listsMembersDestroyAll
@@ -742,6 +746,86 @@ data ListsMembersCreate
 -- APIRequestPost "https://api.twitter.com/1.1/lists/members/create.json" [("list_id","20849097"),("user_id","69179963")]
 listsMembersCreate :: ListParam -> UserParam -> APIRequest ListsMembersCreate List
 listsMembersCreate list user = APIRequestPost (endpoint ++ "lists/members/create.json") (mkListParam list ++ mkUserParam user)
+
+data ListsDestroy
+-- | Returns the post parameter which deletes the specified list.
+--
+-- You can perform request by using 'call':
+--
+-- @
+-- res <- 'call' '$' 'listsDestroy' ('ListNameParam' "thimura/haskell")
+-- @
+--
+-- >>> listsDestroy (ListNameParam "thimura/haskell")
+-- APIRequestPost "https://api.twitter.com/1.1/lists/destroy.json" [("slug","haskell"),("owner_screen_name","thimura")]
+-- >>> listsDestroy (ListIdParam 20849097)
+-- APIRequestPost "https://api.twitter.com/1.1/lists/destroy.json" [("list_id","20849097")]
+listsDestroy :: ListParam -> APIRequest ListsDestroy List
+listsDestroy list = APIRequestPost (endpoint ++ "lists/destroy.json") (mkListParam list)
+
+data ListsUpdate
+-- | Returns the post parameter which updates the specified list.
+--
+-- You can perform request by using 'call':
+--
+-- @
+-- res <- 'call' '$' 'listsUpdate' ('ListNameParam' "thimura/haskell") True (Just "Haskellers")
+-- @
+--
+-- >>> listsUpdate (ListNameParam "thimura/haskell") True (Just "Haskellers")
+-- APIRequestPost "https://api.twitter.com/1.1/lists/update.json" [("slug","haskell"),("owner_screen_name","thimura"),("description","Haskellers"),("mode","public")]
+listsUpdate :: ListParam
+            -> Bool -- ^ is public
+            -> Maybe T.Text -- ^ description
+            -> APIRequest ListsUpdate List
+listsUpdate list isPublic description = APIRequestPost (endpoint ++ "lists/update.json") (mkListParam list ++ p')
+  where
+    p = [("mode", mode isPublic)]
+    p' = maybe id (\d -> (("description", T.encodeUtf8 d):)) description p
+    mode True = "public"
+    mode False = "private"
+
+data ListsCreate
+-- | Returns the post parameter which creates a new list for the authenticated user.
+--
+-- You can perform request by using 'call':
+--
+-- @
+-- res <- 'call' '$' 'listsCreate' ('ListNameParam' "thimura/haskell")
+-- @
+--
+-- >>> listsCreate "haskell" True Nothing
+-- APIRequestPost "https://api.twitter.com/1.1/lists/create.json" [("name","haskell"),("mode","public")]
+-- >>> listsCreate "haskell" False Nothing
+-- APIRequestPost "https://api.twitter.com/1.1/lists/create.json" [("name","haskell"),("mode","private")]
+-- >>> listsCreate "haskell" True (Just "Haskellers")
+-- APIRequestPost "https://api.twitter.com/1.1/lists/create.json" [("description","Haskellers"),("name","haskell"),("mode","public")]
+listsCreate :: T.Text -- ^ list name
+            -> Bool -- ^ whether public(True) or private(False)
+            -> Maybe T.Text -- ^ the description to give the list
+            -> APIRequest ListsCreate List
+listsCreate name isPublic description = APIRequestPost (endpoint ++ "lists/create.json") p'
+  where
+    p = [("name", T.encodeUtf8 name), ("mode", mode isPublic)]
+    p' = maybe id (\d -> (("description", T.encodeUtf8 d):)) description p
+    mode True = "public"
+    mode False = "private"
+
+data ListsShow
+-- | Returns the request parameter which asks the specified list.
+--
+-- You can perform request by using 'call':
+--
+-- @
+-- res <- 'call' '$' 'listsShow' ('ListNameParam' "thimura/haskell")
+-- @
+--
+-- >>> listsShow (ListNameParam "thimura/haskell")
+-- APIRequestGet "https://api.twitter.com/1.1/lists/show.json" [("slug","haskell"),("owner_screen_name","thimura")]
+-- >>> listsShow (ListIdParam 20849097)
+-- APIRequestGet "https://api.twitter.com/1.1/lists/show.json" [("list_id","20849097")]
+listsShow :: ListParam -> APIRequest ListsShow List
+listsShow q = APIRequestGet (endpoint ++ "lists/show.json") (mkListParam q)
 
 data MediaUpload
 -- | Upload media and returns the media data.
