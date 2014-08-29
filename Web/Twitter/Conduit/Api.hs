@@ -95,7 +95,8 @@ module Web.Twitter.Conduit.Api
 
        -- * Lists
        -- , listsList
-       -- , listsStatuses
+       , ListsStatuses
+       , listsStatuses
        , ListsMembersDestroy
        , listsMembersDestroy
        , ListsMemberships
@@ -605,6 +606,34 @@ favoritesDestroy :: StatusId -> APIRequest FavoritesDestroy Status
 favoritesDestroy sid = APIRequestPost (endpoint ++ "favorites/destroy.json") [("id", showBS sid)]
 deriveHasParamInstances ''FavoritesDestroy
     [ "include_entities"
+    ]
+
+data ListsStatuses
+-- | Returns the query parameter which fetches a timeline of tweets authored by members of the specified list.
+--
+-- You can perform request by using 'call':
+--
+-- @
+-- res <- 'call' '$' 'listsStatuses' ('ListNameParam' "thimura/haskell")
+-- @
+--
+-- If you need more statuses, you can obtain those by using 'sourceWithMaxId':
+-- @
+-- res <- sourceWithMaxId ('listsStatuses' ('ListNameParam' "thimura/haskell") & count ?~ 200) $$ CL.take 1000
+-- @
+--
+-- >>> listsStatuses (ListNameParam "thimura/haskell")
+-- APIRequestGet "https://api.twitter.com/1.1/lists/statuses.json" [("slug","haskell"),("owner_screen_name","thimura")]
+-- >>> listsStatuses (ListIdParam 20849097)
+-- APIRequestGet "https://api.twitter.com/1.1/lists/statuses.json" [("list_id","20849097")]
+listsStatuses :: ListParam -> APIRequest ListsStatuses [Status]
+listsStatuses q = APIRequestGet (endpoint ++ "lists/statuses.json") (mkListParam q)
+deriveHasParamInstances ''ListsStatuses
+    [ "since_id"
+    , "max_id"
+    , "count"
+    , "include_entities"
+    , "include_rts"
     ]
 
 data ListsMembersDestroy
