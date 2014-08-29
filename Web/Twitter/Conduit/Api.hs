@@ -107,7 +107,8 @@ module Web.Twitter.Conduit.Api
        -- , listsMembersShow
        , ListsMembers
        , listsMembers
-       -- , listsMembersCreate
+       , ListsMembersCreate
+       , listsMembersCreate
        -- , listsDestroy
        -- , listsUpdate
        -- , listsCreate
@@ -686,6 +687,22 @@ deriveHasParamInstances ''ListsMembers
     [ "cursor"
     , "skip_status"
     ]
+
+data ListsMembersCreate
+-- | Returns the post parameter which adds a member to a list.
+--
+-- You can perform request by using 'call':
+--
+-- @
+-- res <- 'call' '$' 'listsMembersCreate' ('ListNameParam' "thimura/haskell") ('ScreenNameParam' "thimura")
+-- @
+--
+-- >>> listsMembersCreate (ListNameParam "thimura/haskell") (ScreenNameParam "thimura")
+-- APIRequestPost "https://api.twitter.com/1.1/lists/members/create.json" [("slug","haskell"),("owner_screen_name","thimura"),("screen_name","thimura")]
+-- >>> listsMembersCreate (ListIdParam 20849097) (UserIdParam 69179963)
+-- APIRequestPost "https://api.twitter.com/1.1/lists/members/create.json" [("list_id","20849097"),("user_id","69179963")]
+listsMembersCreate :: ListParam -> UserParam -> APIRequest ListsMembersCreate List
+listsMembersCreate list user = APIRequestPost (endpoint ++ "lists/members/create.json") (mkListParam list ++ mkUserParam user)
 
 data MediaUpload
 -- | Upload media and returns the media data.
