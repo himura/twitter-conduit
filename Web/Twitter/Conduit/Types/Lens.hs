@@ -25,7 +25,9 @@ module Web.Twitter.Conduit.Types.Lens
        , twitterErrorCode
        ) where
 
+import qualified Web.Twitter.Conduit.Cursor as TT
 import qualified Web.Twitter.Conduit.Types as TT
+import qualified Web.Twitter.Conduit.Response as TT
 import Web.Twitter.Conduit.Types.TH
 
 makeLenses ''TT.WithCursor

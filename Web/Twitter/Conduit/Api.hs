@@ -145,15 +145,14 @@ module Web.Twitter.Conduit.Api
        ) where
 
 import Web.Twitter.Types
-import Web.Twitter.Conduit.Types
 import Web.Twitter.Conduit.Parameters
 import Web.Twitter.Conduit.Parameters.TH
 import Web.Twitter.Conduit.Base
 import Web.Twitter.Conduit.Request
+import Web.Twitter.Conduit.Cursor
 
 import Network.HTTP.Client.MultipartFormData
 import qualified Data.Text as T
-import qualified Data.Text.Encoding as T
 import Data.Default
 
 -- $setup
@@ -176,7 +175,7 @@ data SearchTweets
 -- APIRequestGet "https://api.twitter.com/1.1/search/tweets.json" [("count","100"),("lang","ja"),("q","search text")]
 searchTweets :: T.Text -- ^ search string
              -> APIRequest SearchTweets (SearchResult [SearchStatus])
-searchTweets q = APIRequestGet (endpoint ++ "search/tweets.json") [("q", T.encodeUtf8 q)]
+searchTweets q = APIRequestGet (endpoint ++ "search/tweets.json") [("q", PVString q)]
 deriveHasParamInstances ''SearchTweets
     [ "lang"
     , "locale"
@@ -253,7 +252,7 @@ data DirectMessagesShow
 -- >>> directMessagesShow 1234567890
 -- APIRequestGet "https://api.twitter.com/1.1/direct_messages/show.json" [("id","1234567890")]
 directMessagesShow :: StatusId -> APIRequest DirectMessagesShow DirectMessage
-directMessagesShow sId = APIRequestGet (endpoint ++ "direct_messages/show.json") [("id", showBS sId)]
+directMessagesShow sId = APIRequestGet (endpoint ++ "direct_messages/show.json") [("id", PVInteger sId)]
 
 data DirectMessagesDestroy
 -- | Returns post data which destroys the direct message specified in the required ID parameter.
@@ -267,7 +266,7 @@ data DirectMessagesDestroy
 -- >>> directMessagesDestroy 1234567890
 -- APIRequestPost "https://api.twitter.com/1.1/direct_messages/destroy.json" [("id","1234567890")]
 directMessagesDestroy :: StatusId -> APIRequest DirectMessagesDestroy DirectMessage
-directMessagesDestroy sId = APIRequestPost (endpoint ++ "direct_messages/destroy.json") [("id", showBS sId)]
+directMessagesDestroy sId = APIRequestPost (endpoint ++ "direct_messages/destroy.json") [("id", PVInteger sId)]
 deriveHasParamInstances ''DirectMessagesDestroy
     [ "include_entities"
     ]
@@ -286,7 +285,7 @@ data DirectMessagesNew
 -- >>> directMessagesNew (UserIdParam 69179963) "Hello thimura! by UserId"
 -- APIRequestPost "https://api.twitter.com/1.1/direct_messages/new.json" [("text","Hello thimura! by UserId"),("user_id","69179963")]
 directMessagesNew :: UserParam -> T.Text -> APIRequest DirectMessagesNew DirectMessage
-directMessagesNew q msg = APIRequestPost (endpoint ++ "direct_messages/new.json") (("text", T.encodeUtf8 msg):mkUserParam q)
+directMessagesNew q msg = APIRequestPost (endpoint ++ "direct_messages/new.json") (("text", PVString msg):mkUserParam q)
 
 data FriendshipsNoRetweetsIds
 -- | Returns a collection of user_ids that the currently authenticated user does not want to receive retweets from.
@@ -586,7 +585,7 @@ data FavoritesCreate
 -- >>> favoritesCreate 1234567890
 -- APIRequestPost "https://api.twitter.com/1.1/favorites/create.json" [("id","1234567890")]
 favoritesCreate :: StatusId -> APIRequest FavoritesCreate Status
-favoritesCreate sid = APIRequestPost (endpoint ++ "favorites/create.json") [("id", showBS sid)]
+favoritesCreate sid = APIRequestPost (endpoint ++ "favorites/create.json") [("id", PVInteger sid)]
 deriveHasParamInstances ''FavoritesCreate
     [ "include_entities"
     ]
@@ -603,7 +602,7 @@ data FavoritesDestroy
 -- >>> favoritesDestroy 1234567890
 -- APIRequestPost "https://api.twitter.com/1.1/favorites/destroy.json" [("id","1234567890")]
 favoritesDestroy :: StatusId -> APIRequest FavoritesDestroy Status
-favoritesDestroy sid = APIRequestPost (endpoint ++ "favorites/destroy.json") [("id", showBS sid)]
+favoritesDestroy sid = APIRequestPost (endpoint ++ "favorites/destroy.json") [("id", PVInteger sid)]
 deriveHasParamInstances ''FavoritesDestroy
     [ "include_entities"
     ]
@@ -809,8 +808,8 @@ listsUpdate :: ListParam
             -> APIRequest ListsUpdate List
 listsUpdate list isPublic description = APIRequestPost (endpoint ++ "lists/update.json") (mkListParam list ++ p')
   where
-    p = [("mode", mode isPublic)]
-    p' = maybe id (\d -> (("description", T.encodeUtf8 d):)) description p
+    p = [("mode", PVString . mode $ isPublic)]
+    p' = maybe id (\d -> (("description", PVString d):)) description p
     mode True = "public"
     mode False = "private"
 
@@ -835,8 +834,8 @@ listsCreate :: T.Text -- ^ list name
             -> APIRequest ListsCreate List
 listsCreate name isPublic description = APIRequestPost (endpoint ++ "lists/create.json") p'
   where
-    p = [("name", T.encodeUtf8 name), ("mode", mode isPublic)]
-    p' = maybe id (\d -> (("description", T.encodeUtf8 d):)) description p
+    p = [("name", PVString name), ("mode", PVString . mode $ isPublic)]
+    p' = maybe id (\d -> (("description", PVString d):)) description p
     mode True = "public"
     mode False = "private"
 

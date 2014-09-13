@@ -1,5 +1,5 @@
 name:              twitter-conduit
-version:           0.0.5.8
+version:           0.0.6
 license:           BSD3
 license-file:      LICENSE
 author:            HATTORI Hiroki, Hideyuki Tanaka, Takahiro HIMURA
@@ -58,7 +58,6 @@ library
       base >= 4.5 && < 5
     , transformers >= 0.2.2
     , template-haskell
-    , lens >= 4.0 && < 4.5
     , authenticate-oauth >= 1.3
     , resourcet >= 1.0
     , conduit >= 1.1
@@ -74,27 +73,29 @@ library
     , text >= 0.11
     , containers
     , time
-    , twitter-types >= 0.2
+    , twitter-types >= 0.5
 
   if flag(lens-aeson)
-    build-depends: lens-aeson >= 1
+    build-depends:
+        lens-aeson >= 1
+      , lens >= 4.4 && < 4.5
+  else
+    build-depends:
+        lens >= 4.0 && < 4.4
 
   exposed-modules:
     Web.Twitter.Conduit
-    Web.Twitter.Conduit.Types
-    Web.Twitter.Conduit.Types.Lens
-    Web.Twitter.Conduit.Types.TH
-    Web.Twitter.Conduit.Base
+    Web.Twitter.Conduit.Lens
     Web.Twitter.Conduit.Api
-    Web.Twitter.Conduit.Monad
     Web.Twitter.Conduit.Stream
     Web.Twitter.Conduit.Status
+    Web.Twitter.Conduit.Base
+    Web.Twitter.Conduit.Monad
     Web.Twitter.Conduit.Request
+    Web.Twitter.Conduit.Response
+    Web.Twitter.Conduit.Cursor
     Web.Twitter.Conduit.Parameters
-    Web.Twitter.Conduit.Parameters.Internal
     Web.Twitter.Conduit.Parameters.TH
-
-  other-modules:
 
 test-suite hlint
   type: exitcode-stdio-1.0
@@ -187,6 +188,7 @@ executable simple
       , http-conduit
       , monad-logger
       , authenticate-oauth
+      , twitter-types
       , twitter-conduit
       , twitter-types
 

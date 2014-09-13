@@ -14,9 +14,9 @@ import System.FilePath
 import System.Directory
 import Data.Conduit
 import qualified Data.Conduit.Binary as CB
-import Network.HTTP.Conduit
+import Network.HTTP.Conduit as HTTP
 
-import Web.Twitter.Conduit
+import Web.Twitter.Conduit.Lens
 import Web.Twitter.Types.Lens
 import Common
 import Control.Lens
@@ -79,5 +79,5 @@ fetchIcon sn url = do
     unless exists $ withManager $ \mgr -> do
         req <- liftIO $ parseUrl url
         body <- http req mgr
-        responseBody body $$+- CB.sinkFile fname
+        HTTP.responseBody body $$+- CB.sinkFile fname
     return fname

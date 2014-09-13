@@ -4,14 +4,27 @@
 {-# LANGUAGE CPP #-}
 
 module Web.Twitter.Conduit.Request
-       ( APIRequest(..)
+       ( Parameters(..)
+       , APIRequest(..)
+       , APIQuery
+       , APIQueryItem
+       , PV(..)
+       , makeSimpleQuery
+       , paramValueBS
        ) where
 
-import Web.Twitter.Conduit.Parameters
-
+import Control.Applicative
+import Control.Lens
+import Data.ByteString (ByteString)
+import qualified Data.ByteString.Char8 as S8
+import Data.Text (Text)
+import qualified Data.Text.Encoding as T
+import Data.Time.Calendar (Day)
 import Network.HTTP.Client.MultipartFormData
 import qualified Network.HTTP.Types as HT
-import Control.Applicative
+
+class Parameters a where
+    params :: Lens' a APIQuery
 
 -- In GHC 7.4.2, the following test fails with Overlapping instances error.
 -- It may be caused by #5820 "defining instance in GHCi leads to duplicated instances".
@@ -22,6 +35,7 @@ import Control.Applicative
 -- >>> :set -XOverloadedStrings -XRank2Types -XEmptyDataDecls -XFlexibleInstances -XOverlappingInstances -XIncoherentInstances
 -- >>> import Control.Lens
 -- >>> import Data.Default
+-- >>> import Web.Twitter.Conduit.Parameters
 -- >>> data SampleApi
 -- >>> type SampleId = Integer
 -- >>> instance HasCountParam (APIRequest SampleApi [SampleId])
@@ -50,22 +64,22 @@ import Control.Applicative
 -- And update request parameters.
 --
 -- >>> (sampleApiRequest & count ?~ 100 & maxId ?~ 1234567890) ^. params
--- [("max_id","1234567890"),("count","100")]
+-- [("max_id",PVInteger {unPVInteger = 1234567890}),("count",PVInteger {unPVInteger = 100})]
 -- >>> (sampleApiRequest & count ?~ 100 & maxId ?~ 1234567890 & count .~ Nothing) ^. params
--- [("max_id","1234567890")]
+-- [("max_id",PVInteger {unPVInteger = 1234567890})]
 #endif
 data APIRequest apiName responseType
     = APIRequestGet
       { _url :: String
-      , _params :: HT.SimpleQuery
+      , _params :: APIQuery
       }
     | APIRequestPost
       { _url :: String
-      , _params :: HT.SimpleQuery
+      , _params :: APIQuery
       }
     | APIRequestPostMultipart
       { _url :: String
-      , _params :: HT.SimpleQuery
+      , _params :: APIQuery
       , _part :: [Part]
       }
 instance Parameters (APIRequest apiName responseType) where
@@ -74,6 +88,30 @@ instance Parameters (APIRequest apiName responseType) where
     params f (APIRequestPostMultipart u pa prt) =
         (\p -> APIRequestPostMultipart u p prt) <$> f pa
 instance Show (APIRequest apiName responseType) where
-    show (APIRequestGet u p) = "APIRequestGet " ++ show u ++ " " ++ show p
-    show (APIRequestPost u p) = "APIRequestPost " ++ show u ++ " " ++ show p
-    show (APIRequestPostMultipart u p _) = "APIRequestPostMultipart " ++ show u ++ " " ++ show p
+    show (APIRequestGet u p) = "APIRequestGet " ++ show u ++ " " ++ show (makeSimpleQuery p)
+    show (APIRequestPost u p) = "APIRequestPost " ++ show u ++ " " ++ show (makeSimpleQuery p)
+    show (APIRequestPostMultipart u p _) = "APIRequestPostMultipart " ++ show u ++ " " ++ show (makeSimpleQuery p)
+
+type APIQuery = [APIQueryItem]
+type APIQueryItem = (ByteString, PV)
+
+data PV
+    = PVInteger { unPVInteger :: Integer }
+    | PVBool { unPVBool :: Bool }
+    | PVString { unPVString :: Text }
+    | PVIntegerArray { unPVIntegerArray :: [Integer] }
+    | PVStringArray { unPVStringArray :: [Text] }
+    | PVDay { unPVDay :: Day }
+    deriving (Show, Eq)
+
+makeSimpleQuery :: APIQuery -> HT.SimpleQuery
+makeSimpleQuery = traversed . _2 %~ paramValueBS
+
+paramValueBS :: PV -> ByteString
+paramValueBS (PVInteger i) = S8.pack . show $ i
+paramValueBS (PVBool True) = "true"
+paramValueBS (PVBool False) = "false"
+paramValueBS (PVString txt) = T.encodeUtf8 txt
+paramValueBS (PVIntegerArray iarr) = S8.intercalate "," $ map (S8.pack . show) iarr
+paramValueBS (PVStringArray iarr) = S8.intercalate "," $ map T.encodeUtf8 iarr
+paramValueBS (PVDay day) = S8.pack . show $ day
