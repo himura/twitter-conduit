@@ -1,13 +1,8 @@
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE EmptyDataDecls #-}
-#if __GLASGOW_HASKELL__ >= 704
-{-# LANGUAGE ConstraintKinds #-}
-#endif
 
 module Web.Twitter.Conduit.Status
        (

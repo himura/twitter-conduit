@@ -2,11 +2,7 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE EmptyDataDecls #-}
 {-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE CPP #-}
-#if __GLASGOW_HASKELL__ >= 704
-{-# LANGUAGE ConstraintKinds #-}
-#endif
 
 module Web.Twitter.Conduit.Api
        (

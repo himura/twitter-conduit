@@ -1,6 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE Rank2Types #-}
-{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE CPP #-}
 
 module Web.Twitter.Conduit.Request

@@ -1,10 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE EmptyDataDecls #-}
 {-# LANGUAGE CPP #-}
-#if __GLASGOW_HASKELL__ >= 704
 {-# LANGUAGE ConstraintKinds #-}
-#endif
 
 module Web.Twitter.Conduit.Stream
        (
