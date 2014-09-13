@@ -27,7 +27,6 @@ module Web.Twitter.Conduit
        , module Web.Twitter.Conduit.Status
        , module Web.Twitter.Conduit.Stream
 
-       , MediaData (..)
 #if !MIN_VERSION_twitter_types(0,5,0)
        , UploadedMedia
        , mediaId
