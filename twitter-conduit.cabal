@@ -85,8 +85,6 @@ library
     Web.Twitter.Conduit.Api
     Web.Twitter.Conduit.Stream
     Web.Twitter.Conduit.Status
-
-  other-modules:
     Web.Twitter.Conduit.Base
     Web.Twitter.Conduit.Monad
     Web.Twitter.Conduit.Request
