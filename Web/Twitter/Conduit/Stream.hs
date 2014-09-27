@@ -68,6 +68,7 @@ deriveHasParamInstances ''Userstream
     [ "language"
     , "filter_level"
     , "stall_warnings"
+    , "replies"
     ]
 
 statusesFilterEndpoint :: String

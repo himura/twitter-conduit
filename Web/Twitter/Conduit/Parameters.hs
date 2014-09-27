@@ -28,6 +28,7 @@ module Web.Twitter.Conduit.Parameters
        , HasLocaleParam (..)
        , HasFilterLevelParam (..)
        , HasStallWarningsParam (..)
+       , HasRepliesParam (..)
        , HasUntilParam (..)
        , HasSkipStatusParam (..)
        , HasFollowParam (..)
@@ -78,6 +79,7 @@ defineHasParamClassString "language"
 defineHasParamClassString "locale"
 defineHasParamClassString "filter_level"
 defineHasParamClassBool "stall_warnings"
+defineHasParamClassString "replies"
 defineHasParamClassDay "until"
 defineHasParamClassBool "skip_status"
 defineHasParamClassBool "follow"
