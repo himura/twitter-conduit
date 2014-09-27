@@ -24,6 +24,7 @@ module Web.Twitter.Conduit.Parameters
        , HasDisplayCoordinatesParam (..)
        , HasPossiblySensitiveParam (..)
        , HasLangParam (..)
+       , HasLanguageParam (..)
        , HasLocaleParam (..)
        , HasUntilParam (..)
        , HasSkipStatusParam (..)
@@ -71,6 +72,7 @@ defineHasParamClassInteger "in_reply_to_status_id"
 defineHasParamClassBool "display_coordinates"
 defineHasParamClassBool "possibly_sensitive"
 defineHasParamClassString "lang"
+defineHasParamClassString "language"
 defineHasParamClassString "locale"
 defineHasParamClassDay "until"
 defineHasParamClassBool "skip_status"

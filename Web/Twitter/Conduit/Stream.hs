@@ -1,7 +1,9 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE EmptyDataDecls #-}
 {-# LANGUAGE CPP #-}
+{-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE ConstraintKinds #-}
+{-# LANGUAGE FlexibleInstances #-}
 
 module Web.Twitter.Conduit.Stream
        (
@@ -24,6 +26,7 @@ import Web.Twitter.Conduit.Base
 import Web.Twitter.Conduit.Monad
 import Web.Twitter.Types
 import Web.Twitter.Conduit.Parameters
+import Web.Twitter.Conduit.Parameters.TH
 import Web.Twitter.Conduit.Request
 import Web.Twitter.Conduit.Response
 
@@ -61,6 +64,9 @@ stream' req = do
 data Userstream
 userstream :: APIRequest Userstream StreamingAPI
 userstream = APIRequestGet "https://userstream.twitter.com/1.1/user.json" []
+deriveHasParamInstances ''Userstream
+    [ "language"
+    ]
 
 statusesFilterEndpoint :: String
 statusesFilterEndpoint = "https://stream.twitter.com/1.1/statuses/filter.json"
@@ -74,3 +80,7 @@ statusesFilterByTrack :: T.Text -- ^ keyword
                       -> APIRequest StatusesFilter StreamingAPI
 statusesFilterByTrack keyword =
     APIRequestPost statusesFilterEndpoint [("track", PVString keyword)]
+
+deriveHasParamInstances ''StatusesFilter
+    [ "language"
+    ]
