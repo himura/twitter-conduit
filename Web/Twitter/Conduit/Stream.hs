@@ -66,6 +66,8 @@ userstream :: APIRequest Userstream StreamingAPI
 userstream = APIRequestGet "https://userstream.twitter.com/1.1/user.json" []
 deriveHasParamInstances ''Userstream
     [ "language"
+    , "filter_level"
+    , "stall_warnings"
     ]
 
 statusesFilterEndpoint :: String
@@ -83,4 +85,6 @@ statusesFilterByTrack keyword =
 
 deriveHasParamInstances ''StatusesFilter
     [ "language"
+    , "filter_level"
+    , "stall_warnings"
     ]
