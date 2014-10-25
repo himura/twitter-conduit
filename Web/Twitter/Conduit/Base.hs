@@ -9,6 +9,8 @@ module Web.Twitter.Conduit.Base
        , getResponse
        , call
        , call'
+       , callWithResponse
+       , callWithResponse'
        , checkResponse
        , sourceWithMaxId
        , sourceWithMaxId'
@@ -129,21 +131,15 @@ checkResponse Response{..} =
 
 getValueOrThrow :: (MonadThrow m, MonadLogger m, FromJSON a)
                 => Response (C.ResumableSource m ByteString)
-                -> m a
+                -> m (Response a)
 getValueOrThrow res = do
-    val <- getValueOrThrow' res
-    case fromJSON val of
-        Success r -> return r
-        Error err -> monadThrow $ FromJSONError err
-
-getValueOrThrow' :: (MonadLogger m, MonadThrow m)
-                 => Response (C.ResumableSource m ByteString)
-                 -> m Value
-getValueOrThrow' res = do
     res' <- getValue res
     case checkResponse res' of
         Left err -> monadThrow err
-        Right v -> return v
+        Right _ -> return ()
+    case fromJSON (responseBody res') of
+        Success r -> return $ res' { responseBody = r }
+        Error err -> monadThrow $ FromJSONError err
 
 call :: (TwitterBaseM m, FromJSON responseType)
      => APIRequest apiName responseType
@@ -153,9 +149,17 @@ call = call'
 call' :: (TwitterBaseM m, FromJSON value)
       => APIRequest apiName responseType
       -> TW m value
-call' req = do
-    res <- getResponse =<< makeRequest req
-    getValueOrThrow res
+call' = fmap responseBody . callWithResponse'
+
+callWithResponse :: (TwitterBaseM m, FromJSON responseType)
+                 => APIRequest apiName responseType
+                 -> TW m (Response responseType)
+callWithResponse = callWithResponse'
+
+callWithResponse' :: (TwitterBaseM m, FromJSON value)
+                  => APIRequest apiName responseType
+                  -> TW m (Response value)
+callWithResponse' req = getValueOrThrow =<< getResponse =<< makeRequest req
 
 sourceWithMaxId :: ( TwitterBaseM m
                    , FromJSON responseType
