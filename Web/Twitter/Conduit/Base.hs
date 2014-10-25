@@ -116,10 +116,12 @@ checkResponse :: Response Value
               -> Either TwitterError Value
 checkResponse Response{..} =
     case responseBody ^? key "errors" of
-        Just errs ->
+        Just errs@(Array _) ->
             case fromJSON errs of
                 Success errList -> Left $ TwitterErrorResponse responseStatus responseHeaders errList
                 Error msg -> Left $ FromJSONError msg
+        Just err ->
+            Left $ TwitterUnknownErrorResponse responseStatus responseHeaders err
         Nothing ->
             if sci < 200 || sci > 400
                 then Left $ TwitterStatusError responseStatus responseHeaders responseBody
