@@ -28,6 +28,7 @@ data Response responseType = Response
 data TwitterError
     = FromJSONError String
     | TwitterErrorResponse Status ResponseHeaders [TwitterErrorMessage]
+    | TwitterUnknownErrorResponse Status ResponseHeaders Value
     | TwitterStatusError Status ResponseHeaders Value
     deriving (Show, Typeable, Eq)
 
