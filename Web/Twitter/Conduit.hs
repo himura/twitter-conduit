@@ -18,7 +18,6 @@ module Web.Twitter.Conduit
 
        -- * Re-exports
          module Web.Twitter.Conduit.Api
-       , module Web.Twitter.Conduit.Base
        , module Web.Twitter.Conduit.Cursor
        , module Web.Twitter.Conduit.Monad
        , module Web.Twitter.Conduit.Parameters
@@ -26,6 +25,17 @@ module Web.Twitter.Conduit
        , module Web.Twitter.Conduit.Response
        , module Web.Twitter.Conduit.Status
        , module Web.Twitter.Conduit.Stream
+
+       -- * 'Web.Twitter.Conduit.Base'
+       , TwitterBaseM
+       , call
+       , call'
+       , callWithResponse
+       , callWithResponse'
+       , sourceWithMaxId
+       , sourceWithMaxId'
+       , sourceWithCursor
+       , sourceWithCursor'
 
 #if !MIN_VERSION_twitter_types(0,5,0)
        , UploadedMedia
