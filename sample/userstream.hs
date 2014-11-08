@@ -2,24 +2,24 @@
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE PatternGuards #-}
 
-import qualified Data.Conduit as C
-import qualified Data.Conduit.List as CL
-import qualified Data.Text.IO as T
-import qualified Data.Text as T
-import System.Process
-import Control.Monad
-import Control.Monad.IO.Class
-import Control.Applicative
-import System.FilePath
-import System.Directory
-import Data.Conduit
-import qualified Data.Conduit.Binary as CB
-import Network.HTTP.Conduit as HTTP
-
 import Web.Twitter.Conduit
 import Web.Twitter.Types.Lens
 import Common
+
+import Control.Applicative
 import Control.Lens
+import Control.Monad
+import Control.Monad.IO.Class
+import Data.Conduit
+import qualified Data.Conduit as C
+import qualified Data.Conduit.Binary as CB
+import qualified Data.Conduit.List as CL
+import qualified Data.Text as T
+import qualified Data.Text.IO as T
+import Network.HTTP.Conduit as HTTP
+import System.Directory
+import System.FilePath
+import System.Process
 
 ensureDirectoryExist :: FilePath -> IO FilePath
 ensureDirectoryExist dir = do
@@ -33,9 +33,11 @@ iconPath :: IO FilePath
 iconPath = (</> "icons") <$> confdir >>= ensureDirectoryExist
 
 main :: IO ()
-main = runTwitterFromEnv' $ do
-    src <- stream userstream
-    src C.$$+- CL.mapM_ (^! act (liftIO . printTL))
+main = do
+    twInfo <- getTWInfoFromEnv
+    withManager $ \mgr -> do
+        src <- stream twInfo mgr userstream
+        src C.$$+- CL.mapM_ (^! act (liftIO . printTL))
 
 showStatus :: AsStatus s => s -> T.Text
 showStatus s = T.concat [ s ^. user . userScreenName

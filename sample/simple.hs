@@ -5,21 +5,21 @@ module Main where
 
 import Web.Twitter.Conduit
 import Web.Twitter.Types.Lens
+
 import Control.Lens
-import Web.Authenticate.OAuth (OAuth(..), Credential(..))
-import qualified Web.Authenticate.OAuth as OA
-import Network.HTTP.Conduit
-import qualified Data.Conduit as C
-import qualified Data.Conduit.List as CL
-import qualified Data.Text as T
-import qualified Data.Text.IO as T
-import qualified Data.ByteString.Char8 as B8
-import Data.Default
-import Control.Monad.Logger
+import Control.Monad.IO.Class
 import Control.Monad.Trans.Control
 import Control.Monad.Trans.Resource
-import Control.Monad.IO.Class
+import qualified Data.ByteString.Char8 as B8
+import qualified Data.Conduit as C
+import qualified Data.Conduit.List as CL
+import Data.Default
+import qualified Data.Text as T
+import qualified Data.Text.IO as T
+import Network.HTTP.Conduit
 import System.IO (hFlush, stdout)
+import Web.Authenticate.OAuth (OAuth(..), Credential(..))
+import qualified Web.Authenticate.OAuth as OA
 
 tokens :: OAuth
 tokens = twitterOAuth
@@ -38,11 +38,10 @@ authorize oauth getPIN mgr = do
     pin <- getPIN url
     OA.getAccessToken oauth (OA.insert "oauth_verifier" (B8.pack pin) cred) mgr
 
-withCredential :: (MonadLogger m, MonadBaseControl IO m, MonadIO m) => TW (ResourceT m) a -> m a
-withCredential task = do
-    cred <- liftIO $ withManager $ \mgr -> authorize tokens getPIN mgr
-    let env = setCredential tokens cred def
-    runTW env task
+getTWInfo :: IO TWInfo
+getTWInfo = do
+    cred <- withManager $ \mgr -> authorize tokens getPIN mgr
+    return $ setCredential tokens cred def
   where
     getPIN url = liftIO $ do
         putStrLn $ "browse URL: " ++ url
@@ -51,14 +50,16 @@ withCredential task = do
         getLine
 
 main :: IO ()
-main = runNoLoggingT . withCredential $ do
-    liftIO . putStrLn $ "# your home timeline (up to 100 tweets):"
-    sourceWithMaxId homeTimeline
-        C.$= CL.isolate 100
-        C.$$ CL.mapM_ $ \status -> liftIO $ do
-            T.putStrLn $ T.concat [ T.pack . show $ status ^. statusId
-                                  , ": "
-                                  , status ^. statusUser . userScreenName
-                                  , ": "
-                                  , status ^. statusText
-                                  ]
+main = do
+    twInfo <- getTWInfo
+    putStrLn $ "# your home timeline (up to 100 tweets):"
+    withManager $ \mgr -> do
+        sourceWithMaxId twInfo mgr homeTimeline
+            C.$= CL.isolate 100
+            C.$$ CL.mapM_ $ \status -> liftIO $ do
+                T.putStrLn $ T.concat [ T.pack . show $ status ^. statusId
+                                      , ": "
+                                      , status ^. statusUser . userScreenName
+                                      , ": "
+                                      , status ^. statusText
+                                      ]

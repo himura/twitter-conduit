@@ -6,19 +6,15 @@ module Common where
 
 import Web.Twitter.Conduit
 
-import Web.Authenticate.OAuth as OA
-import qualified Network.URI as URI
-import Network.HTTP.Conduit
-import qualified Data.Map as M
+import Control.Applicative
+import Control.Lens
 import qualified Data.ByteString.Char8 as S8
 import qualified Data.CaseInsensitive as CI
-import Control.Applicative
-import Control.Monad.IO.Class
-import Control.Monad.Base
-import Control.Monad.Trans.Resource
+import qualified Data.Map as M
+import Network.HTTP.Conduit
+import qualified Network.URI as URI
 import System.Environment
-import Control.Monad.Logger
-import Control.Lens
+import Web.Authenticate.OAuth as OA
 
 getOAuthTokens :: IO (OAuth, Credential)
 getOAuthTokens = do
@@ -51,12 +47,8 @@ getProxyEnv = do
     parsePort (':':xs) = read xs
     parsePort xs       = error $ "port number parse failed " ++ xs
 
-runTwitterFromEnv :: (MonadIO m, MonadBaseControl IO m) => TW (ResourceT m) a -> m a
-runTwitterFromEnv task = do
-    pr <- liftBase getProxyEnv
-    (oa, cred) <- liftBase getOAuthTokens
-    let env = (setCredential oa cred def) { twProxy = pr }
-    runTW env task
-
-runTwitterFromEnv' :: (MonadIO m, MonadBaseControl IO m) => TW (ResourceT (NoLoggingT m)) a -> m a
-runTwitterFromEnv' = runNoLoggingT . runTwitterFromEnv
+getTWInfoFromEnv :: IO TWInfo
+getTWInfoFromEnv = do
+    pr <- getProxyEnv
+    (oa, cred) <- getOAuthTokens
+    return $ (setCredential oa cred def) { twProxy = pr }

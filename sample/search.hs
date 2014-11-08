@@ -1,19 +1,23 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Main where
 
+import Web.Twitter.Conduit
+import Web.Twitter.Types.Lens
+import Common
+
+import Control.Lens
 import Control.Monad.IO.Class
+import qualified Data.Text as T
+import Network.HTTP.Conduit
 import System.Environment
 
-import Web.Twitter.Conduit
-import Common
-import qualified Data.Text as T
-import Control.Lens
-
 main :: IO ()
-main = runTwitterFromEnv' $ do
-    [keyword] <- liftIO getArgs
+main = do
+    [keyword] <- getArgs
 
-    res <- call . search $ T.pack keyword
+    twInfo <- getTWInfoFromEnv
+
+    res <- withManager $ \mgr -> call twInfo mgr $ search $ T.pack keyword
     let metadata = res ^. searchResultSearchMetadata
     liftIO . putStrLn $ "search completed in: " ++ metadata ^. searchMetadataCompletedIn . to show
     liftIO . putStrLn $ "search result max id: " ++ metadata ^. searchMetadataMaxId . to show

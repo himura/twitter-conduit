@@ -1,18 +1,21 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Main where
 
-import qualified Data.Text as T
-import qualified Data.Text.IO as T
-import Data.Monoid
-import Control.Applicative
-import Control.Monad.IO.Class
-import Web.Twitter.Conduit
-import System.Environment
+import Web.Twitter.Conduit hiding (map)
 import Common
 
+import Control.Applicative
+import Data.Monoid
+import qualified Data.Text as T
+import qualified Data.Text.IO as T
+import Network.HTTP.Conduit
+import System.Environment
+
 main :: IO ()
-main = runTwitterFromEnv' $ do
-    status <- T.concat . map T.pack <$> liftIO getArgs
-    liftIO $ T.putStrLn $ "Post message: " <> status
-    res <- call $ update status
-    liftIO $ print res
+main = do
+    status <- T.concat . map T.pack <$> getArgs
+    T.putStrLn $ "Post message: " <> status
+    twInfo <- getTWInfoFromEnv
+    res <- withManager $ \mgr -> do
+        call twInfo mgr $ update status
+    print res
