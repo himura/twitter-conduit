@@ -19,7 +19,6 @@ module Web.Twitter.Conduit.Base
        , makeRequest
        , sinkJSON
        , sinkFromJSON
-       , showBS
        ) where
 
 import Web.Twitter.Conduit.Cursor
@@ -36,7 +35,6 @@ import Control.Monad.Trans.Resource (MonadResource, MonadThrow, monadThrow)
 import Data.Aeson
 import Data.Aeson.Lens
 import Data.ByteString (ByteString)
-import qualified Data.ByteString.Char8 as S8
 import qualified Data.Conduit as C
 import qualified Data.Conduit.Attoparsec as CA
 import qualified Data.Conduit.List as CL
@@ -242,6 +240,3 @@ sinkFromJSON = do
     case fromJSON v of
         Error err -> monadThrow $ FromJSONError err
         Success r -> return r
-
-showBS :: Show a => a -> ByteString
-showBS = S8.pack . show
