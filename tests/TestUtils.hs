@@ -14,11 +14,8 @@ import qualified Data.Map as M
 import qualified Data.ByteString.Char8 as S8
 import qualified Data.CaseInsensitive as CI
 import Control.Applicative
-import Control.Monad.IO.Class
 import Control.Monad.Base
-import Control.Monad.Trans.Resource
 import System.Environment
-import Control.Monad.Logger
 import Control.Lens
 
 getOAuthTokens :: IO (OAuth, Credential)

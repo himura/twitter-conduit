@@ -65,7 +65,6 @@ import Data.Conduit
 import qualified Data.Conduit.List as CL
 import qualified Data.Text as T
 import qualified Data.Text.IO as T
-import Control.Monad.Logger
 import Control.Monad.IO.Class
 import Control.Lens
 
@@ -90,7 +89,6 @@ import Control.Lens
 -- > import qualified Data.Conduit.List as CL
 -- > import qualified Data.Text as T
 -- > import qualified Data.Text.IO as T
--- > import Control.Monad.Logger
 -- > import Control.Monad.IO.Class
 -- > import Control.Lens
 --

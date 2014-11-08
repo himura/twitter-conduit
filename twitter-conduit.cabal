@@ -62,7 +62,6 @@ library
     , resourcet >= 1.0
     , conduit >= 1.1
     , conduit-extra >= 1.1
-    , monad-logger
     , http-types
     , http-conduit >= 2.0 && < 2.2
     , http-client >= 0.3
@@ -147,7 +146,6 @@ test-suite spec_main
     , http-types
     , http-conduit
     , http-client
-    , monad-logger
     , authenticate-oauth
     , case-insensitive
     , containers
@@ -187,7 +185,6 @@ executable simple
       , resourcet
       , conduit
       , http-conduit
-      , monad-logger
       , authenticate-oauth
       , twitter-types
       , twitter-conduit
@@ -219,7 +216,6 @@ executable userstream
       , conduit
       , conduit-extra
       , http-conduit
-      , monad-logger
       , authenticate-oauth
       , twitter-conduit
       , twitter-types
