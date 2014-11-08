@@ -36,17 +36,6 @@ module Web.Twitter.Conduit
        , sourceWithMaxId'
        , sourceWithCursor
        , sourceWithCursor'
-
-#if !MIN_VERSION_twitter_types(0,5,0)
-       , UploadedMedia
-       , mediaId
-       , mediaSize
-       , mediaImage
-       , ImageSizeType
-       , imageWidth
-       , imageHeight
-       , imageType
-#endif
        ) where
 
 import Web.Twitter.Conduit.Api
