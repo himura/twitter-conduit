@@ -36,6 +36,9 @@ module Web.Twitter.Conduit
        , sourceWithMaxId'
        , sourceWithCursor
        , sourceWithCursor'
+
+       -- * Backward compativility
+       -- $backward
        ) where
 
 import Web.Twitter.Conduit.Api
@@ -72,8 +75,9 @@ import Control.Lens
 -- > {-# LANGUAGE OverloadedStrings #-}
 -- >
 -- > import Web.Twitter.Conduit
--- > import Web.Twitter.Types
+-- > import Web.Twitter.Types.Lens
 -- > import Web.Authenticate.OAuth
+-- > import Network.HTTP.Conduit
 -- > import Data.Conduit
 -- > import qualified Data.Conduit.List as CL
 -- > import qualified Data.Text as T
@@ -124,15 +128,12 @@ import Control.Lens
 --
 -- > twInfo = setCredential tokens credential def
 --
--- Every twitter API functions are run in the 'TW' monad.
--- By using 'runTW' function, you can perform computation in 'TW' monad.
---
 -- Twitter API requests are performed by 'call' function.
 -- For example, <https://dev.twitter.com/docs/api/1.1/get/statuses/home_timeline GET statuses/home_timeline>
 -- could be obtained by:
 --
 -- @
--- timeline <- 'call' 'homeTimeline'
+-- timeline \<- 'withManager' $ \\mgr -\> 'call' twInfo mgr 'homeTimeline'
 -- @
 --
 -- The response of 'call' function is wrapped by the suitable type of
@@ -145,7 +146,7 @@ import Control.Lens
 -- includes 20 tweets, and you can change the number of tweets by the /count/ parameter.
 --
 -- @
--- timeline <- 'call' '$' 'homeTimeline' '&' 'count' '?~' 200
+-- timeline \<- 'withManager' $ \\mgr -\> 'call' twInfo mgr '$' 'homeTimeline' '&' 'count' '?~' 200
 -- @
 --
 -- If you need more statuses, you can obtain those with multiple API requests.
@@ -155,7 +156,7 @@ import Control.Lens
 -- or use the conduit wrapper 'sourceWithCursor' as below:
 --
 -- @
--- friends <- 'sourceWithCursor' ('friendsList' ('ScreenNameParam' \"thimura\") '&' 'count' '?~' 200) '$$' 'CL.consume'
+-- friends \<- 'withManager' $ \\mgr -\> 'sourceWithCursor' twInfo mgr ('friendsList' ('ScreenNameParam' \"thimura\") '&' 'count' '?~' 200) '$$' 'CL.consume'
 -- @
 --
 -- Statuses APIs, for instance, 'homeTimeline', are also wrapped by 'sourceWithMaxId'.
@@ -164,8 +165,8 @@ import Control.Lens
 --
 -- @
 -- main :: IO ()
--- main = runNoLoggingT . runTW twInfo $ do
---     'sourceWithMaxId' 'homeTimeline'
+-- main = withManager $ \mgr -> do
+--     'sourceWithMaxId' twInfo mgr 'homeTimeline'
 --         $= CL.isolate 60
 --         $$ CL.mapM_ $ \status -> liftIO $ do
 --             T.putStrLn $ T.concat [ T.pack . show $ status ^. statusId
@@ -175,3 +176,10 @@ import Control.Lens
 --                                   , status ^. statusText
 --                                   ]
 -- @
+
+-- $backward
+--
+-- In the version below 0.1.0, twitter-conduit provides the TW monad,
+-- and every Twitter API functions are run in the TW monad.
+--
+-- For backward compatibility, TW monad and the functions are provided in the Web.Twitter.Conduit.Monad module.
