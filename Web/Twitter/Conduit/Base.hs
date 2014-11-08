@@ -1,12 +1,10 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE RecordWildCards #-}
 
 module Web.Twitter.Conduit.Base
-       ( api
-       , getResponse
+       ( getResponse
        , call
        , call'
        , callWithResponse
@@ -24,40 +22,36 @@ module Web.Twitter.Conduit.Base
        , showBS
        ) where
 
-import Web.Twitter.Conduit.Monad
+import Web.Twitter.Conduit.Cursor
 import Web.Twitter.Conduit.Parameters
 import Web.Twitter.Conduit.Request
 import Web.Twitter.Conduit.Response
-import Web.Twitter.Conduit.Cursor
+import Web.Twitter.Conduit.Types
 import Web.Twitter.Types.Lens
 
-import qualified Network.HTTP.Conduit as HTTP
-import Network.HTTP.Client.MultipartFormData
-import qualified Network.HTTP.Types as HT
-import qualified Data.Conduit as C
-import qualified Data.Conduit.List as CL
-
-import Data.Aeson
-import Data.Aeson.Lens
-import qualified Data.Conduit.Attoparsec as CA
-import qualified Data.Text as T
-import qualified Data.Text.Encoding as T
-import Data.ByteString (ByteString)
-import qualified Data.ByteString.Char8 as S8
+import Control.Lens
 import Control.Monad.IO.Class
 import Control.Monad.Trans.Class (lift)
 import Control.Monad.Trans.Resource (MonadResource, MonadThrow, monadThrow)
-import Control.Monad.Logger
-import Control.Lens
+import Data.Aeson
+import Data.Aeson.Lens
+import Data.ByteString (ByteString)
+import qualified Data.ByteString.Char8 as S8
+import qualified Data.Conduit as C
+import qualified Data.Conduit.Attoparsec as CA
+import qualified Data.Conduit.List as CL
+import qualified Data.Text.Encoding as T
+import Network.HTTP.Client.MultipartFormData
+import qualified Network.HTTP.Conduit as HTTP
+import qualified Network.HTTP.Types as HT
 import Unsafe.Coerce
+import Web.Authenticate.OAuth (signOAuth)
 
 type TwitterBaseM m = ( MonadResource m
-                      , MonadLogger m
                       )
 
-makeRequest :: (MonadThrow m, MonadIO m)
-            => APIRequest apiName responseType
-            -> m HTTP.Request
+makeRequest :: APIRequest apiName responseType
+            -> IO HTTP.Request
 makeRequest (APIRequestGet u pa) = makeRequest' "GET" u (makeSimpleQuery pa)
 makeRequest (APIRequestPost u pa) = makeRequest' "POST" u (makeSimpleQuery pa)
 makeRequest (APIRequestPostMultipart u param prt) =
@@ -66,11 +60,10 @@ makeRequest (APIRequestPostMultipart u param prt) =
     body = prt ++ partParam
     partParam = Prelude.map (uncurry partBS . over _1 T.decodeUtf8) (makeSimpleQuery param)
 
-makeRequest' :: MonadThrow m
-             => HT.Method -- ^ HTTP request method (GET or POST)
+makeRequest' :: HT.Method -- ^ HTTP request method (GET or POST)
              -> String -- ^ API Resource URL
              -> HT.SimpleQuery -- ^ Query
-             -> m HTTP.Request
+             -> IO HTTP.Request
 makeRequest' m url query = do
     req <- HTTP.parseUrl url
     return $ req { HTTP.method = m
@@ -78,26 +71,14 @@ makeRequest' m url query = do
                  , HTTP.checkStatus = \_ _ _ -> Nothing
                  }
 
-{-# DEPRECATED api "use `getResponse =<< makeRequest'`" #-}
-api :: TwitterBaseM m
-    => HT.Method -- ^ HTTP request method (GET or POST)
-    -> String -- ^ API Resource URL
-    -> HT.SimpleQuery -- ^ Query
-    -> TW m (Response (C.ResumableSource (TW m) ByteString))
-api m url query =
-    getResponse =<< makeRequest' m url query
-
-getResponse :: TwitterBaseM m
-            => HTTP.Request
-            -> TW m (Response (C.ResumableSource (TW m) ByteString))
-getResponse req = do
-    proxy <- getProxy
-    signedReq <- signOAuthTW $ req { HTTP.proxy = proxy }
-    $(logDebug) $ T.pack $ "Signed Request: " ++ show signedReq
-    mgr <- getManager
+getResponse :: MonadResource m
+            => TWInfo
+            -> HTTP.Manager
+            -> HTTP.Request
+            -> m (Response (C.ResumableSource m ByteString))
+getResponse TWInfo{..} mgr req = do
+    signedReq <- signOAuth (twOAuth twToken) (twCredential twToken) $ req { HTTP.proxy = twProxy }
     res <- HTTP.http signedReq mgr
-    $(logDebug) $ T.pack $ "Response Status: " ++ show (HTTP.responseStatus res)
-    $(logDebug) $ T.pack $ "Response Header: " ++ show (HTTP.responseHeaders res)
     return
         Response { responseStatus = HTTP.responseStatus res
                  , responseHeaders = HTTP.responseHeaders res
@@ -107,7 +88,7 @@ getResponse req = do
 endpoint :: String
 endpoint = "https://api.twitter.com/1.1/"
 
-getValue :: (MonadLogger m, MonadThrow m)
+getValue :: MonadThrow m
          => Response (C.ResumableSource m ByteString)
          -> m (Response Value)
 getValue res = do
@@ -131,7 +112,7 @@ checkResponse Response{..} =
   where
     sci = HT.statusCode responseStatus
 
-getValueOrThrow :: (MonadThrow m, MonadLogger m, FromJSON a)
+getValueOrThrow :: (MonadThrow m, FromJSON a)
                 => Response (C.ResumableSource m ByteString)
                 -> m (Response a)
 getValueOrThrow res = do
@@ -143,37 +124,49 @@ getValueOrThrow res = do
         Success r -> return $ res' { responseBody = r }
         Error err -> monadThrow $ FromJSONError err
 
-call :: (TwitterBaseM m, FromJSON responseType)
-     => APIRequest apiName responseType
-     -> TW m responseType
+call :: (MonadResource m, FromJSON responseType)
+     => TWInfo
+     -> HTTP.Manager
+     -> APIRequest apiName responseType
+     -> m responseType
 call = call'
 
-call' :: (TwitterBaseM m, FromJSON value)
-      => APIRequest apiName responseType
-      -> TW m value
-call' = fmap responseBody . callWithResponse'
+call' :: (MonadResource m, FromJSON value)
+      => TWInfo
+      -> HTTP.Manager
+      -> APIRequest apiName responseType
+      -> m value
+call' info mgr req = responseBody `fmap` callWithResponse' info mgr req
 
-callWithResponse :: (TwitterBaseM m, FromJSON responseType)
-                 => APIRequest apiName responseType
-                 -> TW m (Response responseType)
+callWithResponse :: (MonadResource m, FromJSON responseType)
+                 => TWInfo
+                 -> HTTP.Manager
+                 -> APIRequest apiName responseType
+                 -> m (Response responseType)
 callWithResponse = callWithResponse'
 
-callWithResponse' :: (TwitterBaseM m, FromJSON value)
-                  => APIRequest apiName responseType
-                  -> TW m (Response value)
-callWithResponse' req = getValueOrThrow =<< getResponse =<< makeRequest req
+callWithResponse' :: (MonadResource m, FromJSON value)
+                  => TWInfo
+                  -> HTTP.Manager
+                  -> APIRequest apiName responseType
+                  -> m (Response value)
+callWithResponse' info mgr req = do
+    res <- getResponse info mgr =<< liftIO (makeRequest req)
+    getValueOrThrow res
 
-sourceWithMaxId :: ( TwitterBaseM m
+sourceWithMaxId :: ( MonadResource m
                    , FromJSON responseType
                    , AsStatus responseType
                    , HasMaxIdParam (APIRequest apiName [responseType])
                    )
-                => APIRequest apiName [responseType]
-                -> C.Source (TW m) responseType
-sourceWithMaxId = loop
+                => TWInfo
+                -> HTTP.Manager
+                -> APIRequest apiName [responseType]
+                -> C.Source m responseType
+sourceWithMaxId info mgr = loop
   where
     loop req = do
-        res <- lift $ call req
+        res <- lift $ call info mgr req
         case getMinId res of
             Just mid -> do
                 CL.sourceList res
@@ -181,15 +174,17 @@ sourceWithMaxId = loop
             Nothing -> CL.sourceList res
     getMinId = minimumOf (traverse . status_id)
 
-sourceWithMaxId' :: ( TwitterBaseM m
+sourceWithMaxId' :: ( MonadResource m
                     , HasMaxIdParam (APIRequest apiName [responseType])
                     )
-                 => APIRequest apiName [responseType]
-                 -> C.Source (TW m) Value
-sourceWithMaxId' = loop
+                 => TWInfo
+                 -> HTTP.Manager
+                 -> APIRequest apiName [responseType]
+                 -> C.Source m Value
+sourceWithMaxId' info mgr = loop
   where
     loop req = do
-        res <- lift $ call' req
+        res <- lift $ call' info mgr req
         case getMinId res of
             Just mid -> do
                 CL.sourceList res
@@ -197,29 +192,33 @@ sourceWithMaxId' = loop
             Nothing -> CL.sourceList res
     getMinId = minimumOf (traverse . key "id" . _Integer)
 
-sourceWithCursor :: ( TwitterBaseM m
+sourceWithCursor :: ( MonadResource m
                     , FromJSON responseType
                     , CursorKey ck
                     , HasCursorParam (APIRequest apiName (WithCursor ck responseType))
                     )
-                 => APIRequest apiName (WithCursor ck responseType)
-                 -> C.Source (TW m) responseType
-sourceWithCursor req = loop (-1)
+                 => TWInfo
+                 -> HTTP.Manager
+                 -> APIRequest apiName (WithCursor ck responseType)
+                 -> C.Source m responseType
+sourceWithCursor info mgr req = loop (-1)
   where
     loop 0 = CL.sourceNull
     loop cur = do
-        res <- lift $ call $ req & cursor ?~ cur
+        res <- lift $ call info mgr $ req & cursor ?~ cur
         CL.sourceList $ contents res
         loop $ nextCursor res
 
-sourceWithCursor' :: ( TwitterBaseM m
+sourceWithCursor' :: ( MonadResource m
                      , FromJSON responseType
                      , CursorKey ck
                      , HasCursorParam (APIRequest apiName (WithCursor ck responseType))
                      )
-                  => APIRequest apiName (WithCursor ck responseType)
-                  -> C.Source (TW m) Value
-sourceWithCursor' req = loop (-1)
+                  => TWInfo
+                  -> HTTP.Manager
+                  -> APIRequest apiName (WithCursor ck responseType)
+                  -> C.Source m Value
+sourceWithCursor' info mgr req = loop (-1)
   where
     relax :: FromJSON value
           => APIRequest apiName (WithCursor ck responseType)
@@ -227,21 +226,16 @@ sourceWithCursor' req = loop (-1)
     relax = unsafeCoerce
     loop 0 = CL.sourceNull
     loop cur = do
-        res <- lift $ call $ relax $ req & cursor ?~ cur
+        res <- lift $ call info mgr $ relax $ req & cursor ?~ cur
         CL.sourceList $ contents res
         loop $ nextCursor res
 
 sinkJSON :: ( MonadThrow m
-            , MonadLogger m
             ) => C.Consumer ByteString m Value
-sinkJSON = do
-    js <- CA.sinkParser json
-    $(logDebug) $ T.pack $ "Response JSON: " ++ show js
-    return js
+sinkJSON = CA.sinkParser json
 
 sinkFromJSON :: ( FromJSON a
                 , MonadThrow m
-                , MonadLogger m
                 ) => C.Consumer ByteString m a
 sinkFromJSON = do
     v <- sinkJSON
