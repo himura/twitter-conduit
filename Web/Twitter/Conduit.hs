@@ -19,12 +19,12 @@ module Web.Twitter.Conduit
        -- * Re-exports
          module Web.Twitter.Conduit.Api
        , module Web.Twitter.Conduit.Cursor
-       , module Web.Twitter.Conduit.Monad
        , module Web.Twitter.Conduit.Parameters
        , module Web.Twitter.Conduit.Request
        , module Web.Twitter.Conduit.Response
        , module Web.Twitter.Conduit.Status
        , module Web.Twitter.Conduit.Stream
+       , module Web.Twitter.Conduit.Types
 
        -- * 'Web.Twitter.Conduit.Base'
        , TwitterBaseM
@@ -52,12 +52,12 @@ module Web.Twitter.Conduit
 import Web.Twitter.Conduit.Api
 import Web.Twitter.Conduit.Base
 import Web.Twitter.Conduit.Cursor
-import Web.Twitter.Conduit.Monad
 import Web.Twitter.Conduit.Parameters
 import Web.Twitter.Conduit.Request
 import Web.Twitter.Conduit.Response
 import Web.Twitter.Conduit.Status
 import Web.Twitter.Conduit.Stream
+import Web.Twitter.Conduit.Types
 
 -- for haddock
 import Web.Authenticate.OAuth
