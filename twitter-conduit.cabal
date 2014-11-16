@@ -1,5 +1,5 @@
 name:              twitter-conduit
-version:           0.0.8
+version:           0.0.8.1
 license:           BSD3
 license-file:      LICENSE
 author:            HATTORI Hiroki, Hideyuki Tanaka, Takahiro HIMURA
@@ -73,7 +73,8 @@ library
     , text >= 0.11
     , containers
     , time
-    , twitter-types >= 0.5
+    , twitter-types >= 0.6
+    , twitter-types-lens >= 0.6
 
   if flag(lens-aeson)
     build-depends:
@@ -151,7 +152,8 @@ test-suite spec_main
     , case-insensitive
     , containers
     , hspec
-    , twitter-types >= 0.4.0
+    , twitter-types >= 0.6
+    , twitter-types-lens >= 0.6
 
   if flag(network-uri)
     build-depends: network-uri >= 2.6
@@ -189,8 +191,8 @@ executable simple
       , monad-logger
       , authenticate-oauth
       , twitter-types
+      , twitter-types-lens
       , twitter-conduit
-      , twitter-types
 
 executable userstream
   main-is: userstream.hs
@@ -222,6 +224,7 @@ executable userstream
       , authenticate-oauth
       , twitter-conduit
       , twitter-types
+      , twitter-types-lens
 
   if flag(network-uri)
     build-depends: network-uri >= 2.6
