@@ -12,14 +12,14 @@ import Network.HTTP.Conduit
 data TWToken = TWToken
     { twOAuth :: OAuth
     , twCredential :: Credential
-    } deriving Show
+    } deriving (Show, Eq)
 instance Default TWToken where
     def = TWToken twitterOAuth (Credential [])
 
 data TWInfo = TWInfo
     { twToken :: TWToken
     , twProxy :: Maybe Proxy
-    } deriving Show
+    } deriving (Show, Eq)
 instance Default TWInfo where
     def = TWInfo
         { twToken = def
