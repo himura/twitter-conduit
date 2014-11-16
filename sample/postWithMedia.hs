@@ -1,15 +1,18 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Main where
 
-import qualified Data.Text as T
-import Control.Monad.IO.Class
 import Web.Twitter.Conduit
-import System.Environment
 import Common
 
+import qualified Data.Text as T
+import Network.HTTP.Conduit
+import System.Environment
+
 main :: IO ()
-main = runTwitterFromEnv' $ do
-    [status, filepath] <- liftIO getArgs
-    liftIO $ putStrLn $ "Post message: " ++ status
-    res <- call $ updateWithMedia (T.pack status) (MediaFromFile filepath)
-    liftIO $ print res
+main = do
+    [status, filepath] <- getArgs
+    putStrLn $ "Post message: " ++ status
+    twInfo <- getTWInfoFromEnv
+    res <- withManager $ \mgr -> do
+        call twInfo mgr $ updateWithMedia (T.pack status) (MediaFromFile filepath)
+    print res

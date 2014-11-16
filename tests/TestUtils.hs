@@ -3,7 +3,7 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE CPP #-}
 
-module TestUtils (runTwitterFromEnv, run) where
+module TestUtils (getTWInfo) where
 
 import Web.Twitter.Conduit
 
@@ -14,11 +14,8 @@ import qualified Data.Map as M
 import qualified Data.ByteString.Char8 as S8
 import qualified Data.CaseInsensitive as CI
 import Control.Applicative
-import Control.Monad.IO.Class
 import Control.Monad.Base
-import Control.Monad.Trans.Resource
 import System.Environment
-import Control.Monad.Logger
 import Control.Lens
 
 getOAuthTokens :: IO (OAuth, Credential)
@@ -52,17 +49,8 @@ getProxyEnv = do
     parsePort (':':xs) = read xs
     parsePort xs       = error $ "port number parse failed " ++ xs
 
-runTwitterFromEnv :: (MonadIO m, MonadBaseControl IO m) => TW (ResourceT m) a -> m a
-runTwitterFromEnv task = do
+getTWInfo :: IO TWInfo
+getTWInfo = do
     pr <- liftBase getProxyEnv
     (oa, cred) <- liftBase getOAuthTokens
-    let env = (setCredential oa cred def) { twProxy = pr }
-    runTW env task
-
-#ifdef USE_DEBUG_OUTPUT
-run :: (MonadIO m, MonadBaseControl IO m) => TW (ResourceT (LoggingT m)) a -> m a
-run = runStderrLoggingT . runTwitterFromEnv
-#else
-run :: (MonadIO m, MonadBaseControl IO m) => TW (ResourceT (NoLoggingT m)) a -> m a
-run = runNoLoggingT . runTwitterFromEnv
-#endif
+    return $ (setCredential oa cred def) { twProxy = pr }

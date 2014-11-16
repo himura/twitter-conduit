@@ -22,8 +22,8 @@ module Web.Twitter.Conduit.Stream
        , stream'
   ) where
 
+import Web.Twitter.Conduit.Types
 import Web.Twitter.Conduit.Base
-import Web.Twitter.Conduit.Monad
 import Web.Twitter.Types
 import Web.Twitter.Conduit.Parameters
 import Web.Twitter.Conduit.Parameters.TH
@@ -36,6 +36,8 @@ import qualified Data.Conduit.Internal as CI
 import qualified Data.Text as T
 import Control.Monad.IO.Class
 import Data.Aeson
+import Control.Monad.Trans.Resource (MonadResource)
+import qualified Network.HTTP.Conduit as HTTP
 
 #if MIN_VERSION_conduit(1,0,16)
 ($=+) :: MonadIO m
@@ -49,16 +51,20 @@ rsrc $=+ cndt = do
     return $ CI.ResumableSource (src C.$= cndt) finalizer
 #endif
 
-stream :: (TwitterBaseM m, FromJSON responseType)
-       => APIRequest apiName responseType
-       -> TW m (C.ResumableSource (TW m) responseType)
+stream :: (MonadResource m, FromJSON responseType)
+       => TWInfo
+       -> HTTP.Manager
+       -> APIRequest apiName responseType
+       -> m (C.ResumableSource m responseType)
 stream = stream'
 
-stream' :: (TwitterBaseM m, FromJSON value)
-        => APIRequest apiName responseType
-        -> TW m (C.ResumableSource (TW m) value)
-stream' req = do
-    rsrc <- getResponse =<< makeRequest req
+stream' :: (MonadResource m, FromJSON value)
+        => TWInfo
+        -> HTTP.Manager
+        -> APIRequest apiName responseType
+        -> m (C.ResumableSource m value)
+stream' info mgr req = do
+    rsrc <- getResponse info mgr =<< liftIO (makeRequest req)
     responseBody rsrc $=+ CL.sequence sinkFromJSON
 
 data Userstream

@@ -43,10 +43,6 @@ flag build-samples
   description: build samples
   default: False
 
-flag use-debug-output
-  description: use debug output when running testsuites
-  default: False
-
 flag run-integrated-test
   description: use debug output when running testsuites
   default: False
@@ -62,7 +58,6 @@ library
     , resourcet >= 1.0
     , conduit >= 1.1
     , conduit-extra >= 1.1
-    , monad-logger
     , http-types
     , http-conduit >= 2.0 && < 2.2
     , http-client >= 0.3
@@ -87,6 +82,7 @@ library
   exposed-modules:
     Web.Twitter.Conduit
     Web.Twitter.Conduit.Lens
+    Web.Twitter.Conduit.Types
     Web.Twitter.Conduit.Api
     Web.Twitter.Conduit.Stream
     Web.Twitter.Conduit.Status
@@ -122,8 +118,6 @@ test-suite spec_main
   type: exitcode-stdio-1.0
   main-is: spec_main.hs
   hs-source-dirs: tests, .
-  if flag(use-debug-output)
-    CPP-Options: -DUSE_DEBUG_OUTPUT
 
   if flag(run-integrated-test)
     CPP-Options: -DRUN_INTEGRATED_TEST
@@ -147,7 +141,6 @@ test-suite spec_main
     , http-types
     , http-conduit
     , http-client
-    , monad-logger
     , authenticate-oauth
     , case-insensitive
     , containers
@@ -188,7 +181,6 @@ executable simple
       , resourcet
       , conduit
       , http-conduit
-      , monad-logger
       , authenticate-oauth
       , twitter-types
       , twitter-types-lens
@@ -220,7 +212,6 @@ executable userstream
       , conduit
       , conduit-extra
       , http-conduit
-      , monad-logger
       , authenticate-oauth
       , twitter-conduit
       , twitter-types

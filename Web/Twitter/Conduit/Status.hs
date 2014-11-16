@@ -156,7 +156,7 @@ data StatusesRetweetsId
 -- You can perform a search query using 'call':
 --
 -- @
--- res <- 'call' '$' 'retweetsId' 1234567890
+-- res <- 'call' twInfo mgr '$' 'retweetsId' 1234567890
 -- @
 --
 -- >>> retweetsId 1234567890
@@ -177,7 +177,7 @@ data StatusesShowId
 -- You can perform a search query using 'call':
 --
 -- @
--- res <- 'call' '$' 'showId' 1234567890
+-- res <- 'call' twInfo mgr '$' 'showId' 1234567890
 -- @
 --
 -- >>> showId 1234567890
@@ -199,7 +199,7 @@ data StatusesDestroyId
 -- You can perform a search query using 'call':
 --
 -- @
--- res <- 'call' '$' 'destroyId' 1234567890
+-- res <- 'call' twInfo mgr '$' 'destroyId' 1234567890
 -- @
 --
 -- >>> destroyId 1234567890
@@ -218,7 +218,7 @@ data StatusesUpdate
 -- You can perform a search query using 'call':
 --
 -- @
--- res <- 'call' '$' 'update' \"Hello World\"
+-- res <- 'call' twInfo mgr '$' 'update' \"Hello World\"
 -- @
 --
 -- >>> update "Hello World"
@@ -243,7 +243,7 @@ data StatusesRetweetId
 -- You can perform a search query using 'call':
 --
 -- @
--- res <- 'call' '$' 'retweetId' 1234567890
+-- res <- 'call' twInfo mgr '$' 'retweetId' 1234567890
 -- @
 --
 -- >>> retweetId 1234567890
@@ -261,7 +261,7 @@ data StatusesUpdateWithMedia
 -- You can perform a search query using 'call':
 --
 -- @
--- res <- 'call' '$' 'updateWithMedia' \"Hello World\" ('MediaFromFile' \"/home/thimura/test.jpeg\")
+-- res <- 'call' twInfo mgr '$' 'updateWithMedia' \"Hello World\" ('MediaFromFile' \"/home/thimura/test.jpeg\")
 -- @
 --
 -- >>> updateWithMedia "Hello World" (MediaFromFile "/home/fuga/test.jpeg")
@@ -289,7 +289,7 @@ data StatusesLookup
 -- You can perform a request using 'call':
 --
 -- @
--- res <- 'call' '$' 'lookup' [20, 432656548536401920]
+-- res <- 'call' twInfo mgr '$' 'lookup' [20, 432656548536401920]
 -- @
 --
 -- >>> lookup [10]

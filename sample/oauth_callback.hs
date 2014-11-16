@@ -9,7 +9,7 @@ module Main where
 
 import Web.Scotty
 import qualified Network.HTTP.Types as HT
-import Web.Twitter.Conduit hiding (text, lookup)
+import Web.Twitter.Conduit hiding (lookup)
 import Web.Authenticate.OAuth (OAuth(..), Credential(..))
 import qualified Web.Authenticate.OAuth as OA
 import qualified Network.HTTP.Conduit as HTTP
