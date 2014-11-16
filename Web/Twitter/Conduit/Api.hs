@@ -195,7 +195,7 @@ data DirectMessages
 -- You can perform a query using 'call':
 --
 -- @
--- res <- 'call' '$' 'directMessages' '&' 'count' '?~' 100
+-- res <- 'call' twInfo mgr '$' 'directMessages' '&' 'count' '?~' 100
 -- @
 --
 -- >>> directMessages
@@ -218,7 +218,7 @@ data DirectMessagesSent
 -- You can perform a query using 'call':
 --
 -- @
--- res <- 'call' '$' 'directMessagesSent' '&' 'count' '?~' 100
+-- res <- 'call' twInfo mgr '$' 'directMessagesSent' '&' 'count' '?~' 100
 -- @
 --
 -- >>> directMessagesSent
@@ -242,7 +242,7 @@ data DirectMessagesShow
 -- You can perform a query using 'call':
 --
 -- @
--- res <- 'call' '$' 'directMessagesShow' 1234567890
+-- res <- 'call' twInfo mgr '$' 'directMessagesShow' 1234567890
 -- @
 --
 -- >>> directMessagesShow 1234567890
@@ -256,7 +256,7 @@ data DirectMessagesDestroy
 -- You can perform a query using 'call':
 --
 -- @
--- res <- 'call' '$' 'directMessagesDestroy' 1234567890
+-- res <- 'call' twInfo mgr '$' 'directMessagesDestroy' 1234567890
 -- @
 --
 -- >>> directMessagesDestroy 1234567890
@@ -273,7 +273,7 @@ data DirectMessagesNew
 -- You can perform a post using 'call':
 --
 -- @
--- res <- 'call' '$' 'directMessagesNew' (ScreenNameParam \"thimura\") \"Hello DM\"
+-- res <- 'call' twInfo mgr '$' 'directMessagesNew' (ScreenNameParam \"thimura\") \"Hello DM\"
 -- @
 --
 -- >>> directMessagesNew (ScreenNameParam "thimura") "Hello DM"
@@ -289,7 +289,7 @@ data FriendshipsNoRetweetsIds
 -- You can perform a request using 'call':
 --
 -- @
--- res <- 'call' '$' 'friendshipsNoRetweetsIds'
+-- res <- 'call' twInfo mgr '$' 'friendshipsNoRetweetsIds'
 -- @
 --
 -- >>> friendshipsNoRetweetsIds
@@ -303,7 +303,7 @@ data FriendsIds
 -- You can perform a query using 'call':
 --
 -- @
--- res <- 'call' '$' 'friendsIds' ('ScreenNameParam' \"thimura\")
+-- res <- 'call' twInfo mgr '$' 'friendsIds' ('ScreenNameParam' \"thimura\")
 -- @
 --
 -- Or, you can iterate with 'sourceWithCursor':
@@ -330,7 +330,7 @@ data FollowersIds
 -- You can perform a query using 'call':
 --
 -- @
--- res <- 'call' '$' 'followersIds' ('ScreenNameParam' \"thimura\")
+-- res <- 'call' twInfo mgr '$' 'followersIds' ('ScreenNameParam' \"thimura\")
 -- @
 --
 -- Or, you can iterate with 'sourceWithCursor':
@@ -357,7 +357,7 @@ data FriendshipsIncoming
 -- You can perform a request by using 'call':
 --
 -- @
--- res <- 'call' '$' 'friendshipsIncoming'
+-- res <- 'call' twInfo mgr '$' 'friendshipsIncoming'
 -- @
 --
 -- Or, you can iterate with 'sourceWithCursor':
@@ -381,7 +381,7 @@ data FriendshipsOutgoing
 -- You can perform a request by using 'call':
 --
 -- @
--- res <- 'call' '$' 'friendshipsOutgoing'
+-- res <- 'call' twInfo mgr '$' 'friendshipsOutgoing'
 -- @
 --
 -- Or, you can iterate with 'sourceWithCursor':
@@ -405,7 +405,7 @@ data FriendshipsCreate
 -- You can perform request by using 'call':
 --
 -- @
--- res <- 'call' '$' 'friendshipsCreate' ('ScreenNameParam' \"thimura\")
+-- res <- 'call' twInfo mgr '$' 'friendshipsCreate' ('ScreenNameParam' \"thimura\")
 -- @
 --
 -- >>> friendshipsCreate (ScreenNameParam "thimura")
@@ -424,7 +424,7 @@ data FriendshipsDestroy
 -- You can perform request by using 'call':
 --
 -- @
--- res <- 'call' '$' 'friendshipsDestroy' ('ScreenNameParam' \"thimura\")
+-- res <- 'call' twInfo mgr '$' 'friendshipsDestroy' ('ScreenNameParam' \"thimura\")
 -- @
 --
 -- >>> friendshipsDestroy (ScreenNameParam "thimura")
@@ -440,7 +440,7 @@ data FriendsList
 -- You can perform request by using 'call':
 --
 -- @
--- res <- 'call' '$' 'friendsList' ('ScreenNameParam' \"thimura\")
+-- res <- 'call' twInfo mgr '$' 'friendsList' ('ScreenNameParam' \"thimura\")
 -- @
 --
 -- Or, you can iterate with 'sourceWithCursor':
@@ -468,7 +468,7 @@ data FollowersList
 -- You can perform request by using 'call':
 --
 -- @
--- res <- 'call' '$' 'followersList' ('ScreenNameParam' \"thimura\")
+-- res <- 'call' twInfo mgr '$' 'followersList' ('ScreenNameParam' \"thimura\")
 -- @
 --
 -- Or, you can iterate with 'sourceWithCursor':
@@ -496,7 +496,7 @@ data AccountVerifyCredentials
 -- You can perform request by using 'call':
 --
 -- @
--- res <- 'call' '$' 'accountVerifyCredentials'
+-- res <- 'call' twInfo mgr '$' 'accountVerifyCredentials'
 -- @
 --
 -- >>> accountVerifyCredentials
@@ -514,7 +514,7 @@ data UsersLookup
 -- You can perform request by using 'call':
 --
 -- @
--- res <- 'call' '$' 'usersLookup' ('ScreenNameListParam' [\"thimura\", \"twitterapi\"])
+-- res <- 'call' twInfo mgr '$' 'usersLookup' ('ScreenNameListParam' [\"thimura\", \"twitterapi\"])
 -- @
 --
 -- >>> usersLookup (ScreenNameListParam ["thimura", "twitterapi"])
@@ -531,7 +531,7 @@ data UsersShow
 -- You can perform request by using 'call':
 --
 -- @
--- res <- 'call' '$' 'usersShow' ('ScreenNameParam' \"thimura\")
+-- res <- 'call' twInfo mgr '$' 'usersShow' ('ScreenNameParam' \"thimura\")
 -- @
 --
 -- >>> usersShow (ScreenNameParam "thimura")
@@ -548,7 +548,7 @@ data FavoritesList
 -- You can perform request by using 'call':
 --
 -- @
--- res <- 'call' '$' 'favoritesList' (ScreenNameParam \"thimura\")
+-- res <- 'call' twInfo mgr '$' 'favoritesList' (ScreenNameParam \"thimura\")
 -- @
 --
 -- >>> favoritesList Nothing
@@ -575,7 +575,7 @@ data FavoritesCreate
 -- You can perform request by using 'call':
 --
 -- @
--- res <- 'call' '$' 'favoritesCreate' 1234567890
+-- res <- 'call' twInfo mgr '$' 'favoritesCreate' 1234567890
 -- @
 --
 -- >>> favoritesCreate 1234567890
@@ -592,7 +592,7 @@ data FavoritesDestroy
 -- You can perform request by using 'call':
 --
 -- @
--- res <- 'call' '$' 'favoritesDestroy' 1234567890
+-- res <- 'call' twInfo mgr '$' 'favoritesDestroy' 1234567890
 -- @
 --
 -- >>> favoritesDestroy 1234567890
@@ -609,7 +609,7 @@ data ListsStatuses
 -- You can perform request by using 'call':
 --
 -- @
--- res <- 'call' '$' 'listsStatuses' ('ListNameParam' "thimura/haskell")
+-- res <- 'call' twInfo mgr '$' 'listsStatuses' ('ListNameParam' "thimura/haskell")
 -- @
 --
 -- If you need more statuses, you can obtain those by using 'sourceWithMaxId':
@@ -637,7 +637,7 @@ data ListsMembersDestroy
 -- You can perform request by using 'call':
 --
 -- @
--- res <- 'call' '$' 'listsMembersDestroy' ('ListNameParam' "thimura/haskell") ('ScreenNameParam' "thimura")
+-- res <- 'call' twInfo mgr '$' 'listsMembersDestroy' ('ListNameParam' "thimura/haskell") ('ScreenNameParam' "thimura")
 -- @
 --
 -- >>> listsMembersDestroy (ListNameParam "thimura/haskell") (ScreenNameParam "thimura")
@@ -654,7 +654,7 @@ data ListsMemberships
 -- You can perform request by using 'call':
 --
 -- @
--- res <- 'call' '$' 'listsMemberships' ('ListNameParam' "thimura/haskell")
+-- res <- 'call' twInfo mgr '$' 'listsMemberships' ('ListNameParam' "thimura/haskell")
 -- @
 --
 -- >>> listsMemberships Nothing
@@ -676,7 +676,7 @@ data ListsSubscribers
 -- You can perform request by using 'call':
 --
 -- @
--- res <- 'call' '$' 'listsSubscribers' ('ListNameParam' "thimura/haskell")
+-- res <- 'call' twInfo mgr '$' 'listsSubscribers' ('ListNameParam' "thimura/haskell")
 -- @
 --
 -- >>> listsSubscribers (ListNameParam "thimura/haskell")
@@ -697,7 +697,7 @@ data ListsSubscriptions
 -- You can perform request by using 'call':
 --
 -- @
--- res <- 'call' '$' 'listsSubscriptions' ('ListNameParam' "thimura/haskell")
+-- res <- 'call' twInfo mgr '$' 'listsSubscriptions' ('ListNameParam' "thimura/haskell")
 -- @
 --
 -- >>> listsSubscriptions Nothing
@@ -719,7 +719,7 @@ data ListsOwnerships
 -- You can perform request by using 'call':
 --
 -- @
--- res <- 'call' '$' 'listsOwnerships' ('ListNameParam' "thimura/haskell")
+-- res <- 'call' twInfo mgr '$' 'listsOwnerships' ('ListNameParam' "thimura/haskell")
 -- @
 --
 -- >>> listsOwnerships Nothing
@@ -741,7 +741,7 @@ data ListsMembers
 -- You can perform request by using 'call':
 --
 -- @
--- res <- 'call' '$' 'listsMembers' ('ListNameParam' "thimura/haskell")
+-- res <- 'call' twInfo mgr '$' 'listsMembers' ('ListNameParam' "thimura/haskell")
 -- @
 --
 -- >>> listsMembers (ListNameParam "thimura/haskell")
@@ -761,7 +761,7 @@ data ListsMembersCreate
 -- You can perform request by using 'call':
 --
 -- @
--- res <- 'call' '$' 'listsMembersCreate' ('ListNameParam' "thimura/haskell") ('ScreenNameParam' "thimura")
+-- res <- 'call' twInfo mgr '$' 'listsMembersCreate' ('ListNameParam' "thimura/haskell") ('ScreenNameParam' "thimura")
 -- @
 --
 -- >>> listsMembersCreate (ListNameParam "thimura/haskell") (ScreenNameParam "thimura")
@@ -777,7 +777,7 @@ data ListsDestroy
 -- You can perform request by using 'call':
 --
 -- @
--- res <- 'call' '$' 'listsDestroy' ('ListNameParam' "thimura/haskell")
+-- res <- 'call' twInfo mgr '$' 'listsDestroy' ('ListNameParam' "thimura/haskell")
 -- @
 --
 -- >>> listsDestroy (ListNameParam "thimura/haskell")
@@ -793,7 +793,7 @@ data ListsUpdate
 -- You can perform request by using 'call':
 --
 -- @
--- res <- 'call' '$' 'listsUpdate' ('ListNameParam' "thimura/haskell") True (Just "Haskellers")
+-- res <- 'call' twInfo mgr '$' 'listsUpdate' ('ListNameParam' "thimura/haskell") True (Just "Haskellers")
 -- @
 --
 -- >>> listsUpdate (ListNameParam "thimura/haskell") True (Just "Haskellers")
@@ -815,7 +815,7 @@ data ListsCreate
 -- You can perform request by using 'call':
 --
 -- @
--- res <- 'call' '$' 'listsCreate' ('ListNameParam' "thimura/haskell")
+-- res <- 'call' twInfo mgr '$' 'listsCreate' ('ListNameParam' "thimura/haskell")
 -- @
 --
 -- >>> listsCreate "haskell" True Nothing
@@ -841,7 +841,7 @@ data ListsShow
 -- You can perform request by using 'call':
 --
 -- @
--- res <- 'call' '$' 'listsShow' ('ListNameParam' "thimura/haskell")
+-- res <- 'call' twInfo mgr '$' 'listsShow' ('ListNameParam' "thimura/haskell")
 -- @
 --
 -- >>> listsShow (ListNameParam "thimura/haskell")
@@ -859,14 +859,14 @@ data MediaUpload
 -- First, you should upload media with 'mediaUpload':
 --
 -- @
--- res1 <- 'call' '$' 'mediaUpload' ('MediaFromFile' \"\/path\/to\/upload\/file1.png\")
--- res2 <- 'call' '$' 'mediaUpload' ('MediaRequestBody' \"file2.png\" \"[.. file body ..]\")
+-- res1 <- 'call' twInfo mgr '$' 'mediaUpload' ('MediaFromFile' \"\/path\/to\/upload\/file1.png\")
+-- res2 <- 'call' twInfo mgr '$' 'mediaUpload' ('MediaRequestBody' \"file2.png\" \"[.. file body ..]\")
 -- @
 --
 -- and then collect the resulting media IDs and update your status by calling 'update':
 --
 -- @
--- 'call' '$' 'update' \"Hello World\" '&' 'mediaIds' '?~' ['mediaId' res1, 'mediaId' res2]
+-- 'call' twInfo mgr '$' 'update' \"Hello World\" '&' 'mediaIds' '?~' ['mediaId' res1, 'mediaId' res2]
 -- @
 --
 -- See: <https://dev.twitter.com/docs/api/multiple-media-extended-entities>
