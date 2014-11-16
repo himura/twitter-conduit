@@ -43,10 +43,6 @@ flag build-samples
   description: build samples
   default: False
 
-flag use-debug-output
-  description: use debug output when running testsuites
-  default: False
-
 flag run-integrated-test
   description: use debug output when running testsuites
   default: False
@@ -121,8 +117,6 @@ test-suite spec_main
   type: exitcode-stdio-1.0
   main-is: spec_main.hs
   hs-source-dirs: tests, .
-  if flag(use-debug-output)
-    CPP-Options: -DUSE_DEBUG_OUTPUT
 
   if flag(run-integrated-test)
     CPP-Options: -DRUN_INTEGRATED_TEST
