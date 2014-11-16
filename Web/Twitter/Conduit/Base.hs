@@ -122,27 +122,67 @@ getValueOrThrow res = do
         Success r -> return $ res' { responseBody = r }
         Error err -> monadThrow $ FromJSONError err
 
+-- | Perform an 'APIRequest' and then provide the response which is mapped to a suitable type of
+-- <http://hackage.haskell.org/package/twitter-types twitter-types>.
+--
+-- Example:
+--
+-- @
+-- 'HTTP.withManager' $ \\mgr -\> do
+--      user <- 'call' twInfo mgr $ 'accountVerifyCredentials'
+--      'liftIO' $ print user
+-- @
+--
+-- If you need raw JSON value which is parsed by <http://hackage.haskell.org/package/aeson aeson>,
+-- use 'call'' to obtain it.
 call :: (MonadResource m, FromJSON responseType)
-     => TWInfo
+     => TWInfo -- ^ Twitter Setting
      -> HTTP.Manager
      -> APIRequest apiName responseType
      -> m responseType
 call = call'
 
+-- | Perform an 'APIRequest' and then provide the response.
+-- The response of this function is not restrict to @responseType@,
+-- so you can choose an arbitrarily type of FromJSON instances.
 call' :: (MonadResource m, FromJSON value)
-      => TWInfo
+      => TWInfo -- ^ Twitter Setting
       -> HTTP.Manager
       -> APIRequest apiName responseType
       -> m value
 call' info mgr req = responseBody `fmap` callWithResponse' info mgr req
 
+-- | Perform an 'APIRequest' and then provide the 'Response'.
+--
+-- Example:
+--
+-- @
+-- res \<- 'HTTP.withManager' $ \\mgr -\> do
+--     'callWithResponse' twInfo mgr $ 'accountVerifyCredentials'
+-- 'print' $ 'responseStatus' res
+-- 'print' $ 'responseHeaders' res
+-- 'print' $ 'responseBody' res
+-- @
 callWithResponse :: (MonadResource m, FromJSON responseType)
-                 => TWInfo
+                 => TWInfo -- ^ Twitter Setting
                  -> HTTP.Manager
                  -> APIRequest apiName responseType
                  -> m (Response responseType)
 callWithResponse = callWithResponse'
 
+-- | Perform an 'APIRequest' and then provide the 'Response'.
+-- The response of this function is not restrict to @responseType@,
+-- so you can choose an arbitrarily type of FromJSON instances.
+--
+-- Example:
+--
+-- @
+-- res \<- 'HTTP.withManager' $ \\mgr -\> do
+--     'callWithResponse'' twInfo mgr $ 'accountVerifyCredentials'
+-- 'print' $ 'responseStatus' res
+-- 'print' $ 'responseHeaders' res
+-- 'print' $ 'responseBody' (res :: Value)
+-- @
 callWithResponse' :: (MonadResource m, FromJSON value)
                   => TWInfo
                   -> HTTP.Manager
@@ -152,12 +192,15 @@ callWithResponse' info mgr req = do
     res <- getResponse info mgr =<< liftIO (makeRequest req)
     getValueOrThrow res
 
+-- | A wrapper function to perform multiple API request with changing @max_id@ parameter.
+--
+-- This function cooperate with instances of 'HasMaxIdParam'.
 sourceWithMaxId :: ( MonadResource m
                    , FromJSON responseType
                    , AsStatus responseType
                    , HasMaxIdParam (APIRequest apiName [responseType])
                    )
-                => TWInfo
+                => TWInfo -- ^ Twitter Setting
                 -> HTTP.Manager
                 -> APIRequest apiName [responseType]
                 -> C.Source m responseType
@@ -172,10 +215,15 @@ sourceWithMaxId info mgr = loop
             Nothing -> CL.sourceList res
     getMinId = minimumOf (traverse . status_id)
 
+-- | A wrapper function to perform multiple API request with changing @max_id@ parameter.
+-- The response of this function is not restrict to @responseType@,
+-- so you can choose an arbitrarily type of FromJSON instances.
+--
+-- This function cooperate with instances of 'HasMaxIdParam'.
 sourceWithMaxId' :: ( MonadResource m
                     , HasMaxIdParam (APIRequest apiName [responseType])
                     )
-                 => TWInfo
+                 => TWInfo -- ^ Twitter Setting
                  -> HTTP.Manager
                  -> APIRequest apiName [responseType]
                  -> C.Source m Value
@@ -190,12 +238,15 @@ sourceWithMaxId' info mgr = loop
             Nothing -> CL.sourceList res
     getMinId = minimumOf (traverse . key "id" . _Integer)
 
+-- | A wrapper function to perform multiple API request with changing @cursor@ parameter.
+--
+-- This function cooperate with instances of 'HasCursorParam'.
 sourceWithCursor :: ( MonadResource m
                     , FromJSON responseType
                     , CursorKey ck
                     , HasCursorParam (APIRequest apiName (WithCursor ck responseType))
                     )
-                 => TWInfo
+                 => TWInfo -- ^ Twitter Setting
                  -> HTTP.Manager
                  -> APIRequest apiName (WithCursor ck responseType)
                  -> C.Source m responseType
@@ -207,12 +258,17 @@ sourceWithCursor info mgr req = loop (-1)
         CL.sourceList $ contents res
         loop $ nextCursor res
 
+-- | A wrapper function to perform multiple API request with changing @cursor@ parameter.
+-- The response of this function is not restrict to @responseType@,
+-- so you can choose an arbitrarily type of FromJSON instances.
+--
+-- This function cooperate with instances of 'HasCursorParam'.
 sourceWithCursor' :: ( MonadResource m
                      , FromJSON responseType
                      , CursorKey ck
                      , HasCursorParam (APIRequest apiName (WithCursor ck responseType))
                      )
-                  => TWInfo
+                  => TWInfo -- ^ Twitter Setting
                   -> HTTP.Manager
                   -> APIRequest apiName (WithCursor ck responseType)
                   -> C.Source m Value
