@@ -74,7 +74,7 @@ library
   if flag(lens-aeson)
     build-depends:
         lens-aeson >= 1
-      , lens >= 4.4 && < 4.7
+      , lens >= 4.4 && < 4.8
   else
     build-depends:
         lens >= 4.0 && < 4.4
