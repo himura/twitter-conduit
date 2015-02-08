@@ -299,17 +299,17 @@ sourceWithSearchResult :: ( MonadResource m
 sourceWithSearchResult info mgr req = do
     res <- call info mgr req
     let body = CL.sourceList (res ^. searchResultStatuses) <>
-               (C.yield (res ^. searchResultSearchMetadata . searchMetadataNextResults) C.$= CL.concatMapM pull C.$= CL.concatMap id)
+               loop (res ^. searchResultSearchMetadata . searchMetadataNextResults)
     return $ res & searchResultStatuses .~ body
   where
     origQueryMap = req ^. params . to M.fromList
-    pull (Just nextResultsStr) = do
+    loop Nothing = CL.sourceNull
+    loop (Just nextResultsStr) = do
         let nextResults = nextResultsStr & HT.parseSimpleQuery . T.encodeUtf8 & traversed . _2 %~ (PVString . T.decodeUtf8)
             nextParams = M.toList $ M.union (M.fromList nextResults) origQueryMap
         res <- call info mgr $ req & params .~ nextParams
-        remains <- pull $ res ^. searchResultSearchMetadata . searchMetadataNextResults
-        return $ (res ^. searchResultStatuses) : remains
-    pull Nothing = return []
+        CL.sourceList (res ^. searchResultStatuses)
+        loop $ res ^. searchResultSearchMetadata . searchMetadataNextResults
 
 sinkJSON :: ( MonadThrow m
             ) => C.Consumer ByteString m Value
