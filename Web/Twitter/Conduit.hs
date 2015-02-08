@@ -36,6 +36,7 @@ module Web.Twitter.Conduit
        , sourceWithMaxId'
        , sourceWithCursor
        , sourceWithCursor'
+       , sourceWithSearchResult
 
        -- * Backward compativility
        -- $backward

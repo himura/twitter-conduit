@@ -14,6 +14,7 @@ module Web.Twitter.Conduit.Base
        , sourceWithMaxId'
        , sourceWithCursor
        , sourceWithCursor'
+       , sourceWithSearchResult
        , TwitterBaseM
        , endpoint
        , makeRequest
@@ -38,6 +39,8 @@ import Data.ByteString (ByteString)
 import qualified Data.Conduit as C
 import qualified Data.Conduit.Attoparsec as CA
 import qualified Data.Conduit.List as CL
+import qualified Data.Map as M
+import Data.Monoid
 import qualified Data.Text.Encoding as T
 import Network.HTTP.Client.MultipartFormData
 import qualified Network.HTTP.Conduit as HTTP
@@ -283,6 +286,30 @@ sourceWithCursor' info mgr req = loop (-1)
         res <- lift $ call info mgr $ relax $ req & cursor ?~ cur
         CL.sourceList $ contents res
         loop $ nextCursor res
+
+-- | A wrapper function to perform multiple API request with @SearchResult@.
+sourceWithSearchResult :: ( MonadResource m
+                          , FromJSON responseType
+                          , HasMaxIdParam (APIRequest apiName (SearchResult [responseType]))
+                          )
+                       => TWInfo -- ^ Twitter Setting
+                       -> HTTP.Manager
+                       -> APIRequest apiName (SearchResult [responseType])
+                       -> m (SearchResult (C.Source m responseType))
+sourceWithSearchResult info mgr req = do
+    res <- call info mgr req
+    let body = CL.sourceList (res ^. searchResultStatuses) <>
+               (C.yield (res ^. searchResultSearchMetadata . searchMetadataNextResults) C.$= CL.concatMapM pull C.$= CL.concatMap id)
+    return $ res & searchResultStatuses .~ body
+  where
+    origQueryMap = req ^. params . to M.fromList
+    pull (Just nextResultsStr) = do
+        let nextResults = nextResultsStr & HT.parseSimpleQuery . T.encodeUtf8 & traversed . _2 %~ (PVString . T.decodeUtf8)
+            nextParams = M.toList $ M.union (M.fromList nextResults) origQueryMap
+        res <- call info mgr $ req & params .~ nextParams
+        remains <- pull $ res ^. searchResultSearchMetadata . searchMetadataNextResults
+        return $ (res ^. searchResultStatuses) : remains
+    pull Nothing = return []
 
 sinkJSON :: ( MonadThrow m
             ) => C.Consumer ByteString m Value
