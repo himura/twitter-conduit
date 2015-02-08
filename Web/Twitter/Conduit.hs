@@ -37,6 +37,7 @@ module Web.Twitter.Conduit
        , sourceWithCursor
        , sourceWithCursor'
        , sourceWithSearchResult
+       , sourceWithSearchResult'
 
        -- * Backward compativility
        -- $backward

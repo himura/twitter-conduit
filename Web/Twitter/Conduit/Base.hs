@@ -15,6 +15,7 @@ module Web.Twitter.Conduit.Base
        , sourceWithCursor
        , sourceWithCursor'
        , sourceWithSearchResult
+       , sourceWithSearchResult'
        , TwitterBaseM
        , endpoint
        , makeRequest
@@ -308,6 +309,33 @@ sourceWithSearchResult info mgr req = do
         let nextResults = nextResultsStr & HT.parseSimpleQuery . T.encodeUtf8 & traversed . _2 %~ (PVString . T.decodeUtf8)
             nextParams = M.toList $ M.union (M.fromList nextResults) origQueryMap
         res <- call info mgr $ req & params .~ nextParams
+        CL.sourceList (res ^. searchResultStatuses)
+        loop $ res ^. searchResultSearchMetadata . searchMetadataNextResults
+
+-- | A wrapper function to perform multiple API request with @SearchResult@.
+sourceWithSearchResult' :: ( MonadResource m
+                           , HasMaxIdParam (APIRequest apiName (SearchResult [responseType]))
+                           )
+                        => TWInfo -- ^ Twitter Setting
+                        -> HTTP.Manager
+                        -> APIRequest apiName (SearchResult [responseType])
+                        -> m (SearchResult (C.Source m Value))
+sourceWithSearchResult' info mgr req = do
+    res <- call info mgr $ relax req
+    let body = CL.sourceList (res ^. searchResultStatuses) <>
+               loop (res ^. searchResultSearchMetadata . searchMetadataNextResults)
+    return $ res & searchResultStatuses .~ body
+  where
+    origQueryMap = req ^. params . to M.fromList
+    relax :: FromJSON value
+          => APIRequest apiName (SearchResult responseType)
+          -> APIRequest apiName (SearchResult value)
+    relax = unsafeCoerce
+    loop Nothing = CL.sourceNull
+    loop (Just nextResultsStr) = do
+        let nextResults = nextResultsStr & HT.parseSimpleQuery . T.encodeUtf8 & traversed . _2 %~ (PVString . T.decodeUtf8)
+            nextParams = M.toList $ M.union (M.fromList nextResults) origQueryMap
+        res <- call info mgr $ relax $ req & params .~ nextParams
         CL.sourceList (res ^. searchResultStatuses)
         loop $ res ^. searchResultSearchMetadata . searchMetadataNextResults
 
