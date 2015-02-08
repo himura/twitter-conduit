@@ -31,6 +31,7 @@ $ cabal sandbox init
 and then,
 
 ~~~~
+$ cabal install --only-dependencies -fbuild-samples
 $ cabal configure -fbuild-samples
 $ cabal build
 ~~~~
