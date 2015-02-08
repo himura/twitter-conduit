@@ -1,5 +1,4 @@
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE PatternGuards #-}
 
 import Web.Twitter.Conduit
@@ -37,7 +36,7 @@ main = do
     twInfo <- getTWInfoFromEnv
     withManager $ \mgr -> do
         src <- stream twInfo mgr userstream
-        src C.$$+- CL.mapM_ (^! act (liftIO . printTL))
+        src C.$$+- CL.mapM_ (liftIO . printTL)
 
 showStatus :: AsStatus s => s -> T.Text
 showStatus s = T.concat [ s ^. user . userScreenName
@@ -53,7 +52,7 @@ printTL (SRetweetedStatus s) = T.putStrLn $ T.concat [ s ^. user . userScreenNam
                                                      ]
 printTL (SEvent event)
     | (event^.evEvent) == "favorite" || (event^.evEvent) == "unfavorite",
-      Just (ETStatus st) <- (event ^. evTargetObject) = do
+      Just (ETStatus st) <- event ^. evTargetObject = do
           let (fromUser, fromIcon) = evUserInfo (event^.evSource)
               (toUser, _toIcon) = evUserInfo (event^.evTarget)
               evUserInfo (ETUser u) = (u ^. userScreenName, u ^. userProfileImageURL)
