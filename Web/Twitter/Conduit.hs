@@ -39,7 +39,7 @@ module Web.Twitter.Conduit
        , sourceWithSearchResult
        , sourceWithSearchResult'
 
-       -- * Backward compativility
+       -- * Backward compatibility
        -- $backward
        ) where
 
