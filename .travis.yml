@@ -13,7 +13,7 @@ env:
   matrix:
     - GHCVER=7.4.2
     - GHCVER=7.6.3
-    - GHCVER=7.8.3 USE_COVERALLS=1 CABAL_FLAGS="-frun-integrated-test"
+    - GHCVER=7.8.3 USE_COVERALLS=1 RUN_INTEGRATED_TEST=1
     - GHCVER=head
 
 matrix:
@@ -48,6 +48,12 @@ install:
 
 script:
   - |
+    if [ -n "$RUN_INTEGRATED_TEST" -a "$TRAVIS_SECURE_ENV_VARS" = "true" ]; then
+      CABAL_FLAGS="-frun-integrated-test"
+    else
+      CABAL_FLAGS=
+    fi
+
     if [ -n "$USE_COVERALLS" ]; then
       cabal configure --enable-tests --enable-library-coverage $CABAL_FLAGS
     else
