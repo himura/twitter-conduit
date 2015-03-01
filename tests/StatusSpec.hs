@@ -6,6 +6,7 @@ module StatusSpec where
 import Control.Lens
 import Data.Conduit
 import qualified Data.Conduit.List as CL
+import Data.Time
 import Network.HTTP.Conduit
 import System.IO.Unsafe
 import Web.Twitter.Conduit (call, accountVerifyCredentials, sourceWithMaxId, TWInfo)
@@ -74,7 +75,7 @@ integrated = do
             res <- withManager $ \mgr -> call twInfo mgr $ showId 477833886768959488
             res ^. statusId `shouldBe` 477833886768959488
             res ^. statusText `shouldBe` "真紅かわいいはアレセイア"
-            res ^. statusCreatedAt `shouldBe` "Sat Jun 14 15:24:10 +0000 2014"
+            res ^. statusCreatedAt `shouldBe` UTCTime (fromGregorian 2014 6 14) (secondsToDiffTime 55450)
             res ^. statusUser . userScreenName `shouldBe` "thimura"
 
     describe "update & destroyId" $ do
