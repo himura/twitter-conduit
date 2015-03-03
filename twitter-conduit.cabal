@@ -25,6 +25,7 @@ extra-source-files:
   .gitignore
   .travis.yml
   README.md
+  ChangeLog.md
   sample/*.hs
 
 source-repository head
