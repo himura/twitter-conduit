@@ -31,7 +31,7 @@ class Parameters a where
 -- see details: https://ghc.haskell.org/trac/ghc/ticket/5820
 #if __GLASGOW_HASKELL__ >= 706
 -- $setup
--- >>> :set -XOverloadedStrings -XRank2Types -XEmptyDataDecls -XFlexibleInstances -XOverlappingInstances -XIncoherentInstances
+-- >>> :set -XOverloadedStrings -XRank2Types -XEmptyDataDecls -XFlexibleInstances
 -- >>> import Control.Lens
 -- >>> import Data.Default
 -- >>> import Web.Twitter.Conduit.Parameters
