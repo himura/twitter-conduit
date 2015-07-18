@@ -78,7 +78,7 @@ library
       , lens >= 4.4
   else
     build-depends:
-        lens >= 4.0
+        lens >= 4.0 && < 4.4
 
   exposed-modules:
     Web.Twitter.Conduit
