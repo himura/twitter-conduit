@@ -1,6 +1,7 @@
 # twitter-conduit: An Conduit based Twitter API library for Haskell #
 
-[![Build Status](https://travis-ci.org/himura/twitter-conduit.png?branch=master)](https://travis-ci.org/himura/twitter-conduit)
+[![Travis](https://img.shields.io/travis/himura/twitter-conduit.svg)](https://travis-ci.org/himura/twitter-conduit)
+[![Hackage-Deps](https://img.shields.io/hackage-deps/v/twitter-conduit.svg)](http://packdeps.haskellers.com/feed?needle=twitter-conduit)
 
 ## About ##
 
