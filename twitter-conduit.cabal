@@ -75,10 +75,10 @@ library
   if flag(lens-aeson)
     build-depends:
         lens-aeson >= 1
-      , lens >= 4.4 && < 4.8
+      , lens >= 4.4
   else
     build-depends:
-        lens >= 4.0 && < 4.4
+        lens >= 4.0
 
   exposed-modules:
     Web.Twitter.Conduit
