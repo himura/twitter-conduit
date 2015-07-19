@@ -40,5 +40,22 @@ script:
   - cabal configure --enable-tests --enable-library-coverage $CABAL_FLAGS
   - travis_wait run-cabal-test --cabal-name=cabal --show-details=always
 
+  # tests source distribution package
+  - cabal sdist
+  - |
+    PKGNAME="$(cabal info . | awk '/^\*/{print $2}')"
+    SRCTGZ="${PKGNAME}.tar.gz"
+    cd dist/
+    if [ -f "$SRCTGZ" ]; then
+      tar xvzf "$SRCTGZ"
+      cd "$PKGNAME"
+      NG=$(git ls-tree HEAD --full-tree -r | while read perm blob hash name; do [ -e "$name" ] || echo NG "$name"; done)
+      if [ -n "$NG" ]; then
+        echo "Missing files:"
+        echo $NG
+        exit 1
+      fi
+    fi
+
 after_script:
   - hpc-coveralls --exclude-dir=tests tests
