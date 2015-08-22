@@ -419,7 +419,7 @@ deriveHasParamInstances ''FriendshipsCreate
     ]
 
 data FriendshipsDestroy
--- | Returns post data which follows the user specified in the ID parameter.
+-- | Returns post data which unfollows the user specified in the ID parameter.
 --
 -- You can perform request by using 'call':
 --
