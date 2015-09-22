@@ -90,7 +90,6 @@ library
     Web.Twitter.Conduit.Stream
     Web.Twitter.Conduit.Status
     Web.Twitter.Conduit.Base
-    Web.Twitter.Conduit.Monad
     Web.Twitter.Conduit.Request
     Web.Twitter.Conduit.Response
     Web.Twitter.Conduit.Cursor

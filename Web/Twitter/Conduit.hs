@@ -38,9 +38,6 @@ module Web.Twitter.Conduit
        , sourceWithCursor'
        , sourceWithSearchResult
        , sourceWithSearchResult'
-
-       -- * Backward compatibility
-       -- $backward
        ) where
 
 import Web.Twitter.Conduit.Api
@@ -178,10 +175,3 @@ import Control.Lens
 --                                   , status ^. statusText
 --                                   ]
 -- @
-
--- $backward
---
--- In the version below 0.1.0, twitter-conduit provides the TW monad,
--- and every Twitter API functions are run in the TW monad.
---
--- For backward compatibility, TW monad and the functions are provided in the Web.Twitter.Conduit.Monad module.
