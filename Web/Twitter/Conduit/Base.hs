@@ -31,9 +31,8 @@ import Web.Twitter.Conduit.Types
 import Web.Twitter.Types.Lens
 
 import Control.Lens
-import Control.Monad.IO.Class
-import Control.Monad.Trans.Class (lift)
-import Control.Monad.Trans.Resource (MonadResource, MonadThrow, monadThrow)
+import Control.Monad.Base
+import Control.Monad.Trans.Resource (ResourceT, MonadResource, MonadThrow, monadThrow, runResourceT)
 import Data.Aeson
 import Data.Aeson.Lens
 import Data.ByteString (ByteString)
@@ -117,9 +116,9 @@ checkResponse Response{..} =
   where
     sci = HT.statusCode responseStatus
 
-getValueOrThrow :: (MonadThrow m, FromJSON a)
-                => Response (C.ResumableSource m ByteString)
-                -> m (Response a)
+getValueOrThrow :: FromJSON a
+                => Response (C.ResumableSource (ResourceT IO) ByteString)
+                -> ResourceT IO (Response a)
 getValueOrThrow res = do
     res' <- getValue res
     case checkResponse res' of
@@ -142,21 +141,21 @@ getValueOrThrow res = do
 --
 -- If you need raw JSON value which is parsed by <http://hackage.haskell.org/package/aeson aeson>,
 -- use 'call'' to obtain it.
-call :: (MonadResource m, FromJSON responseType)
+call :: FromJSON responseType
      => TWInfo -- ^ Twitter Setting
      -> HTTP.Manager
      -> APIRequest apiName responseType
-     -> m responseType
+     -> IO responseType
 call = call'
 
 -- | Perform an 'APIRequest' and then provide the response.
 -- The response of this function is not restrict to @responseType@,
 -- so you can choose an arbitrarily type of FromJSON instances.
-call' :: (MonadResource m, FromJSON value)
+call' :: FromJSON value
       => TWInfo -- ^ Twitter Setting
       -> HTTP.Manager
       -> APIRequest apiName responseType
-      -> m value
+      -> IO value
 call' info mgr req = responseBody `fmap` callWithResponse' info mgr req
 
 -- | Perform an 'APIRequest' and then provide the 'Response'.
@@ -170,11 +169,11 @@ call' info mgr req = responseBody `fmap` callWithResponse' info mgr req
 -- 'print' $ 'responseHeaders' res
 -- 'print' $ 'responseBody' res
 -- @
-callWithResponse :: (MonadResource m, FromJSON responseType)
+callWithResponse :: FromJSON responseType
                  => TWInfo -- ^ Twitter Setting
                  -> HTTP.Manager
                  -> APIRequest apiName responseType
-                 -> m (Response responseType)
+                 -> IO (Response responseType)
 callWithResponse = callWithResponse'
 
 -- | Perform an 'APIRequest' and then provide the 'Response'.
@@ -190,19 +189,20 @@ callWithResponse = callWithResponse'
 -- 'print' $ 'responseHeaders' res
 -- 'print' $ 'responseBody' (res :: Value)
 -- @
-callWithResponse' :: (MonadResource m, FromJSON value)
+callWithResponse' :: FromJSON value
                   => TWInfo
                   -> HTTP.Manager
                   -> APIRequest apiName responseType
-                  -> m (Response value)
-callWithResponse' info mgr req = do
-    res <- getResponse info mgr =<< liftIO (makeRequest req)
-    getValueOrThrow res
+                  -> IO (Response value)
+callWithResponse' info mgr req =
+    runResourceT $ do
+        res <- getResponse info mgr =<< liftBase (makeRequest req)
+        getValueOrThrow res
 
 -- | A wrapper function to perform multiple API request with changing @max_id@ parameter.
 --
 -- This function cooperate with instances of 'HasMaxIdParam'.
-sourceWithMaxId :: ( MonadResource m
+sourceWithMaxId :: ( MonadBase IO m
                    , FromJSON responseType
                    , AsStatus responseType
                    , HasMaxIdParam (APIRequest apiName [responseType])
@@ -214,7 +214,7 @@ sourceWithMaxId :: ( MonadResource m
 sourceWithMaxId info mgr = loop
   where
     loop req = do
-        res <- lift $ call info mgr req
+        res <- liftBase $ call info mgr req
         case getMinId res of
             Just mid -> do
                 CL.sourceList res
@@ -227,8 +227,8 @@ sourceWithMaxId info mgr = loop
 -- so you can choose an arbitrarily type of FromJSON instances.
 --
 -- This function cooperate with instances of 'HasMaxIdParam'.
-sourceWithMaxId' :: ( MonadResource m
-                    , HasMaxIdParam (APIRequest apiName [responseType])
+sourceWithMaxId' :: ( MonadBase IO m
+                    ,  HasMaxIdParam (APIRequest apiName [responseType])
                     )
                  => TWInfo -- ^ Twitter Setting
                  -> HTTP.Manager
@@ -237,7 +237,7 @@ sourceWithMaxId' :: ( MonadResource m
 sourceWithMaxId' info mgr = loop
   where
     loop req = do
-        res <- lift $ call' info mgr req
+        res <- liftBase $ call' info mgr req
         case getMinId res of
             Just mid -> do
                 CL.sourceList res
@@ -248,7 +248,7 @@ sourceWithMaxId' info mgr = loop
 -- | A wrapper function to perform multiple API request with changing @cursor@ parameter.
 --
 -- This function cooperate with instances of 'HasCursorParam'.
-sourceWithCursor :: ( MonadResource m
+sourceWithCursor :: ( MonadBase IO m
                     , FromJSON responseType
                     , CursorKey ck
                     , HasCursorParam (APIRequest apiName (WithCursor ck responseType))
@@ -261,7 +261,7 @@ sourceWithCursor info mgr req = loop (-1)
   where
     loop 0 = CL.sourceNull
     loop cur = do
-        res <- lift $ call info mgr $ req & cursor ?~ cur
+        res <- liftBase $ call info mgr $ req & cursor ?~ cur
         CL.sourceList $ contents res
         loop $ nextCursor res
 
@@ -270,7 +270,7 @@ sourceWithCursor info mgr req = loop (-1)
 -- so you can choose an arbitrarily type of FromJSON instances.
 --
 -- This function cooperate with instances of 'HasCursorParam'.
-sourceWithCursor' :: ( MonadResource m
+sourceWithCursor' :: ( MonadBase IO m
                      , FromJSON responseType
                      , CursorKey ck
                      , HasCursorParam (APIRequest apiName (WithCursor ck responseType))
@@ -287,12 +287,12 @@ sourceWithCursor' info mgr req = loop (-1)
     relax = unsafeCoerce
     loop 0 = CL.sourceNull
     loop cur = do
-        res <- lift $ call info mgr $ relax $ req & cursor ?~ cur
+        res <- liftBase $ call info mgr $ relax $ req & cursor ?~ cur
         CL.sourceList $ contents res
         loop $ nextCursor res
 
 -- | A wrapper function to perform multiple API request with @SearchResult@.
-sourceWithSearchResult :: ( MonadResource m
+sourceWithSearchResult :: ( MonadBase IO m
                           , FromJSON responseType
                           , HasMaxIdParam (APIRequest apiName (SearchResult [responseType]))
                           )
@@ -301,7 +301,7 @@ sourceWithSearchResult :: ( MonadResource m
                        -> APIRequest apiName (SearchResult [responseType])
                        -> m (SearchResult (C.Source m responseType))
 sourceWithSearchResult info mgr req = do
-    res <- call info mgr req
+    res <- liftBase $ call info mgr req
     let body = CL.sourceList (res ^. searchResultStatuses) <>
                loop (res ^. searchResultSearchMetadata . searchMetadataNextResults)
     return $ res & searchResultStatuses .~ body
@@ -311,12 +311,12 @@ sourceWithSearchResult info mgr req = do
     loop (Just nextResultsStr) = do
         let nextResults = nextResultsStr & HT.parseSimpleQuery . T.encodeUtf8 & traversed . _2 %~ (PVString . T.decodeUtf8)
             nextParams = M.toList $ M.union (M.fromList nextResults) origQueryMap
-        res <- call info mgr $ req & params .~ nextParams
+        res <- liftBase $ call info mgr $ req & params .~ nextParams
         CL.sourceList (res ^. searchResultStatuses)
         loop $ res ^. searchResultSearchMetadata . searchMetadataNextResults
 
 -- | A wrapper function to perform multiple API request with @SearchResult@.
-sourceWithSearchResult' :: ( MonadResource m
+sourceWithSearchResult' :: ( MonadBase IO m
                            , HasMaxIdParam (APIRequest apiName (SearchResult [responseType]))
                            )
                         => TWInfo -- ^ Twitter Setting
@@ -324,7 +324,7 @@ sourceWithSearchResult' :: ( MonadResource m
                         -> APIRequest apiName (SearchResult [responseType])
                         -> m (SearchResult (C.Source m Value))
 sourceWithSearchResult' info mgr req = do
-    res <- call info mgr $ relax req
+    res <- liftBase $ call info mgr $ relax req
     let body = CL.sourceList (res ^. searchResultStatuses) <>
                loop (res ^. searchResultSearchMetadata . searchMetadataNextResults)
     return $ res & searchResultStatuses .~ body
@@ -338,7 +338,7 @@ sourceWithSearchResult' info mgr req = do
     loop (Just nextResultsStr) = do
         let nextResults = nextResultsStr & HT.parseSimpleQuery . T.encodeUtf8 & traversed . _2 %~ (PVString . T.decodeUtf8)
             nextParams = M.toList $ M.union (M.fromList nextResults) origQueryMap
-        res <- call info mgr $ relax $ req & params .~ nextParams
+        res <- liftBase $ call info mgr $ relax $ req & params .~ nextParams
         CL.sourceList (res ^. searchResultStatuses)
         loop $ res ^. searchResultSearchMetadata . searchMetadataNextResults
 

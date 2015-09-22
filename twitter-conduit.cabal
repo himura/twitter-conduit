@@ -55,6 +55,7 @@ library
   build-depends:
       base >= 4.5 && < 5
     , transformers >= 0.2.2
+    , transformers-base
     , template-haskell
     , authenticate-oauth >= 1.3
     , resourcet >= 1.0
