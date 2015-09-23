@@ -1,51 +1,39 @@
-language: sh
-sudo: required
-
-env:
-  matrix:
-    - GHCVER=7.4.2
-    - GHCVER=7.6.3
-    - GHCVER=7.8.4
-    - GHCVER=7.10.1 CABAL_FLAGS="-frun-integrated-test"
-  global:
-    # HALCYON_AWS_ACCESS_KEY_ID
-    - secure: "PTnc4TbawOwE6Z3v9QP5TRVYKg7FXU4PKgMqRPOy7HRwCriF+v4CxkyFgI2Ve614z85dF3kq9qZrhtyRuTSTL/SAu17Tz57+XhH0laGDF/7/h637ZRxy0+OBv/EDO0z6cJ1+8ndAl+5fbblQ8nmn5fgPrVCfbNIpujcjOSfs8+4="
-    # HALCYON_AWS_SECRET_ACCESS_KEY
-    - secure: "RCLM7gnzb0b4WgYeDQ+z1cn+IvsJMaqldLppJRM/b+oBeH5v+IZ0BL4hRk187iZsXJdMADC6MAeEchcV0rTseit/zKQAk6fx7360Sv+MdlzNbVHSiO7LpwbKTOvMfIQ5hB/S8oTuC1qmY18JhShO1lE6RpFsitwNdENRZv85fuQ="
-
-    # OAUTH_CONSUMER_KEY
-    - secure: "U3hh6wJf87tdZmwLtPyMQ0ci39ouKvTm/JCi0CCz2jaPvWZR+4Tt7aYV5WYqzjSmgfBOqKpXTpwFBcvvWRty8rI1b8OtrlljC1zUcgf/hsz3hfPtv+GKW/ldYnqg7znyeAdxWEF1a4JszKgOJaGMdX7zSpFewgwEq7T4jAlebLA="
-    # OAUTH_CONSUMER_SECRET
-    - secure: "I4BGd16zNQE3WjnwgdT7OM5sIIMtT9DMFPNdnWJPcgYndDovnFAUDoTomaGo0Wue4h64vGWl26f2Nm04i2upJXxkzFFtU5Az6cwUjzkOve1yqrkkyPFTXC8MLQYX3Zz8scQ8h1IJCn0Luu5HsHsool6IFZpiUovLZbDXmY44yH4="
-    # OAUTH_ACCESS_TOKEN
-    - secure: "dW2pYRplxJ7HmJEo3lMgLlzfdOylBvWiV4PJt1j4GMDPJBOu3RM0h3zNkkxDoS9D0wWRkBEH0iN2Bh08v2z7sJtF3f/kgLvPlOy5mNSYcozwMdHJRlJEcXaGULHbZ4p79lVIOdTAhY2WU2QdP7PEv0BiqqVcysnfK0TGkTa+KEc="
-    # OAUTH_ACCESS_SECRET
-    - secure: "I5hzi7sONDn8KJAhmkroHsGNJ2zUxYq2iGamTV9lgMUDH0bwpMx+guzfZr+fGesdlUphM0t+ZCh9YH8BoVJsjZ/db9u/lotg78DKp1QwhrWnISqWj6TIfXrSLPkBwY+xFtxl6Ihsjyl+ileiK5sb0C9mC+zXidgBqEM73miAokY="
+sudo: false
+language: c
 
 matrix:
-  allow_failures:
-    - env: GHCVER=7.4.2
-    - env: GHCVER=7.6.3
+  include:
+    - env: GHCVER=7.8.4 STACK_YAML=stack-lts-2.yml
+      addons:
+        apt:
+          sources: [ hvr-ghc ]
+          packages: [ ghc-7.8.4 ]
+    - env: GHCVER=7.10.2 STACK_YAML=stack-lts-3.yml
+      addons:
+        apt:
+          sources: [ hvr-ghc ]
+          packages: [ ghc-7.10.2 ]
 
 before_install:
-  - eval "$( curl -sL https://github.com/mietek/halcyon/raw/master/setup.sh )"
-  - export HALCYON_GHC_VERSION=$GHCVER HALCYON_CABAL_VERSION=1.22.4.0
-  - export HALCYON_S3_BUCKET=himura-halcyon
+  - mkdir -p ~/.local/bin
+  - export PATH=~/.local/bin:$PATH
+  - travis_retry curl -L https://github.com/commercialhaskell/stack/releases/download/v0.1.4.0/stack-0.1.4.0-x86_64-linux.tar.gz | tar xz -C ~/.local/bin
+  - export PATH=/opt/ghc/$GHCVER/bin:$PATH
 
 install:
-  - HALCYON_SANDBOX_EXTRA_APPS="hpc-coveralls happy" HALCYON_SANDBOX_EXTRA_CONFIGURE_FLAGS="--enable-tests --only-dependencies $CABAL_FLAGS" halcyon build
-  - ln -s /app/sandbox/cabal.sandbox.config .
+  - travis_wait stack --no-terminal --skip-ghc-check setup
+  - travis_wait stack --no-terminal --skip-ghc-check test --only-snapshot
 
 script:
-  - cabal configure --enable-tests --enable-library-coverage $CABAL_FLAGS
-  - travis_wait run-cabal-test --cabal-name=cabal --show-details=always
+  - travis_wait stack --no-terminal --skip-ghc-check test
 
   # tests source distribution package
-  - cabal sdist
+  - mkdir -p ./.test-sdist
+  - stack sdist 2>&1 | tee ./.test-sdist/sdist-log
   - |
     PKGNAME="$(cabal info . | awk '/^\*/{print $2}')"
-    SRCTGZ="${PKGNAME}.tar.gz"
-    cd dist/
+    SRCTGZ=$(readlink -f $(awk '/^Wrote sdist tarball to / { print $5 }' sdist-log))
+    cd ./.test-sdist
     if [ -f "$SRCTGZ" ]; then
       tar xvzf "$SRCTGZ"
       cd "$PKGNAME"
@@ -57,5 +45,6 @@ script:
       fi
     fi
 
-after_script:
-  - hpc-coveralls --exclude-dir=tests tests
+cache:
+  directories:
+    - ~/.stack
