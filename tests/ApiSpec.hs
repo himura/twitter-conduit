@@ -20,6 +20,10 @@ import Test.Hspec
 twInfo :: TWInfo
 twInfo = unsafePerformIO getTWInfo
 
+mgr :: Manager
+mgr = unsafePerformIO $ newManager tlsManagerSettings
+{-# NOINLINE mgr #-}
+
 spec :: Spec
 spec = do
     unit
@@ -34,26 +38,24 @@ integrated :: Spec
 integrated = do
     describe "friendsIds" $ do
         it "returns a cursored collection of users IDs" $ do
-            res <- withManager $ \mgr -> call twInfo mgr $ friendsIds (Param.ScreenNameParam "thimura")
+            res <- call twInfo mgr $ friendsIds (Param.ScreenNameParam "thimura")
             res ^. contents . to length `shouldSatisfy` (> 0)
 
         it "iterate with sourceWithCursor" $ do
-            friends <- withManager $ \mgr -> do
-                let src = sourceWithCursor twInfo mgr $ friendsIds (Param.ScreenNameParam "thimura")
-                src $$ CL.consume
+            let src = sourceWithCursor twInfo mgr $ friendsIds (Param.ScreenNameParam "thimura")
+            friends <- src $$ CL.consume
             length friends `shouldSatisfy` (>= 0)
 
     describe "listsMembers" $ do
         it "returns a cursored collection of the member of specified list" $ do
-            res <- withManager $ \mgr -> call twInfo mgr $ listsMembers (Param.ListNameParam "thimura/haskell")
+            res <- call twInfo mgr $ listsMembers (Param.ListNameParam "thimura/haskell")
             res ^. contents . to length `shouldSatisfy` (>= 0)
 
         it "should raise error when specified list does not exists" $ do
-            let action = withManager $ \mgr -> call twInfo mgr $ listsMembers (Param.ListNameParam "thimura/haskell_ne")
+            let action = call twInfo mgr $ listsMembers (Param.ListNameParam "thimura/haskell_ne")
             action `shouldThrow` anyException
 
         it "iterate with sourceWithCursor" $ do
-            members <- withManager $ \mgr -> do
-                let src = sourceWithCursor twInfo mgr $ listsMembers (Param.ListNameParam "thimura/haskell")
-                src $$ CL.consume
+            let src = sourceWithCursor twInfo mgr $ listsMembers (Param.ListNameParam "thimura/haskell")
+            members <- src $$ CL.consume
             members ^.. traversed . userScreenName `shouldContain` ["Hackage"]
