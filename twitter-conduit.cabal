@@ -112,8 +112,6 @@ test-suite doctests
 
   build-depends:
       base
-    , filepath
-    , directory
     , doctest
 
 test-suite spec_main
