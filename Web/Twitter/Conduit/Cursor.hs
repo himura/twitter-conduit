@@ -11,9 +11,11 @@ module Web.Twitter.Conduit.Cursor
        , WithCursor (..)
        ) where
 
+#if __GLASGOW_HASKELL__ < 710
 import Control.Applicative
-import Data.Aeson
 import Data.Monoid
+#endif
+import Data.Aeson
 import Data.Text (Text)
 import Web.Twitter.Types (checkError)
 

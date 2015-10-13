@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE TemplateHaskell #-}
@@ -57,8 +58,12 @@ defineHasParamClass' cNameS fNameS wrap unwrap typ paramName = do
     a <- newName "a"
     cName <- newName cNameS
     fName <- newName fNameS
+#if MIN_VERSION_template_haskell(2, 10, 0)
+    let cCxt = cxt [conT ''Parameters `appT` varT a]
+#else
     let cCxt = cxt [classP ''Parameters [varT a]]
-        tySig = sigD fName (appT (appT (conT ''Lens') (varT a)) (appT (conT ''Maybe) typ))
+#endif
+    let tySig = sigD fName (appT (appT (conT ''Lens') (varT a)) (appT (conT ''Maybe) typ))
         valDef = valD (varP fName) (normalB (appE (appE (appE (varE 'wrappedParam) (litE (stringL paramName))) (conE wrap)) (varE unwrap))) []
     dec <- classD cCxt cName [PlainTV a] [] [tySig, valDef]
     return [dec]

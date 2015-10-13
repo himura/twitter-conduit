@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE DeriveFoldable #-}
 {-# LANGUAGE DeriveFunctor #-}
@@ -10,13 +11,15 @@ module Web.Twitter.Conduit.Response
        , TwitterErrorMessage (..)
        ) where
 
+#if __GLASGOW_HASKELL__ < 710
 import Control.Applicative
+import Data.Foldable (Foldable)
+import Data.Traversable (Traversable)
+#endif
 import Control.Exception
 import Data.Aeson
 import Data.Data
-import Data.Foldable (Foldable)
 import qualified Data.Text as T
-import Data.Traversable (Traversable)
 import Network.HTTP.Types (Status, ResponseHeaders, Status, ResponseHeaders)
 
 data Response responseType = Response

@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE RankNTypes #-}
 
 module Web.Twitter.Conduit.Lens
@@ -26,7 +27,9 @@ module Web.Twitter.Conduit.Lens
        , TT.ListsCursorKey
        ) where
 
+#if __GLASGOW_HASKELL__ < 710
 import Control.Applicative
+#endif
 import Control.Lens
 import Data.Text (Text)
 import Network.HTTP.Types (Status, ResponseHeaders)
