@@ -8,7 +8,7 @@ synopsis:          Twitter API package with conduit interface and Streaming API 
 category:          Web, Conduit
 stability:         Experimental
 cabal-version:     >= 1.8
-build-type:        Simple
+build-type:        Custom
 homepage:          https://github.com/himura/twitter-conduit
 
 description:
@@ -112,8 +112,6 @@ test-suite doctests
 
   build-depends:
       base
-    , filepath
-    , directory
     , doctest
 
 test-suite spec_main

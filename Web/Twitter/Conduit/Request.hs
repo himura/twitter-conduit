@@ -12,7 +12,9 @@ module Web.Twitter.Conduit.Request
        , paramValueBS
        ) where
 
+#if __GLASGOW_HASKELL__ < 710
 import Control.Applicative
+#endif
 import Control.Lens
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as S8
