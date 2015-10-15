@@ -2,6 +2,6 @@ flags: {}
 packages:
 - '.'
 extra-deps:
-- twitter-types-0.7.1
+- twitter-types-0.7.1.1
 - twitter-types-lens-0.7.1
-resolver: lts-2.9
+resolver: lts-2.22
