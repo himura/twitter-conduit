@@ -33,6 +33,7 @@ import Web.Twitter.Conduit.Response
 import qualified Data.Conduit as C
 import qualified Data.Conduit.List as CL
 import qualified Data.Conduit.Internal as CI
+import qualified Data.List as L
 import qualified Data.Text as T
 import Control.Monad.IO.Class
 import Data.Aeson
@@ -77,18 +78,28 @@ deriveHasParamInstances ''Userstream
     , "replies"
     ]
 
+
+-- https://dev.twitter.com/streaming/overview/request-parameters
+data FilterParameter = Follow [UserId]
+                     | Track [T.Text]
+
+statusesFilter :: [FilterParameter] -> APIRequest StatusesFilter StreamingAPI
+statusesFilter = APIRequestPost statusesFilterEndpoint . L.map paramToQueryItem
+
+paramToQueryItem :: FilterParameter -> APIQueryItem
+paramToQueryItem (Follow userIds) = ("follow", PVIntegerArray userIds)
+paramToQueryItem (Track texts) = ("track", PVStringArray texts)
+
 statusesFilterEndpoint :: String
 statusesFilterEndpoint = "https://stream.twitter.com/1.1/statuses/filter.json"
 
 data StatusesFilter
 statusesFilterByFollow :: [UserId] -> APIRequest StatusesFilter StreamingAPI
-statusesFilterByFollow userIds =
-    APIRequestPost statusesFilterEndpoint [("follow", PVIntegerArray userIds)]
+statusesFilterByFollow userIds = statusesFilter [Follow userIds]
 
 statusesFilterByTrack :: T.Text -- ^ keyword
                       -> APIRequest StatusesFilter StreamingAPI
-statusesFilterByTrack keyword =
-    APIRequestPost statusesFilterEndpoint [("track", PVString keyword)]
+statusesFilterByTrack keyword = statusesFilter [Track [keyword]]
 
 deriveHasParamInstances ''StatusesFilter
     [ "language"
