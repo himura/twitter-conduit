@@ -68,10 +68,14 @@ makeRequest' :: HT.Method -- ^ HTTP request method (GET or POST)
              -> IO HTTP.Request
 makeRequest' m url query = do
     req <- HTTP.parseUrl url
-    return $ req { HTTP.method = m
-                 , HTTP.queryString = HT.renderSimpleQuery False query
-                 , HTTP.checkStatus = \_ _ _ -> Nothing
-                 }
+    let params = HT.renderSimpleQuery False query
+        addParams =
+            if m == "POST"
+            then HTTP.urlEncodedBody query
+            else \r -> r { HTTP.queryString = params }
+    return $ addParams $ req { HTTP.method = m
+                             , HTTP.checkStatus = \_ _ _ -> Nothing
+                             }
 
 getResponse :: MonadResource m
             => TWInfo
