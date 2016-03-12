@@ -11,6 +11,8 @@ module Web.Twitter.Conduit.Stream
          Userstream
        , userstream
        , StatusesFilter
+       , FilterParameter (..)
+       , statusesFilter
        , statusesFilterByFollow
        , statusesFilterByTrack
        -- , statusesFilterByLocation
