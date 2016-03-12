@@ -114,9 +114,6 @@ test-suite doctests
       base
     , doctest
 
-  other-modules:
-    Build_doctests
-
 test-suite spec_main
   type: exitcode-stdio-1.0
   main-is: spec_main.hs
