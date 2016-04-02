@@ -68,11 +68,10 @@ makeRequest' :: HT.Method -- ^ HTTP request method (GET or POST)
              -> IO HTTP.Request
 makeRequest' m url query = do
     req <- HTTP.parseUrl url
-    let params = HT.renderSimpleQuery False query
-        addParams =
+    let addParams =
             if m == "POST"
             then HTTP.urlEncodedBody query
-            else \r -> r { HTTP.queryString = params }
+            else \r -> r { HTTP.queryString = HT.renderSimpleQuery False query }
     return $ addParams $ req { HTTP.method = m
                              , HTTP.checkStatus = \_ _ _ -> Nothing
                              }
