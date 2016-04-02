@@ -1,3 +1,4 @@
+{-# LANGUAGE DeriveDataTypeable #-}
 module Web.Twitter.Conduit.Types
        ( TWToken (..)
        , TWInfo (..)
