@@ -6,20 +6,21 @@ module Web.Twitter.Conduit.Types
        ) where
 
 import Data.Default
+import Data.Typeable (Typeable)
 import Web.Authenticate.OAuth
 import Network.HTTP.Conduit
 
 data TWToken = TWToken
     { twOAuth :: OAuth
     , twCredential :: Credential
-    } deriving (Show, Eq)
+    } deriving (Show, Read, Eq, Typeable)
 instance Default TWToken where
     def = TWToken twitterOAuth (Credential [])
 
 data TWInfo = TWInfo
     { twToken :: TWToken
     , twProxy :: Maybe Proxy
-    } deriving (Show, Eq)
+    } deriving (Show, Read, Eq, Typeable)
 instance Default TWInfo where
     def = TWInfo
         { twToken = def
