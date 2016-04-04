@@ -1,6 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE RecordWildCards #-}
 
 module Web.Twitter.Conduit.Base
@@ -16,7 +15,6 @@ module Web.Twitter.Conduit.Base
        , sourceWithCursor'
        , sourceWithSearchResult
        , sourceWithSearchResult'
-       , TwitterBaseM
        , endpoint
        , makeRequest
        , sinkJSON
@@ -47,9 +45,6 @@ import qualified Network.HTTP.Conduit as HTTP
 import qualified Network.HTTP.Types as HT
 import Unsafe.Coerce
 import Web.Authenticate.OAuth (signOAuth)
-
-type TwitterBaseM m = ( MonadResource m
-                      )
 
 makeRequest :: APIRequest apiName responseType
             -> IO HTTP.Request

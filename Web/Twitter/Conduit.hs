@@ -27,7 +27,6 @@ module Web.Twitter.Conduit
        , module Web.Twitter.Conduit.Types
 
        -- * 'Web.Twitter.Conduit.Base'
-       , TwitterBaseM
        , call
        , call'
        , callWithResponse
