@@ -1,3 +1,7 @@
+## 0.1.3
+
+* Make TWToken and TWInfo an instance of Read and Typeable
+
 ## 0.1.2
 
 * Streaming API: Support multiple filters (#41)
