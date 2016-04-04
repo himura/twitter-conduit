@@ -92,9 +92,8 @@ getResponse TWInfo{..} mgr req = do
 endpoint :: String
 endpoint = "https://api.twitter.com/1.1/"
 
-getValue :: MonadThrow m
-         => Response (C.ResumableSource m ByteString)
-         -> m (Response Value)
+getValue :: Response (C.ResumableSource (ResourceT IO) ByteString)
+         -> ResourceT IO (Response Value)
 getValue res = do
     value <- responseBody res C.$$+- sinkJSON
     return $ res { responseBody = value }
