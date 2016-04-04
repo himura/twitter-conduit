@@ -57,6 +57,7 @@ library
     , transformers >= 0.2.2
     , transformers-base
     , template-haskell
+    , exceptions >= 0.5
     , authenticate-oauth >= 1.3
     , resourcet >= 1.0
     , conduit >= 1.1

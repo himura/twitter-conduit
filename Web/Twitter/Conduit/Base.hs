@@ -30,7 +30,8 @@ import Web.Twitter.Types.Lens
 
 import Control.Lens
 import Control.Monad.Base
-import Control.Monad.Trans.Resource (ResourceT, MonadResource, MonadThrow, monadThrow, runResourceT)
+import Control.Monad.Catch (MonadThrow (..))
+import Control.Monad.Trans.Resource (MonadResource, ResourceT, runResourceT)
 import Data.Aeson
 import Data.Aeson.Lens
 import Data.ByteString (ByteString)
@@ -116,11 +117,11 @@ getValueOrThrow :: FromJSON a
 getValueOrThrow res = do
     res' <- getValue res
     case checkResponse res' of
-        Left err -> monadThrow err
+        Left err -> throwM err
         Right _ -> return ()
     case fromJSON (responseBody res') of
         Success r -> return $ res' { responseBody = r }
-        Error err -> monadThrow $ FromJSONError err
+        Error err -> throwM $ FromJSONError err
 
 -- | Perform an 'APIRequest' and then provide the response which is mapped to a suitable type of
 -- <http://hackage.haskell.org/package/twitter-types twitter-types>.
@@ -346,5 +347,5 @@ sinkFromJSON :: ( FromJSON a
 sinkFromJSON = do
     v <- sinkJSON
     case fromJSON v of
-        Error err -> monadThrow $ FromJSONError err
+        Error err -> throwM $ FromJSONError err
         Success r -> return r
