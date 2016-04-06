@@ -13,6 +13,6 @@ main = do
     [status, filepath] <- getArgs
     putStrLn $ "Post message: " ++ status
     twInfo <- getTWInfoFromEnv
-    res <- withManager $ \mgr -> do
-        call twInfo mgr $ updateWithMedia (T.pack status) (MediaFromFile filepath)
+    mgr <- newManager tlsManagerSettings
+    res <- call twInfo mgr $ updateWithMedia (T.pack status) (MediaFromFile filepath)
     print res

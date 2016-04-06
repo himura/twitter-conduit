@@ -16,6 +16,6 @@ main = do
     status <- T.concat . map T.pack <$> getArgs
     T.putStrLn $ "Post message: " <> status
     twInfo <- getTWInfoFromEnv
-    res <- withManager $ \mgr -> do
-        call twInfo mgr $ update status
+    mgr <- newManager tlsManagerSettings
+    res <- call twInfo mgr $ update status
     print res

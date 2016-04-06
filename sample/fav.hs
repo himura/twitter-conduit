@@ -6,17 +6,17 @@ import Web.Twitter.Conduit
 import Common
 
 import Control.Lens
-import Control.Monad.IO.Class
 import Network.HTTP.Conduit
 import System.Environment
 
 main :: IO ()
 main = do
-    [statusIdStr] <- liftIO getArgs
+    [statusIdStr] <- getArgs
     twInfo <- getTWInfoFromEnv
+    mgr <- newManager tlsManagerSettings
     let sId = read statusIdStr
-    withManager $ \mgr -> do
-        targetStatus <- call twInfo mgr $ showId sId
-        liftIO . putStrLn $ "Favorite Tweet: " ++ targetStatus ^. to show
-        res <- call twInfo mgr $ favoritesCreate sId
-        liftIO $ print res
+
+    targetStatus <- call twInfo mgr $ showId sId
+    putStrLn $ "Favorite Tweet: " ++ targetStatus ^. to show
+    res <- call twInfo mgr $ favoritesCreate sId
+    print res

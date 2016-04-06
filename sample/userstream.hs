@@ -9,6 +9,7 @@ import Control.Applicative
 import Control.Lens
 import Control.Monad
 import Control.Monad.IO.Class
+import Control.Monad.Trans.Resource
 import Data.Conduit
 import qualified Data.Conduit as C
 import qualified Data.Conduit.Binary as CB
@@ -34,7 +35,8 @@ iconPath = (</> "icons") <$> confdir >>= ensureDirectoryExist
 main :: IO ()
 main = do
     twInfo <- getTWInfoFromEnv
-    withManager $ \mgr -> do
+    mgr <- newManager tlsManagerSettings
+    runResourceT $ do
         src <- stream twInfo mgr userstream
         src C.$$+- CL.mapM_ (liftIO . printTL)
 
@@ -77,8 +79,10 @@ fetchIcon sn url = do
     ipath <- iconPath
     let fname = ipath </> sn ++ "__" ++ takeFileName url
     exists <- doesFileExist fname
-    unless exists $ withManager $ \mgr -> do
-        req <- liftIO $ parseUrl url
-        body <- http req mgr
-        HTTP.responseBody body $$+- CB.sinkFile fname
+    unless exists $ do
+        req <- parseUrl url
+        mgr <- newManager tlsManagerSettings
+        runResourceT $ do
+            body <- http req mgr
+            HTTP.responseBody body $$+- CB.sinkFile fname
     return fname

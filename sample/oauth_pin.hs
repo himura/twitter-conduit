@@ -14,9 +14,6 @@ import Network.HTTP.Conduit
 import qualified Data.ByteString.Char8 as S8
 import Data.Maybe
 import Data.Monoid
-import Control.Monad.Trans.Control
-import Control.Monad.Trans.Resource
-import Control.Monad.IO.Class
 import System.Environment
 import System.IO (hFlush, stdout)
 
@@ -31,17 +28,16 @@ getTokens = do
         , oauthCallback = Just "oob"
         }
 
-authorize :: (MonadBaseControl IO m, MonadResource m)
-          => OAuth -- ^ OAuth Consumer key and secret
+authorize :: OAuth -- ^ OAuth Consumer key and secret
           -> Manager
-          -> m Credential
+          -> IO Credential
 authorize oauth mgr = do
     cred <- OA.getTemporaryCredential oauth mgr
     let url = OA.authorizeUrl oauth cred
     pin <- getPIN url
     OA.getAccessToken oauth (OA.insert "oauth_verifier" pin cred) mgr
   where
-    getPIN url = liftIO $ do
+    getPIN url = do
         putStrLn $ "browse URL: " ++ url
         putStr "> what was the PIN twitter provided you with? "
         hFlush stdout
@@ -50,7 +46,8 @@ authorize oauth mgr = do
 main :: IO ()
 main = do
     tokens <- getTokens
-    Credential cred <- liftIO $ withManager $ authorize tokens
+    mgr <- newManager tlsManagerSettings
+    Credential cred <- authorize tokens mgr
     print cred
 
     S8.putStrLn . S8.intercalate "\n" $
