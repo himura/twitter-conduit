@@ -162,7 +162,7 @@ data SearchTweets
 --
 -- @
 -- res <- 'call' ('searchTweets' \"search text\")
--- 'liftIO' . 'print' $ res ^. 'searchResultStatuses'
+-- 'print' $ res ^. 'searchResultStatuses'
 -- @
 --
 -- >>> searchTweets "search text"

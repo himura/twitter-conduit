@@ -129,9 +129,8 @@ getValueOrThrow res = do
 -- Example:
 --
 -- @
--- 'HTTP.withManager' $ \\mgr -\> do
---      user <- 'call' twInfo mgr $ 'accountVerifyCredentials'
---      'liftIO' $ print user
+-- user <- 'call' twInfo mgr $ 'accountVerifyCredentials'
+-- print user
 -- @
 --
 -- If you need raw JSON value which is parsed by <http://hackage.haskell.org/package/aeson aeson>,
@@ -158,8 +157,7 @@ call' info mgr req = responseBody `fmap` callWithResponse' info mgr req
 -- Example:
 --
 -- @
--- res \<- 'HTTP.withManager' $ \\mgr -\> do
---     'callWithResponse' twInfo mgr $ 'accountVerifyCredentials'
+-- res \<- 'callWithResponse' twInfo mgr $ 'accountVerifyCredentials'
 -- 'print' $ 'responseStatus' res
 -- 'print' $ 'responseHeaders' res
 -- 'print' $ 'responseBody' res
@@ -178,8 +176,7 @@ callWithResponse = callWithResponse'
 -- Example:
 --
 -- @
--- res \<- 'HTTP.withManager' $ \\mgr -\> do
---     'callWithResponse'' twInfo mgr $ 'accountVerifyCredentials'
+-- res \<- 'callWithResponse'' twInfo mgr $ 'accountVerifyCredentials'
 -- 'print' $ 'responseStatus' res
 -- 'print' $ 'responseHeaders' res
 -- 'print' $ 'responseBody' (res :: Value)

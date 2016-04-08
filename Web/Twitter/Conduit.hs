@@ -85,8 +85,6 @@ import Control.Lens
 -- >
 -- > import Web.Twitter.Conduit
 -- > import Web.Twitter.Types.Lens
--- > import Web.Authenticate.OAuth
--- > import Network.HTTP.Conduit
 -- > import Data.Conduit
 -- > import qualified Data.Conduit.List as CL
 -- > import qualified Data.Text as T
@@ -142,7 +140,8 @@ import Control.Lens
 -- could be obtained by:
 --
 -- @
--- timeline \<- 'withManager' $ \\mgr -\> 'call' twInfo mgr 'homeTimeline'
+-- mgr \<- 'newManager' 'tlsManagerSettings'
+-- timeline \<- 'call' twInfo mgr 'homeTimeline'
 -- @
 --
 -- The response of 'call' function is wrapped by the suitable type of
@@ -155,7 +154,7 @@ import Control.Lens
 -- includes 20 tweets, and you can change the number of tweets by the /count/ parameter.
 --
 -- @
--- timeline \<- 'withManager' $ \\mgr -\> 'call' twInfo mgr '$' 'homeTimeline' '&' 'count' '?~' 200
+-- timeline \<- 'call' twInfo mgr '$' 'homeTimeline' '&' 'count' '?~' 200
 -- @
 --
 -- If you need more statuses, you can obtain those with multiple API requests.
@@ -165,7 +164,7 @@ import Control.Lens
 -- or use the conduit wrapper 'sourceWithCursor' as below:
 --
 -- @
--- friends \<- 'withManager' $ \\mgr -\> 'sourceWithCursor' twInfo mgr ('friendsList' ('ScreenNameParam' \"thimura\") '&' 'count' '?~' 200) '$$' 'CL.consume'
+-- friends \<- 'sourceWithCursor' twInfo mgr ('friendsList' ('ScreenNameParam' \"thimura\") '&' 'count' '?~' 200) '$$' 'CL.consume'
 -- @
 --
 -- Statuses APIs, for instance, 'homeTimeline', are also wrapped by 'sourceWithMaxId'.
@@ -174,10 +173,11 @@ import Control.Lens
 --
 -- @
 -- main :: IO ()
--- main = withManager $ \mgr -> do
+-- main = do
+--     mgr \<- 'newManager' 'tlsManagerSettings'
 --     'sourceWithMaxId' twInfo mgr 'homeTimeline'
 --         $= CL.isolate 60
---         $$ CL.mapM_ $ \status -> liftIO $ do
+--         $$ CL.mapM_ $ \\status -> liftIO $ do
 --             T.putStrLn $ T.concat [ T.pack . show $ status ^. statusId
 --                                   , \": \"
 --                                   , status ^. statusUser . userScreenName
