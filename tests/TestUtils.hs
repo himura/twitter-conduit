@@ -7,14 +7,12 @@ module TestUtils (getTWInfo) where
 
 import Web.Twitter.Conduit
 
-import Web.Authenticate.OAuth as OA
 import qualified Network.URI as URI
 import Network.HTTP.Conduit
 import qualified Data.Map as M
 import qualified Data.ByteString.Char8 as S8
 import qualified Data.CaseInsensitive as CI
 import Control.Applicative
-import Control.Monad.Base
 import System.Environment
 import Control.Lens
 
@@ -51,6 +49,6 @@ getProxyEnv = do
 
 getTWInfo :: IO TWInfo
 getTWInfo = do
-    pr <- liftBase getProxyEnv
-    (oa, cred) <- liftBase getOAuthTokens
+    pr <- getProxyEnv
+    (oa, cred) <- getOAuthTokens
     return $ (setCredential oa cred def) { twProxy = pr }

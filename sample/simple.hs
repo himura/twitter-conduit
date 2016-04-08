@@ -10,12 +10,9 @@ import Control.Lens
 import qualified Data.ByteString.Char8 as B8
 import qualified Data.Conduit as C
 import qualified Data.Conduit.List as CL
-import Data.Default
 import qualified Data.Text as T
 import qualified Data.Text.IO as T
-import Network.HTTP.Conduit
 import System.IO (hFlush, stdout)
-import Web.Authenticate.OAuth (OAuth(..), Credential(..))
 import qualified Web.Authenticate.OAuth as OA
 
 tokens :: OAuth

@@ -37,6 +37,14 @@ module Web.Twitter.Conduit
        , sourceWithCursor'
        , sourceWithSearchResult
        , sourceWithSearchResult'
+
+       -- * re-exports
+       , OAuth (..)
+       , Credential (..)
+       , def
+       , Manager
+       , newManager
+       , tlsManagerSettings
        ) where
 
 import Web.Twitter.Conduit.Api
@@ -49,8 +57,11 @@ import Web.Twitter.Conduit.Status
 import Web.Twitter.Conduit.Stream
 import Web.Twitter.Conduit.Types
 
--- for haddock
+import Data.Default (def)
+import Network.HTTP.Conduit (Manager, newManager, tlsManagerSettings)
 import Web.Authenticate.OAuth
+
+-- for haddock
 import Data.Conduit
 import qualified Data.Conduit.List as CL
 import qualified Data.Text as T

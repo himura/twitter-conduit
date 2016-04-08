@@ -7,7 +7,6 @@ import Common
 import qualified Data.Conduit as C
 import qualified Data.Conduit.List as CL
 import qualified Data.Map as M
-import Network.HTTP.Conduit
 import System.Environment
 
 main :: IO ()

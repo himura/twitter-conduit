@@ -9,7 +9,6 @@ import Control.Lens
 import Data.Conduit
 import qualified Data.Conduit.List as CL
 import qualified Data.Text as T
-import Network.HTTP.Conduit
 import System.Environment
 
 main :: IO ()

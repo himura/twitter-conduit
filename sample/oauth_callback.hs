@@ -10,9 +10,7 @@ module Main where
 import Web.Scotty
 import qualified Network.HTTP.Types as HT
 import Web.Twitter.Conduit hiding (lookup)
-import Web.Authenticate.OAuth (OAuth(..), Credential(..))
 import qualified Web.Authenticate.OAuth as OA
-import qualified Network.HTTP.Conduit as HTTP
 import qualified Data.Text.Lazy as LT
 import qualified Data.ByteString as S
 import qualified Data.ByteString.Char8 as S8
@@ -56,7 +54,7 @@ storeCredential k cred ioref =
 main :: IO ()
 main = do
     tokens <- getTokens
-    mgr <- HTTP.newManager HTTP.tlsManagerSettings
+    mgr <- newManager tlsManagerSettings
     putStrLn $ "browse URL: http://localhost:3000/signIn"
     scotty 3000 $ app tokens mgr
 
@@ -69,7 +67,7 @@ makeMessage tokens (Credential cred) =
         , "export OAUTH_ACCESS_SECRET=\"" <> fromMaybe "" (lookup "oauth_token_secret" cred) <> "\""
         ]
 
-app :: OAuth -> HTTP.Manager -> ScottyM ()
+app :: OAuth -> Manager -> ScottyM ()
 app tokens mgr = do
     get "/callback" $ do
         temporaryToken <- param "oauth_token"

@@ -8,7 +8,6 @@ import Common
 import Control.Lens
 import Control.Monad
 import qualified Data.Text as T
-import Network.HTTP.Conduit
 import System.Environment
 import System.Exit (exitFailure)
 import System.IO

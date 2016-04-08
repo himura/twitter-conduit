@@ -7,7 +7,6 @@ import Common
 
 import Control.Lens
 import qualified Data.Text as T
-import Network.HTTP.Conduit
 import System.Environment
 
 main :: IO ()

@@ -5,7 +5,6 @@ import Web.Twitter.Conduit
 import Common
 
 import qualified Data.Text as T
-import Network.HTTP.Conduit
 import System.Environment
 
 main :: IO ()

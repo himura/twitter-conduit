@@ -6,7 +6,6 @@ import Web.Twitter.Conduit
 import Common
 
 import Control.Lens
-import Network.HTTP.Conduit
 import System.Environment
 
 main :: IO ()
