@@ -27,7 +27,6 @@ module Web.Twitter.Conduit
        , module Web.Twitter.Conduit.Types
 
        -- * 'Web.Twitter.Conduit.Base'
-       , TwitterBaseM
        , call
        , call'
        , callWithResponse
@@ -39,8 +38,13 @@ module Web.Twitter.Conduit
        , sourceWithSearchResult
        , sourceWithSearchResult'
 
-       -- * Backward compatibility
-       -- $backward
+       -- * re-exports
+       , OAuth (..)
+       , Credential (..)
+       , def
+       , Manager
+       , newManager
+       , tlsManagerSettings
        ) where
 
 import Web.Twitter.Conduit.Api
@@ -53,8 +57,11 @@ import Web.Twitter.Conduit.Status
 import Web.Twitter.Conduit.Stream
 import Web.Twitter.Conduit.Types
 
--- for haddock
+import Data.Default (def)
+import Network.HTTP.Conduit (Manager, newManager, tlsManagerSettings)
 import Web.Authenticate.OAuth
+
+-- for haddock
 import Data.Conduit
 import qualified Data.Conduit.List as CL
 import qualified Data.Text as T
@@ -178,10 +185,3 @@ import Control.Lens
 --                                   , status ^. statusText
 --                                   ]
 -- @
-
--- $backward
---
--- In the version below 0.1.0, twitter-conduit provides the TW monad,
--- and every Twitter API functions are run in the TW monad.
---
--- For backward compatibility, TW monad and the functions are provided in the Web.Twitter.Conduit.Monad module.

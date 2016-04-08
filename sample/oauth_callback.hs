@@ -10,9 +10,7 @@ module Main where
 import Web.Scotty
 import qualified Network.HTTP.Types as HT
 import Web.Twitter.Conduit hiding (lookup)
-import Web.Authenticate.OAuth (OAuth(..), Credential(..))
 import qualified Web.Authenticate.OAuth as OA
-import qualified Network.HTTP.Conduit as HTTP
 import qualified Data.Text.Lazy as LT
 import qualified Data.ByteString as S
 import qualified Data.ByteString.Char8 as S8
@@ -56,8 +54,9 @@ storeCredential k cred ioref =
 main :: IO ()
 main = do
     tokens <- getTokens
+    mgr <- newManager tlsManagerSettings
     putStrLn $ "browse URL: http://localhost:3000/signIn"
-    scotty 3000 $ app tokens
+    scotty 3000 $ app tokens mgr
 
 makeMessage :: OAuth -> Credential -> S.ByteString
 makeMessage tokens (Credential cred) =
@@ -68,15 +67,15 @@ makeMessage tokens (Credential cred) =
         , "export OAUTH_ACCESS_SECRET=\"" <> fromMaybe "" (lookup "oauth_token_secret" cred) <> "\""
         ]
 
-app :: OAuth -> ScottyM ()
-app tokens = do
+app :: OAuth -> Manager -> ScottyM ()
+app tokens mgr = do
     get "/callback" $ do
         temporaryToken <- param "oauth_token"
         oauthVerifier <- param "oauth_verifier"
         mcred <- liftIO $ takeCredential temporaryToken usersToken
         case mcred of
             Just cred -> do
-                accessTokens <- liftIO $ HTTP.withManager $ OA.getAccessToken tokens (OA.insert "oauth_verifier" oauthVerifier cred)
+                accessTokens <- OA.getAccessToken tokens (OA.insert "oauth_verifier" oauthVerifier cred) mgr
                 liftIO $ print accessTokens
 
                 let message = makeMessage tokens accessTokens
@@ -88,7 +87,7 @@ app tokens = do
                 text "temporary token is not found"
 
     get "/signIn" $ do
-        cred <- liftIO $ HTTP.withManager $ OA.getTemporaryCredential tokens
+        cred <- OA.getTemporaryCredential tokens mgr
         case lookup "oauth_token" $ unCredential cred of
             Just temporaryToken -> do
                 liftIO $ storeCredential temporaryToken cred usersToken

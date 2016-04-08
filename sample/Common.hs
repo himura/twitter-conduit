@@ -14,7 +14,6 @@ import qualified Data.Map as M
 import Network.HTTP.Conduit
 import qualified Network.URI as URI
 import System.Environment
-import Web.Authenticate.OAuth as OA
 
 getOAuthTokens :: IO (OAuth, Credential)
 getOAuthTokens = do
