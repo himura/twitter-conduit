@@ -36,22 +36,7 @@ script:
   - travis_wait stack --no-terminal --skip-ghc-check test
 
   # tests source distribution package
-  - mkdir -p ./.test-sdist
-  - stack sdist 2>&1 | tee ./.test-sdist/sdist-log
-  - |
-    PKGNAME="$(cabal info . | awk '/^\*/{print $2}')"
-    SRCTGZ=$(readlink -f $(awk '/^Wrote sdist tarball to / { print $5 }' sdist-log))
-    cd ./.test-sdist
-    if [ -f "$SRCTGZ" ]; then
-      tar xvzf "$SRCTGZ"
-      cd "$PKGNAME"
-      NG=$(git ls-tree HEAD --full-tree -r | while read perm blob hash name; do [ -e "$name" ] || echo NG "$name"; done)
-      if [ -n "$NG" ]; then
-        echo "Missing files:"
-        echo $NG
-        exit 1
-      fi
-    fi
+  - .travis/check-sdist.sh twitter-conduit
 
 cache:
   directories:
