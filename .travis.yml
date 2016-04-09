@@ -34,6 +34,7 @@ install:
 
 script:
   - travis_wait stack --no-terminal --skip-ghc-check test
+  - cat .stack-work/logs/twitter-conduit-*-test.log
 
   # tests source distribution package
   - .travis/check-sdist.sh twitter-conduit

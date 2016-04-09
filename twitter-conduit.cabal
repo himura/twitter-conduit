@@ -28,7 +28,10 @@ extra-source-files:
   .travis/*.yaml
   README.md
   ChangeLog.md
+  sample/LICENSE
+  sample/twitter-conduit-sample.cabal
   sample/*.hs
+  sample/common/*.hs
   tests/*.hs
 
 source-repository head
@@ -42,10 +45,6 @@ flag network-uri
 flag lens-aeson
   description: Get Data.Aeson.Lens from the lens-aeson package
   default: True
-
-flag build-samples
-  description: build samples
-  default: False
 
 flag run-integrated-test
   description: use debug output when running testsuites
@@ -163,86 +162,3 @@ test-suite spec_main
     BaseSpec
     StatusSpec
     TestUtils
-
-executable simple
-  main-is: simple.hs
-  hs-source-dirs: sample/
-
-  if !flag(build-samples)
-    buildable: False
-  else
-    build-depends:
-        base >= 4.5 && < 5
-      , lens
-      , bytestring
-      , text
-      , resourcet
-      , conduit
-      , authenticate-oauth
-      , twitter-types-lens
-      , twitter-conduit
-
-executable userstream
-  main-is: userstream.hs
-  hs-source-dirs: sample/
-
-  if !flag(build-samples)
-    buildable: False
-  else
-    build-depends:
-        base >= 4.5 && < 5
-      , containers
-      , transformers
-      , bytestring
-      , text
-      , filepath
-      , directory
-      , process
-      , case-insensitive
-      , lens
-      , resourcet
-      , conduit
-      , conduit-extra
-      , http-conduit
-      , twitter-conduit
-      , twitter-types-lens
-
-  if flag(network-uri)
-    build-depends: network-uri >= 2.6
-  else
-    build-depends: network < 2.6
-
-  other-modules:
-    Common
-
-executable oauth_callback
-  main-is: oauth_callback.hs
-  hs-source-dirs: sample/
-
-  if !flag(build-samples)
-    buildable: False
-  else
-    build-depends:
-        base >= 4.5 && < 5
-      , containers
-      , transformers
-      , bytestring
-      , text
-      , http-types
-      , authenticate-oauth
-      , twitter-conduit
-      , scotty >= 0.7
-
-executable oauth_pin
-  main-is: oauth_pin.hs
-  hs-source-dirs: sample/
-
-  if !flag(build-samples)
-    buildable: False
-  else
-    build-depends:
-        base >= 4.5 && < 5
-      , bytestring
-      , text
-      , authenticate-oauth
-      , twitter-conduit
