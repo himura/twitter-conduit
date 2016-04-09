@@ -13,6 +13,11 @@ matrix:
         apt:
           sources: [ hvr-ghc ]
           packages: [ ghc-7.10.2 ]
+    - env: GHCVER=7.10.3 STACK_YAML=stack-lts-5.yaml
+      addons:
+        apt:
+          sources: [ hvr-ghc ]
+          packages: [ ghc-7.10.3 ]
 
 before_install:
   # Download and unpack the stack executable
