@@ -151,7 +151,7 @@ deriveHasParamInstances ''StatusesRetweetsOfMe
 -- * Tweets
 
 data StatusesRetweetsId
--- | Returns query data asks the most recent tweets authored by the authenticating user that have been retweeted by others.
+-- | Returns query data that asks for the most recent retweets of the specified tweet
 --
 -- You can perform a search query using 'call':
 --
