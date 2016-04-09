@@ -1,6 +1,8 @@
+{-# LANGUAGE DataKinds #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 module Web.Twitter.Conduit.Base
        ( getResponse
@@ -197,11 +199,11 @@ callWithResponse' info mgr req =
 sourceWithMaxId :: ( MonadBase IO m
                    , FromJSON responseType
                    , AsStatus responseType
-                   , HasMaxIdParam (APIRequest apiName [responseType])
+                   , HasParam "max_id" supports
                    )
                 => TWInfo -- ^ Twitter Setting
                 -> HTTP.Manager
-                -> APIRequest apiName [responseType]
+                -> APIRequest supports [responseType]
                 -> C.Source m responseType
 sourceWithMaxId info mgr = loop
   where
@@ -220,22 +222,21 @@ sourceWithMaxId info mgr = loop
 --
 -- This function cooperate with instances of 'HasMaxIdParam'.
 sourceWithMaxId' :: ( MonadBase IO m
-                    ,  HasMaxIdParam (APIRequest apiName [responseType])
+                    , HasParam "max_id" supports
                     )
                  => TWInfo -- ^ Twitter Setting
                  -> HTTP.Manager
-                 -> APIRequest apiName [responseType]
+                 -> APIRequest supports [responseType]
                  -> C.Source m Value
 sourceWithMaxId' info mgr = loop
   where
     loop req = do
-        res <- liftBase $ call' info mgr req
-        case getMinId res of
+        (res :: [Value]) <- liftBase $ call' info mgr req
+        case minimumOf (traverse . key "id" . _Integer) res of
             Just mid -> do
                 CL.sourceList res
                 loop $ req & maxId ?~ mid - 1
             Nothing -> CL.sourceList res
-    getMinId = minimumOf (traverse . key "id" . _Integer)
 
 -- | A wrapper function to perform multiple API request with changing @cursor@ parameter.
 --
@@ -243,11 +244,11 @@ sourceWithMaxId' info mgr = loop
 sourceWithCursor :: ( MonadBase IO m
                     , FromJSON responseType
                     , CursorKey ck
-                    , HasCursorParam (APIRequest apiName (WithCursor ck responseType))
+                    , HasParam "cursor" supports
                     )
                  => TWInfo -- ^ Twitter Setting
                  -> HTTP.Manager
-                 -> APIRequest apiName (WithCursor ck responseType)
+                 -> APIRequest supports (WithCursor ck responseType)
                  -> C.Source m responseType
 sourceWithCursor info mgr req = loop (-1)
   where
@@ -265,11 +266,11 @@ sourceWithCursor info mgr req = loop (-1)
 sourceWithCursor' :: ( MonadBase IO m
                      , FromJSON responseType
                      , CursorKey ck
-                     , HasCursorParam (APIRequest apiName (WithCursor ck responseType))
+                     , HasParam "cursor" supports
                      )
                   => TWInfo -- ^ Twitter Setting
                   -> HTTP.Manager
-                  -> APIRequest apiName (WithCursor ck responseType)
+                  -> APIRequest supports (WithCursor ck responseType)
                   -> C.Source m Value
 sourceWithCursor' info mgr req = loop (-1)
   where
@@ -286,11 +287,11 @@ sourceWithCursor' info mgr req = loop (-1)
 -- | A wrapper function to perform multiple API request with @SearchResult@.
 sourceWithSearchResult :: ( MonadBase IO m
                           , FromJSON responseType
-                          , HasMaxIdParam (APIRequest apiName (SearchResult [responseType]))
+                          , HasParam "max_id" supports
                           )
                        => TWInfo -- ^ Twitter Setting
                        -> HTTP.Manager
-                       -> APIRequest apiName (SearchResult [responseType])
+                       -> APIRequest supports (SearchResult [responseType])
                        -> m (SearchResult (C.Source m responseType))
 sourceWithSearchResult info mgr req = do
     res <- liftBase $ call info mgr req
@@ -309,11 +310,11 @@ sourceWithSearchResult info mgr req = do
 
 -- | A wrapper function to perform multiple API request with @SearchResult@.
 sourceWithSearchResult' :: ( MonadBase IO m
-                           , HasMaxIdParam (APIRequest apiName (SearchResult [responseType]))
+                           , HasParam "max_id" supports
                            )
                         => TWInfo -- ^ Twitter Setting
                         -> HTTP.Manager
-                        -> APIRequest apiName (SearchResult [responseType])
+                        -> APIRequest supports (SearchResult [responseType])
                         -> m (SearchResult (C.Source m Value))
 sourceWithSearchResult' info mgr req = do
     res <- liftBase $ call info mgr $ relax req

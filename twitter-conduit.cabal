@@ -73,6 +73,7 @@ library
     , text >= 0.11
     , containers
     , time
+    , ghc-prim
     , twitter-types >= 0.6
     , twitter-types-lens >= 0.6
 

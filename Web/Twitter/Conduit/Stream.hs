@@ -1,9 +1,6 @@
+{-# LANGUAGE DataKinds #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE EmptyDataDecls #-}
 {-# LANGUAGE CPP #-}
-{-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE ConstraintKinds #-}
-{-# LANGUAGE FlexibleInstances #-}
 
 module Web.Twitter.Conduit.Stream
        (
@@ -28,7 +25,6 @@ import Web.Twitter.Conduit.Types
 import Web.Twitter.Conduit.Base
 import Web.Twitter.Types
 import Web.Twitter.Conduit.Parameters
-import Web.Twitter.Conduit.Parameters.TH
 import Web.Twitter.Conduit.Request
 import Web.Twitter.Conduit.Response
 
@@ -70,11 +66,10 @@ stream' info mgr req = do
     rsrc <- getResponse info mgr =<< liftIO (makeRequest req)
     responseBody rsrc $=+ CL.sequence sinkFromJSON
 
-data Userstream
 userstream :: APIRequest Userstream StreamingAPI
 userstream = APIRequestGet "https://userstream.twitter.com/1.1/user.json" []
-deriveHasParamInstances ''Userstream
-    [ "language"
+type Userstream = '[
+      "language"
     , "filter_level"
     , "stall_warnings"
     , "replies"
@@ -102,8 +97,6 @@ paramToQueryItem (Track texts) = ("track", PVStringArray texts)
 statusesFilterEndpoint :: String
 statusesFilterEndpoint = "https://stream.twitter.com/1.1/statuses/filter.json"
 
-data StatusesFilter
-
 -- | Returns statuses/filter.json API query data.
 --
 -- >>> statusesFilterByFollow [1,2,3]
@@ -119,8 +112,8 @@ statusesFilterByTrack :: T.Text -- ^ keyword
                       -> APIRequest StatusesFilter StreamingAPI
 statusesFilterByTrack keyword = statusesFilter [Track [keyword]]
 
-deriveHasParamInstances ''StatusesFilter
-    [ "language"
+type StatusesFilter = '[
+      "language"
     , "filter_level"
     , "stall_warnings"
     ]

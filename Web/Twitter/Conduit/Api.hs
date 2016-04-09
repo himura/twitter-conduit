@@ -1,8 +1,7 @@
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE KindSignatures #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE EmptyDataDecls #-}
-{-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE CPP #-}
 
 module Web.Twitter.Conduit.Api
        (
@@ -142,20 +141,19 @@ module Web.Twitter.Conduit.Api
 
 import Web.Twitter.Types
 import Web.Twitter.Conduit.Parameters
-import Web.Twitter.Conduit.Parameters.TH
 import Web.Twitter.Conduit.Base
 import Web.Twitter.Conduit.Request
 import Web.Twitter.Conduit.Cursor
 
-import Network.HTTP.Client.MultipartFormData
-import qualified Data.Text as T
 import Data.Default
+import qualified Data.Text as T
+import GHC.TypeLits (Symbol)
+import Network.HTTP.Client.MultipartFormData
 
 -- $setup
 -- >>> :set -XOverloadedStrings
 -- >>> import Control.Lens
 
-data SearchTweets
 -- | Returns search query.
 --
 -- You can perform a search query using 'call':
@@ -172,8 +170,8 @@ data SearchTweets
 searchTweets :: T.Text -- ^ search string
              -> APIRequest SearchTweets (SearchResult [SearchStatus])
 searchTweets q = APIRequestGet (endpoint ++ "search/tweets.json") [("q", PVString q)]
-deriveHasParamInstances ''SearchTweets
-    [ "lang"
+type SearchTweets = '[
+      "lang"
     , "locale"
     -- , "result_type"
     , "count"
@@ -189,7 +187,6 @@ search :: T.Text -- ^ search string
        -> APIRequest SearchTweets (SearchResult [SearchStatus])
 search = searchTweets
 
-data DirectMessages
 -- | Returns query data which asks recent direct messages sent to the authenticating user.
 --
 -- You can perform a query using 'call':
@@ -204,15 +201,14 @@ data DirectMessages
 -- APIRequestGet "https://api.twitter.com/1.1/direct_messages.json" [("count","100")]
 directMessages :: APIRequest DirectMessages [DirectMessage]
 directMessages = APIRequestGet (endpoint ++ "direct_messages.json") def
-deriveHasParamInstances ''DirectMessages
-    [ "since_id"
+type DirectMessages = '[
+      "since_id"
     , "max_id"
     , "count"
     , "include_entities"
     , "skip_status"
     ]
 
-data DirectMessagesSent
 -- | Returns query data which asks recent direct messages sent by the authenticating user.
 --
 -- You can perform a query using 'call':
@@ -227,8 +223,8 @@ data DirectMessagesSent
 -- APIRequestGet "https://api.twitter.com/1.1/direct_messages/sent.json" [("count","100")]
 directMessagesSent :: APIRequest DirectMessagesSent [DirectMessage]
 directMessagesSent = APIRequestGet (endpoint ++ "direct_messages/sent.json") def
-deriveHasParamInstances ''DirectMessagesSent
-    [ "since_id"
+type DirectMessagesSent = '[
+      "since_id"
     , "max_id"
     , "count"
     , "include_entities"
@@ -236,7 +232,6 @@ deriveHasParamInstances ''DirectMessagesSent
     , "skip_status"
     ]
 
-data DirectMessagesShow
 -- | Returns query data which asks a single direct message, specified by an id parameter.
 --
 -- You can perform a query using 'call':
@@ -249,8 +244,8 @@ data DirectMessagesShow
 -- APIRequestGet "https://api.twitter.com/1.1/direct_messages/show.json" [("id","1234567890")]
 directMessagesShow :: StatusId -> APIRequest DirectMessagesShow DirectMessage
 directMessagesShow sId = APIRequestGet (endpoint ++ "direct_messages/show.json") [("id", PVInteger sId)]
+type DirectMessagesShow = ('[] :: [Symbol])
 
-data DirectMessagesDestroy
 -- | Returns post data which destroys the direct message specified in the required ID parameter.
 --
 -- You can perform a query using 'call':
@@ -263,11 +258,8 @@ data DirectMessagesDestroy
 -- APIRequestPost "https://api.twitter.com/1.1/direct_messages/destroy.json" [("id","1234567890")]
 directMessagesDestroy :: StatusId -> APIRequest DirectMessagesDestroy DirectMessage
 directMessagesDestroy sId = APIRequestPost (endpoint ++ "direct_messages/destroy.json") [("id", PVInteger sId)]
-deriveHasParamInstances ''DirectMessagesDestroy
-    [ "include_entities"
-    ]
+type DirectMessagesDestroy = '[ "include_entities" ]
 
-data DirectMessagesNew
 -- | Returns post data which sends a new direct message to the specified user from the authenticating user.
 --
 -- You can perform a post using 'call':
@@ -282,8 +274,8 @@ data DirectMessagesNew
 -- APIRequestPost "https://api.twitter.com/1.1/direct_messages/new.json" [("text","Hello thimura! by UserId"),("user_id","69179963")]
 directMessagesNew :: UserParam -> T.Text -> APIRequest DirectMessagesNew DirectMessage
 directMessagesNew q msg = APIRequestPost (endpoint ++ "direct_messages/new.json") (("text", PVString msg):mkUserParam q)
+type DirectMessagesNew = ('[] :: [Symbol])
 
-data FriendshipsNoRetweetsIds
 -- | Returns a collection of user_ids that the currently authenticated user does not want to receive retweets from.
 --
 -- You can perform a request using 'call':
@@ -296,8 +288,8 @@ data FriendshipsNoRetweetsIds
 -- APIRequestGet "https://api.twitter.com/1.1/friendships/no_retweets/ids.json" []
 friendshipsNoRetweetsIds :: APIRequest FriendshipsNoRetweetsIds [UserId]
 friendshipsNoRetweetsIds = APIRequestGet (endpoint ++ "friendships/no_retweets/ids.json") []
+type FriendshipsNoRetweetsIds = ('[] :: [Symbol])
 
-data FriendsIds
 -- | Returns query data which asks a collection of user IDs for every user the specified user is following.
 --
 -- You can perform a query using 'call':
@@ -318,13 +310,12 @@ data FriendsIds
 -- APIRequestGet "https://api.twitter.com/1.1/friends/ids.json" [("count","5000"),("screen_name","thimura")]
 friendsIds :: UserParam -> APIRequest FriendsIds (WithCursor IdsCursorKey UserId)
 friendsIds q = APIRequestGet (endpoint ++ "friends/ids.json") (mkUserParam q)
-deriveHasParamInstances ''FriendsIds
-    [ "cursor"
+type FriendsIds = '[
+      "cursor"
     -- , "stringify_ids" -- (needless)
     , "count"
     ]
 
-data FollowersIds
 -- | Returns query data which asks a collection of user IDs for every user following the specified user.
 --
 -- You can perform a query using 'call':
@@ -345,13 +336,12 @@ data FollowersIds
 -- APIRequestGet "https://api.twitter.com/1.1/followers/ids.json" [("count","5000"),("screen_name","thimura")]
 followersIds :: UserParam -> APIRequest FollowersIds (WithCursor IdsCursorKey UserId)
 followersIds q = APIRequestGet (endpoint ++ "followers/ids.json") (mkUserParam q)
-deriveHasParamInstances ''FollowersIds
-    [ "cursor"
+type FollowersIds = '[
+      "cursor"
     -- , "stringify_ids" -- (needless)
     , "count"
     ]
 
-data FriendshipsIncoming
 -- | Returns a collection of numeric IDs for every user who has a pending request to follow the authenticating user.
 --
 -- You can perform a request by using 'call':
@@ -370,12 +360,11 @@ data FriendshipsIncoming
 -- APIRequestGet "https://api.twitter.com/1.1/friendships/incoming.json" []
 friendshipsIncoming :: APIRequest FriendshipsIncoming (WithCursor IdsCursorKey UserId)
 friendshipsIncoming = APIRequestGet (endpoint ++ "friendships/incoming.json") def
-deriveHasParamInstances ''FriendshipsIncoming
-    [ "cursor"
+type FriendshipsIncoming = '[
+      "cursor"
     -- , "stringify_ids" -- (needless)
     ]
 
-data FriendshipsOutgoing
 -- | Returns a collection of numeric IDs for every protected user for whom the authenticating user has a pending follow request.
 --
 -- You can perform a request by using 'call':
@@ -394,12 +383,11 @@ data FriendshipsOutgoing
 -- APIRequestGet "https://api.twitter.com/1.1/friendships/outgoing.json" []
 friendshipsOutgoing :: APIRequest FriendshipsOutgoing (WithCursor IdsCursorKey UserId)
 friendshipsOutgoing = APIRequestGet (endpoint ++ "friendships/outgoing.json") def
-deriveHasParamInstances ''FriendshipsOutgoing
-    [ "cursor"
+type FriendshipsOutgoing = '[
+      "cursor"
     -- , "stringify_ids" -- (needless)
     ]
 
-data FriendshipsCreate
 -- | Returns post data which follows the user specified in the ID parameter.
 --
 -- You can perform request by using 'call':
@@ -414,11 +402,8 @@ data FriendshipsCreate
 -- APIRequestPost "https://api.twitter.com/1.1/friendships/create.json" [("user_id","69179963")]
 friendshipsCreate :: UserParam -> APIRequest FriendshipsCreate User
 friendshipsCreate user = APIRequestPost (endpoint ++ "friendships/create.json") (mkUserParam user)
-deriveHasParamInstances ''FriendshipsCreate
-    [ "follow"
-    ]
+type FriendshipsCreate = '[ "follow" ]
 
-data FriendshipsDestroy
 -- | Returns post data which unfollows the user specified in the ID parameter.
 --
 -- You can perform request by using 'call':
@@ -433,8 +418,8 @@ data FriendshipsDestroy
 -- APIRequestPost "https://api.twitter.com/1.1/friendships/destroy.json" [("user_id","69179963")]
 friendshipsDestroy :: UserParam -> APIRequest FriendshipsDestroy User
 friendshipsDestroy user = APIRequestPost (endpoint ++ "friendships/destroy.json") (mkUserParam user)
+type FriendshipsDestroy = ('[] :: [Symbol])
 
-data FriendsList
 -- | Returns query data which asks a cursored collection of user objects for every user the specified users is following.
 --
 -- You can perform request by using 'call':
@@ -455,14 +440,13 @@ data FriendsList
 -- APIRequestGet "https://api.twitter.com/1.1/friends/list.json" [("user_id","69179963")]
 friendsList :: UserParam -> APIRequest FriendsList (WithCursor UsersCursorKey User)
 friendsList q = APIRequestGet (endpoint ++ "friends/list.json") (mkUserParam q)
-deriveHasParamInstances ''FriendsList
-    [ "cursor"
+type FriendsList = '[
+      "cursor"
     , "count"
     , "skip_status"
     , "include_user_entities"
     ]
 
-data FollowersList
 -- | Returns query data which asks a cursored collection of user objects for users following the specified user.
 --
 -- You can perform request by using 'call':
@@ -483,14 +467,13 @@ data FollowersList
 -- APIRequestGet "https://api.twitter.com/1.1/followers/list.json" [("user_id","69179963")]
 followersList :: UserParam -> APIRequest FollowersList (WithCursor UsersCursorKey User)
 followersList q = APIRequestGet (endpoint ++ "followers/list.json") (mkUserParam q)
-deriveHasParamInstances ''FollowersList
-    [ "cursor"
+type FollowersList = '[
+      "cursor"
     , "count"
     , "skip_status"
     , "include_user_entities"
     ]
 
-data AccountVerifyCredentials
 -- | Returns query data asks that the credential is valid.
 --
 -- You can perform request by using 'call':
@@ -503,12 +486,11 @@ data AccountVerifyCredentials
 -- APIRequestGet "https://api.twitter.com/1.1/account/verify_credentials.json" []
 accountVerifyCredentials :: APIRequest AccountVerifyCredentials User
 accountVerifyCredentials = APIRequestGet (endpoint ++ "account/verify_credentials.json") []
-deriveHasParamInstances ''AccountVerifyCredentials
-    [ "include_entities"
+type AccountVerifyCredentials = '[
+      "include_entities"
     , "skip_status"
     ]
 
-data UsersLookup
 -- | Returns query data asks user objects.
 --
 -- You can perform request by using 'call':
@@ -521,11 +503,8 @@ data UsersLookup
 -- APIRequestGet "https://api.twitter.com/1.1/users/lookup.json" [("screen_name","thimura,twitterapi")]
 usersLookup :: UserListParam -> APIRequest UsersLookup [User]
 usersLookup q = APIRequestGet (endpoint ++ "users/lookup.json") (mkUserListParam q)
-deriveHasParamInstances ''UsersLookup
-    [ "include_entities"
-    ]
+type UsersLookup = '[ "include_entities" ]
 
-data UsersShow
 -- | Returns query data asks the user specified by user id or screen name parameter.
 --
 -- You can perform request by using 'call':
@@ -538,11 +517,8 @@ data UsersShow
 -- APIRequestGet "https://api.twitter.com/1.1/users/show.json" [("screen_name","thimura")]
 usersShow :: UserParam -> APIRequest UsersShow User
 usersShow q = APIRequestGet (endpoint ++ "users/show.json") (mkUserParam q)
-deriveHasParamInstances ''UsersShow
-    [ "include_entities"
-    ]
+type UsersShow = '[ "include_entities" ]
 
-data FavoritesList
 -- | Returns the 20 most recent Tweets favorited by the specified user.
 --
 -- You can perform request by using 'call':
@@ -562,14 +538,13 @@ favoritesList mbuser = APIRequestGet (endpoint ++ "favorites/list.json") (mkPara
   where
     mkParam Nothing = []
     mkParam (Just usr) = mkUserParam usr
-deriveHasParamInstances ''FavoritesList
-    [ "count"
+type FavoritesList = '[
+      "count"
     , "since_id"
     , "max_id"
     , "include_entities"
     ]
 
-data FavoritesCreate
 -- | Returns post data which favorites the status specified in the ID parameter as the authenticating user.
 --
 -- You can perform request by using 'call':
@@ -582,11 +557,8 @@ data FavoritesCreate
 -- APIRequestPost "https://api.twitter.com/1.1/favorites/create.json" [("id","1234567890")]
 favoritesCreate :: StatusId -> APIRequest FavoritesCreate Status
 favoritesCreate sid = APIRequestPost (endpoint ++ "favorites/create.json") [("id", PVInteger sid)]
-deriveHasParamInstances ''FavoritesCreate
-    [ "include_entities"
-    ]
+type FavoritesCreate = '[ "include_entities" ]
 
-data FavoritesDestroy
 -- | Returns post data unfavorites the status specified in the ID paramter as the authenticating user.
 --
 -- You can perform request by using 'call':
@@ -599,11 +571,8 @@ data FavoritesDestroy
 -- APIRequestPost "https://api.twitter.com/1.1/favorites/destroy.json" [("id","1234567890")]
 favoritesDestroy :: StatusId -> APIRequest FavoritesDestroy Status
 favoritesDestroy sid = APIRequestPost (endpoint ++ "favorites/destroy.json") [("id", PVInteger sid)]
-deriveHasParamInstances ''FavoritesDestroy
-    [ "include_entities"
-    ]
+type FavoritesDestroy = '[ "include_entities" ]
 
-data ListsStatuses
 -- | Returns the query parameter which fetches a timeline of tweets authored by members of the specified list.
 --
 -- You can perform request by using 'call':
@@ -623,15 +592,14 @@ data ListsStatuses
 -- APIRequestGet "https://api.twitter.com/1.1/lists/statuses.json" [("list_id","20849097")]
 listsStatuses :: ListParam -> APIRequest ListsStatuses [Status]
 listsStatuses q = APIRequestGet (endpoint ++ "lists/statuses.json") (mkListParam q)
-deriveHasParamInstances ''ListsStatuses
-    [ "since_id"
+type ListsStatuses = '[
+      "since_id"
     , "max_id"
     , "count"
     , "include_entities"
     , "include_rts"
     ]
 
-data ListsMembersDestroy
 -- | Returns the post parameter which removes the specified member from the list.
 --
 -- You can perform request by using 'call':
@@ -646,8 +614,8 @@ data ListsMembersDestroy
 -- APIRequestPost "https://api.twitter.com/1.1/lists/members/destroy.json" [("list_id","20849097"),("user_id","69179963")]
 listsMembersDestroy :: ListParam -> UserParam -> APIRequest ListsMembersDestroy List
 listsMembersDestroy list user = APIRequestPost (endpoint ++ "lists/members/destroy.json") (mkListParam list ++ mkUserParam user)
+type ListsMembersDestroy = ('[] :: [Symbol])
 
-data ListsMemberships
 -- | Returns the request parameters which asks the lists the specified user has been added to.
 -- If 'UserParam' are not provided, the memberships for the authenticating user are returned.
 --
@@ -665,12 +633,11 @@ data ListsMemberships
 -- APIRequestGet "https://api.twitter.com/1.1/lists/memberships.json" [("user_id","69179963")]
 listsMemberships :: Maybe UserParam -> APIRequest ListsMemberships (WithCursor ListsCursorKey List)
 listsMemberships q = APIRequestGet (endpoint ++ "lists/memberships.json") $ maybe [] mkUserParam q
-deriveHasParamInstances ''ListsMemberships
-    [ "cursor"
+type ListsMemberships = '[
+      "cursor"
     , "count"
     ]
 
-data ListsSubscribers
 -- | Returns the request parameter which asks the subscribers of the specified list.
 --
 -- You can perform request by using 'call':
@@ -685,13 +652,12 @@ data ListsSubscribers
 -- APIRequestGet "https://api.twitter.com/1.1/lists/subscribers.json" [("list_id","20849097")]
 listsSubscribers :: ListParam -> APIRequest ListsSubscribers (WithCursor UsersCursorKey User)
 listsSubscribers q = APIRequestGet (endpoint ++ "lists/subscribers.json") (mkListParam q)
-deriveHasParamInstances ''ListsSubscribers
-    [ "cursor"
+type ListsSubscribers = '[
+      "cursor"
     , "count"
     , "skip_status"
     ]
 
-data ListsSubscriptions
 -- | Returns the request parameter which obtains a collection of the lists the specified user is subscribed to.
 --
 -- You can perform request by using 'call':
@@ -708,12 +674,11 @@ data ListsSubscriptions
 -- APIRequestGet "https://api.twitter.com/1.1/lists/subscriptions.json" [("user_id","69179963")]
 listsSubscriptions :: Maybe UserParam -> APIRequest ListsSubscriptions (WithCursor ListsCursorKey List)
 listsSubscriptions q = APIRequestGet (endpoint ++ "lists/subscriptions.json") $ maybe [] mkUserParam q
-deriveHasParamInstances ''ListsSubscriptions
-    [ "cursor"
+type ListsSubscriptions = '[
+      "cursor"
     , "count"
     ]
 
-data ListsOwnerships
 -- | Returns the request parameter which asks the lists owned by the specified Twitter user.
 --
 -- You can perform request by using 'call':
@@ -730,12 +695,11 @@ data ListsOwnerships
 -- APIRequestGet "https://api.twitter.com/1.1/lists/ownerships.json" [("user_id","69179963")]
 listsOwnerships :: Maybe UserParam -> APIRequest ListsOwnerships (WithCursor ListsCursorKey List)
 listsOwnerships q = APIRequestGet (endpoint ++ "lists/ownerships.json") $ maybe [] mkUserParam q
-deriveHasParamInstances ''ListsOwnerships
-    [ "cursor"
+type ListsOwnerships = '[
+      "cursor"
     , "count"
     ]
 
-data ListsMembers
 -- | Returns query data asks the members of the specified list.
 --
 -- You can perform request by using 'call':
@@ -750,12 +714,11 @@ data ListsMembers
 -- APIRequestGet "https://api.twitter.com/1.1/lists/members.json" [("list_id","20849097")]
 listsMembers :: ListParam -> APIRequest ListsMembers (WithCursor UsersCursorKey User)
 listsMembers q = APIRequestGet (endpoint ++ "lists/members.json") (mkListParam q)
-deriveHasParamInstances ''ListsMembers
-    [ "cursor"
+type ListsMembers = '[
+      "cursor"
     , "skip_status"
     ]
 
-data ListsMembersCreate
 -- | Returns the post parameter which adds a member to a list.
 --
 -- You can perform request by using 'call':
@@ -770,8 +733,8 @@ data ListsMembersCreate
 -- APIRequestPost "https://api.twitter.com/1.1/lists/members/create.json" [("list_id","20849097"),("user_id","69179963")]
 listsMembersCreate :: ListParam -> UserParam -> APIRequest ListsMembersCreate List
 listsMembersCreate list user = APIRequestPost (endpoint ++ "lists/members/create.json") (mkListParam list ++ mkUserParam user)
+type ListsMembersCreate = ('[] :: [Symbol])
 
-data ListsDestroy
 -- | Returns the post parameter which deletes the specified list.
 --
 -- You can perform request by using 'call':
@@ -786,8 +749,8 @@ data ListsDestroy
 -- APIRequestPost "https://api.twitter.com/1.1/lists/destroy.json" [("list_id","20849097")]
 listsDestroy :: ListParam -> APIRequest ListsDestroy List
 listsDestroy list = APIRequestPost (endpoint ++ "lists/destroy.json") (mkListParam list)
+type ListsDestroy = ('[] :: [Symbol])
 
-data ListsUpdate
 -- | Returns the post parameter which updates the specified list.
 --
 -- You can perform request by using 'call':
@@ -808,8 +771,8 @@ listsUpdate list isPublic description = APIRequestPost (endpoint ++ "lists/updat
     p' = maybe id (\d -> (("description", PVString d):)) description p
     mode True = "public"
     mode False = "private"
+type ListsUpdate = ('[] :: [Symbol])
 
-data ListsCreate
 -- | Returns the post parameter which creates a new list for the authenticated user.
 --
 -- You can perform request by using 'call':
@@ -834,8 +797,8 @@ listsCreate name isPublic description = APIRequestPost (endpoint ++ "lists/creat
     p' = maybe id (\d -> (("description", PVString d):)) description p
     mode True = "public"
     mode False = "private"
+type ListsCreate = ('[] :: [Symbol])
 
-data ListsShow
 -- | Returns the request parameter which asks the specified list.
 --
 -- You can perform request by using 'call':
@@ -850,8 +813,8 @@ data ListsShow
 -- APIRequestGet "https://api.twitter.com/1.1/lists/show.json" [("list_id","20849097")]
 listsShow :: ListParam -> APIRequest ListsShow List
 listsShow q = APIRequestGet (endpoint ++ "lists/show.json") (mkListParam q)
+type ListsShow = ('[] :: [Symbol])
 
-data MediaUpload
 -- | Upload media and returns the media data.
 --
 -- You can update your status with multiple media by calling 'mediaUpload' and 'update' successively.
@@ -881,3 +844,4 @@ mediaUpload mediaData =
     uri = "https://upload.twitter.com/1.1/media/upload.json"
     mediaBody (MediaFromFile fp) = partFileSource "media" fp
     mediaBody (MediaRequestBody filename filebody) = partFileRequestBody "media" filename filebody
+type MediaUpload = ('[] :: [Symbol])

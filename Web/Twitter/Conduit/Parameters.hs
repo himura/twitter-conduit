@@ -1,5 +1,10 @@
+{-# LANGUAGE CPP #-}
+{-# LANGUAGE DataKinds #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE TypeOperators #-}
 
 module Web.Twitter.Conduit.Parameters
        ( Parameters(..)
@@ -8,32 +13,34 @@ module Web.Twitter.Conduit.Parameters
        , APIQueryItem
        , makeSimpleQuery
 
-       , HasSinceIdParam (..)
-       , HasCountParam (..)
-       , HasMaxIdParam (..)
-       , HasPageParam (..)
-       , HasCursorParam (..)
-       , HasTrimUserParam (..)
-       , HasExcludeRepliesParam (..)
-       , HasContributorDetailsParam (..)
-       , HasIncludeEntitiesParam (..)
-       , HasIncludeUserEntitiesParam (..)
-       , HasIncludeRtsParam (..)
-       , HasIncludeMyRetweetParam (..)
-       , HasInReplyToStatusIdParam (..)
-       , HasDisplayCoordinatesParam (..)
-       , HasPossiblySensitiveParam (..)
-       , HasLangParam (..)
-       , HasLanguageParam (..)
-       , HasLocaleParam (..)
-       , HasFilterLevelParam (..)
-       , HasStallWarningsParam (..)
-       , HasRepliesParam (..)
-       , HasUntilParam (..)
-       , HasSkipStatusParam (..)
-       , HasFollowParam (..)
-       , HasMapParam (..)
-       , HasMediaIdsParam (..)
+
+       , HasParam
+       , count
+       , sinceId
+       , maxId
+       , page
+       , cursor
+       , trimUser
+       , excludeReplies
+       , contributorDetails
+       , includeEntities
+       , includeUserEntities
+       , includeRts
+       , includeMyRetweet
+       , inReplyToStatusId
+       , displayCoordinates
+       , possiblySensitive
+       , lang
+       , language
+       , locale
+       , filterLevel
+       , stallWarnings
+       , replies
+       , until
+       , skipStatus
+       , follow
+       , map
+       , mediaIds
 
        , UserParam(..)
        , UserListParam(..)
@@ -50,6 +57,9 @@ import Web.Twitter.Conduit.Parameters.TH
 import Web.Twitter.Conduit.Request
 import Web.Twitter.Types
 
+import Prelude hiding (map, until)
+import qualified Prelude
+
 data UserParam = UserIdParam UserId | ScreenNameParam String
                deriving (Show, Eq)
 data UserListParam = UserIdListParam [UserId] | ScreenNameListParam [String]
@@ -59,32 +69,32 @@ data ListParam = ListIdParam Integer | ListNameParam String
 data MediaData = MediaFromFile FilePath
                | MediaRequestBody FilePath RequestBody
 
-defineHasParamClassInteger "count"
-defineHasParamClassInteger "since_id"
-defineHasParamClassInteger "max_id"
-defineHasParamClassInteger "page"
-defineHasParamClassInteger "cursor"
-defineHasParamClassBool "trim_user"
-defineHasParamClassBool "exclude_replies"
-defineHasParamClassBool "contributor_details"
-defineHasParamClassBool "include_entities"
-defineHasParamClassBool "include_user_entities"
-defineHasParamClassBool "include_rts"
-defineHasParamClassBool "include_my_retweet"
-defineHasParamClassInteger "in_reply_to_status_id"
-defineHasParamClassBool "display_coordinates"
-defineHasParamClassBool "possibly_sensitive"
-defineHasParamClassString "lang"
-defineHasParamClassString "language"
-defineHasParamClassString "locale"
-defineHasParamClassString "filter_level"
-defineHasParamClassBool "stall_warnings"
-defineHasParamClassString "replies"
-defineHasParamClassDay "until"
-defineHasParamClassBool "skip_status"
-defineHasParamClassBool "follow"
-defineHasParamClassBool "map"
-defineHasParamClassIntegerArray "media_ids"
+defineParamInteger "count"
+defineParamInteger "since_id"
+defineParamInteger "max_id"
+defineParamInteger "page"
+defineParamInteger "cursor"
+defineParamBool "trim_user"
+defineParamBool "exclude_replies"
+defineParamBool "contributor_details"
+defineParamBool "include_entities"
+defineParamBool "include_user_entities"
+defineParamBool "include_rts"
+defineParamBool "include_my_retweet"
+defineParamInteger "in_reply_to_status_id"
+defineParamBool "display_coordinates"
+defineParamBool "possibly_sensitive"
+defineParamString "lang"
+defineParamString "language"
+defineParamString "locale"
+defineParamString "filter_level"
+defineParamBool "stall_warnings"
+defineParamString "replies"
+defineParamDay "until"
+defineParamBool "skip_status"
+defineParamBool "follow"
+defineParamBool "map"
+defineParamIntegerArray "media_ids"
 
 -- | converts 'UserParam' to 'HT.SimpleQuery'.
 --

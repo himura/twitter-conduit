@@ -1,8 +1,6 @@
+{-# LANGUAGE DataKinds #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE CPP #-}
 {-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE EmptyDataDecls #-}
 
 module Web.Twitter.Conduit.Status
        (
@@ -39,7 +37,6 @@ import Prelude hiding ( lookup )
 import Web.Twitter.Conduit.Base
 import Web.Twitter.Conduit.Request
 import Web.Twitter.Conduit.Parameters
-import Web.Twitter.Conduit.Parameters.TH
 import Web.Twitter.Types
 
 import qualified Data.Text as T
@@ -52,7 +49,6 @@ import Data.Default
 
 -- * Timelines
 
-data StatusesMentionsTimeline
 -- | Returns query data asks the most recent mentions for the authenticating user.
 --
 -- You can perform a query using 'call':
@@ -65,8 +61,8 @@ data StatusesMentionsTimeline
 -- APIRequestGet "https://api.twitter.com/1.1/statuses/mentions_timeline.json" []
 mentionsTimeline :: APIRequest StatusesMentionsTimeline [Status]
 mentionsTimeline = APIRequestGet (endpoint ++ "statuses/mentions_timeline.json") def
-deriveHasParamInstances ''StatusesMentionsTimeline
-    [ "count"
+type StatusesMentionsTimeline = '[
+      "count"
     , "since_id"
     , "max_id"
     , "trim_user"
@@ -74,7 +70,6 @@ deriveHasParamInstances ''StatusesMentionsTimeline
     , "include_entities"
     ]
 
-data StatusesUserTimeline
 -- | Returns query data asks a collection of the most recent Tweets posted by the user indicated by the screen_name or user_id parameters.
 --
 -- You can perform a search query using 'call':
@@ -89,8 +84,8 @@ data StatusesUserTimeline
 -- APIRequestGet "https://api.twitter.com/1.1/statuses/user_timeline.json" [("count","200"),("include_rts","true"),("screen_name","thimura")]
 userTimeline :: UserParam -> APIRequest StatusesUserTimeline [Status]
 userTimeline q = APIRequestGet (endpoint ++ "statuses/user_timeline.json") (mkUserParam q)
-deriveHasParamInstances ''StatusesUserTimeline
-    [ "count"
+type StatusesUserTimeline = '[
+      "count"
     , "since_id"
     , "max_id"
     , "trim_user"
@@ -99,7 +94,6 @@ deriveHasParamInstances ''StatusesUserTimeline
     , "include_rts"
     ]
 
-data StatusesHomeTimeline
 -- | Returns query data asks a collection of the most recentTweets and retweets posted by the authenticating user and the users they follow.
 --
 -- You can perform a search query using 'call':
@@ -114,8 +108,8 @@ data StatusesHomeTimeline
 -- APIRequestGet "https://api.twitter.com/1.1/statuses/home_timeline.json" [("count","200")]
 homeTimeline :: APIRequest StatusesHomeTimeline [Status]
 homeTimeline = APIRequestGet (endpoint ++ "statuses/home_timeline.json") def
-deriveHasParamInstances ''StatusesHomeTimeline
-    [ "count"
+type StatusesHomeTimeline = '[
+      "count"
     , "since_id"
     , "max_id"
     , "trim_user"
@@ -124,7 +118,6 @@ deriveHasParamInstances ''StatusesHomeTimeline
     , "include_entities"
     ]
 
-data StatusesRetweetsOfMe
 -- | Returns query data asks the most recent tweets authored by the authenticating user that have been retweeted by others.
 --
 -- You can perform a search query using 'call':
@@ -139,8 +132,8 @@ data StatusesRetweetsOfMe
 -- APIRequestGet "https://api.twitter.com/1.1/statuses/retweets_of_me.json" [("count","100")]
 retweetsOfMe :: APIRequest StatusesRetweetsOfMe [Status]
 retweetsOfMe = APIRequestGet (endpoint ++ "statuses/retweets_of_me.json") def
-deriveHasParamInstances ''StatusesRetweetsOfMe
-    [ "count"
+type StatusesRetweetsOfMe = '[
+      "count"
     , "since_id"
     , "max_id"
     , "trim_user"
@@ -150,7 +143,6 @@ deriveHasParamInstances ''StatusesRetweetsOfMe
 
 -- * Tweets
 
-data StatusesRetweetsId
 -- | Returns query data that asks for the most recent retweets of the specified tweet
 --
 -- You can perform a search query using 'call':
@@ -166,12 +158,11 @@ data StatusesRetweetsId
 retweetsId :: StatusId -> APIRequest StatusesRetweetsId [RetweetedStatus]
 retweetsId status_id = APIRequestGet uri def
   where uri = endpoint ++ "statuses/retweets/" ++ show status_id ++ ".json"
-deriveHasParamInstances ''StatusesRetweetsId
-    [ "count"
+type StatusesRetweetsId = '[
+      "count"
     , "trim_user"
     ]
 
-data StatusesShowId
 -- | Returns query data asks a single Tweet, specified by the id parameter.
 --
 -- You can perform a search query using 'call':
@@ -187,13 +178,12 @@ data StatusesShowId
 showId :: StatusId -> APIRequest StatusesShowId Status
 showId status_id = APIRequestGet uri def
   where uri = endpoint ++ "statuses/show/" ++ show status_id ++ ".json"
-deriveHasParamInstances ''StatusesShowId
-    [ "trim_user"
+type StatusesShowId = '[
+      "trim_user"
     , "include_my_retweet"
     , "include_entities"
     ]
 
-data StatusesDestroyId
 -- | Returns post data which destroys the status specified by the require ID parameter.
 --
 -- You can perform a search query using 'call':
@@ -207,11 +197,10 @@ data StatusesDestroyId
 destroyId :: StatusId -> APIRequest StatusesDestroyId Status
 destroyId status_id = APIRequestPost uri def
   where uri = endpoint ++ "statuses/destroy/" ++ show status_id ++ ".json"
-deriveHasParamInstances ''StatusesDestroyId
-    [ "trim_user"
+type StatusesDestroyId = '[
+      "trim_user"
     ]
 
-data StatusesUpdate
 -- | Returns post data which updates the authenticating user's current status.
 -- To upload an image to accompany the tweet, use 'updateWithMedia'.
 --
@@ -228,8 +217,8 @@ data StatusesUpdate
 update :: T.Text -> APIRequest StatusesUpdate Status
 update status = APIRequestPost uri [("status", PVString status)]
   where uri = endpoint ++ "statuses/update.json"
-deriveHasParamInstances ''StatusesUpdate
-    [ "in_reply_to_status_id"
+type StatusesUpdate = '[
+      "in_reply_to_status_id"
     -- , "lat_long"
     -- , "place_id"
     , "display_coordinates"
@@ -237,7 +226,6 @@ deriveHasParamInstances ''StatusesUpdate
     , "media_ids"
     ]
 
-data StatusesRetweetId
 -- | Returns post data which retweets a tweet, specified by ID.
 --
 -- You can perform a search query using 'call':
@@ -251,11 +239,10 @@ data StatusesRetweetId
 retweetId :: StatusId -> APIRequest StatusesRetweetId RetweetedStatus
 retweetId status_id = APIRequestPost uri def
   where uri = endpoint ++ "statuses/retweet/" ++ show status_id ++ ".json"
-deriveHasParamInstances ''StatusesRetweetId
-    [ "trim_user"
+type StatusesRetweetId = '[
+      "trim_user"
     ]
 
-data StatusesUpdateWithMedia
 -- | Returns post data which updates the authenticating user's current status and attaches media for upload.
 --
 -- You can perform a search query using 'call':
@@ -275,15 +262,14 @@ updateWithMedia tweet mediaData =
     uri = endpoint ++ "statuses/update_with_media.json"
     mediaBody (MediaFromFile fp) = partFileSource "media[]" fp
     mediaBody (MediaRequestBody filename filebody) = partFileRequestBody "media[]" filename filebody
-deriveHasParamInstances ''StatusesUpdateWithMedia
-    [ "possibly_sensitive"
+type StatusesUpdateWithMedia = '[
+      "possibly_sensitive"
     , "in_reply_to_status_id"
     -- , "lat_long"
     -- , "place_id"
     , "display_coordinates"
     ]
 
-data StatusesLookup
 -- | Returns fully-hydrated tweet objects for up to 100 tweets per request, as specified by comma-separated values passed to the id parameter.
 --
 -- You can perform a request using 'call':
@@ -300,8 +286,8 @@ data StatusesLookup
 -- APIRequestGet "https://api.twitter.com/1.1/statuses/lookup.json" [("include_entities","true"),("id","10,432656548536401920")]
 lookup :: [StatusId] -> APIRequest StatusesLookup [Status]
 lookup ids = APIRequestGet (endpoint ++ "statuses/lookup.json") [("id", PVIntegerArray ids)]
-deriveHasParamInstances ''StatusesLookup
-    [ "include_entities"
+type StatusesLookup = '[
+      "include_entities"
     , "trim_user"
     , "map"
     ]
