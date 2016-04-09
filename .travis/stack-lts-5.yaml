@@ -1,5 +1,6 @@
 flags: {}
 packages:
 - '.'
+- 'sample'
 extra-deps: []
 resolver: lts-5.11
