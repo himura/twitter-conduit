@@ -1,9 +1,0 @@
-flags:
-  twitter-types:
-    time15: true
-packages:
-- '.'
-extra-deps:
-- twitter-types-0.7.1.1
-- twitter-types-lens-0.7.1
-resolver: lts-3.9
