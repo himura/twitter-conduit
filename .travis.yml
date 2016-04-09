@@ -3,22 +3,25 @@ language: c
 
 matrix:
   include:
-    - env: GHCVER=7.8.4 STACK_YAML=stack-lts-2.yml
+    - env: GHCVER=7.8.4 STACK_YAML=stack-lts-2.yaml
       addons:
         apt:
           sources: [ hvr-ghc ]
           packages: [ ghc-7.8.4 ]
-    - env: GHCVER=7.10.2 STACK_YAML=stack-lts-3.yml
+    - env: GHCVER=7.10.2 STACK_YAML=stack-lts-3.yaml
       addons:
         apt:
           sources: [ hvr-ghc ]
           packages: [ ghc-7.10.2 ]
 
 before_install:
+  # Download and unpack the stack executable
   - mkdir -p ~/.local/bin
   - export PATH=$HOME/.local/bin:$PATH
   - travis_retry curl -L https://www.stackage.org/stack/linux-x86_64 | tar xz --wildcards --strip-components=1 -C ~/.local/bin '*/stack'
   - export PATH=/opt/ghc/$GHCVER/bin:$PATH
+  # stack searches .cabal file based on STACK_YAML directory.
+  - cp .travis/stack*.yaml .
 
 install:
   - travis_wait stack --no-terminal --skip-ghc-check setup
