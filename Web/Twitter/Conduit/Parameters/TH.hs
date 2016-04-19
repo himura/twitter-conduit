@@ -12,6 +12,7 @@ import qualified Data.ByteString as S
 import Data.Char
 import Data.Text (Text)
 import Data.Time.Calendar (Day)
+import Web.Twitter.Types
 
 snakeToLowerCamel :: String -> String
 snakeToLowerCamel [] = []
@@ -91,6 +92,10 @@ defineHasParamClassBool =
 defineHasParamClassString :: String -> Q [Dec]
 defineHasParamClassString =
     defineHasParamClass 'PVString 'unPVString [t|Text|]
+
+defineHasParamClassURI :: String -> Q [Dec]
+defineHasParamClassURI =
+    defineHasParamClass 'PVString 'unPVString [t|URIString|]
 
 defineHasParamClassIntegerArray :: String -> Q [Dec]
 defineHasParamClassIntegerArray =

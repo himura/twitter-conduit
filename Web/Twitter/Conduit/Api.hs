@@ -52,7 +52,7 @@ module Web.Twitter.Conduit.Api
        , accountVerifyCredentials
        -- , accountSettingsUpdate
        -- , accountUpdateDeliveryDevice
-       -- , accountUpdateProfile
+       , accountUpdateProfile
        -- , accountUpdateProfileBackgroundImage
        -- , accountUpdateProfileColors
        -- , accoutUpdateProfileImage
@@ -506,6 +506,20 @@ accountVerifyCredentials = APIRequestGet (endpoint ++ "account/verify_credential
 deriveHasParamInstances ''AccountVerifyCredentials
     [ "include_entities"
     , "skip_status"
+    ]
+
+data AccountUpdateProfile
+
+accountUpdateProfile :: APIRequest AccountUpdateProfile User
+accountUpdateProfile = APIRequestPost (endpoint ++ "account/update_profile.json") []
+deriveHasParamInstances ''AccountUpdateProfile
+    [ "include_entities"
+    , "skip_status"
+    , "name"
+    , "url"
+    , "location"
+    , "description"
+    , "profile_link_color"
     ]
 
 data UsersLookup
