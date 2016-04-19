@@ -52,6 +52,7 @@ module Web.Twitter.Conduit.Api
        , accountVerifyCredentials
        -- , accountSettingsUpdate
        -- , accountUpdateDeliveryDevice
+       , AccountUpdateProfile
        , accountUpdateProfile
        -- , accountUpdateProfileBackgroundImage
        -- , accountUpdateProfileColors
