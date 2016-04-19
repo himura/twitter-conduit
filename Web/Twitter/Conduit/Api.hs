@@ -509,7 +509,17 @@ deriveHasParamInstances ''AccountVerifyCredentials
     ]
 
 data AccountUpdateProfile
-
+-- | Returns user object with updated fields.
+-- Note that while no specific parameter is required, you need to provide at least one parameter before executing the query.
+--
+-- You can perform request by using 'call':
+--
+-- @
+-- res <- 'call' twInfo mgr '$' 'accountUpdateProfile' & 'Web.Twitter.Conduit.Parameters.url' ?~ \"http://www.example.com\"
+-- @
+--
+-- >>> accountUpdateProfile & url ?~ "http://www.example.com"
+-- APIRequestPost "https://api.twitter.com/1.1/account/update_profile.json" [("url","http://www.example.com")]
 accountUpdateProfile :: APIRequest AccountUpdateProfile User
 accountUpdateProfile = APIRequestPost (endpoint ++ "account/update_profile.json") []
 deriveHasParamInstances ''AccountUpdateProfile
