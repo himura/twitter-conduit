@@ -5,6 +5,7 @@ import Web.Twitter.Conduit hiding (url)
 import Web.Twitter.Types.Lens
 import Common
 
+import Control.Applicative
 import Control.Lens
 import Control.Monad
 import Control.Monad.IO.Class
