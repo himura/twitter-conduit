@@ -142,7 +142,7 @@ module Web.Twitter.Conduit.Api
        ) where
 
 import Web.Twitter.Types
-import Web.Twitter.Conduit.Parameters hiding (description, name, url)
+import Web.Twitter.Conduit.Parameters hiding (description, name)
 import Web.Twitter.Conduit.Parameters.TH
 import Web.Twitter.Conduit.Base
 import Web.Twitter.Conduit.Request
