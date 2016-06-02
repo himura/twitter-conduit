@@ -34,6 +34,7 @@ module Web.Twitter.Conduit.Parameters
        , HasFollowParam (..)
        , HasMapParam (..)
        , HasMediaIdsParam (..)
+       , HasFullTextParam (..)
 
        , UserParam(..)
        , UserListParam(..)
@@ -85,6 +86,7 @@ defineHasParamClassBool "skip_status"
 defineHasParamClassBool "follow"
 defineHasParamClassBool "map"
 defineHasParamClassIntegerArray "media_ids"
+defineHasParamClassBool "full_text"
 
 -- | converts 'UserParam' to 'HT.SimpleQuery'.
 --
