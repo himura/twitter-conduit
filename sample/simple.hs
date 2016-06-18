@@ -3,7 +3,7 @@
 
 module Main where
 
-import Web.Twitter.Conduit
+import Web.Twitter.Conduit hiding (url)
 import Web.Twitter.Types.Lens
 
 import Control.Lens

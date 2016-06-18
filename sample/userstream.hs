@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE PatternGuards #-}
 
-import Web.Twitter.Conduit
+import Web.Twitter.Conduit hiding (url)
 import Web.Twitter.Types.Lens
 import Common
 
