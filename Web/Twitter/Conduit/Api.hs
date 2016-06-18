@@ -103,7 +103,8 @@ module Web.Twitter.Conduit.Api
        -- , listsSubscribersCreate
        -- , listsSubscribersShow
        -- , listsSubscribersDestroy
-       -- , listsMembersCreateAll
+       , ListsMembersCreateAll
+       , listsMembersCreateAll
        -- , listsMembersShow
        , ListsMembers
        , listsMembers
@@ -119,7 +120,8 @@ module Web.Twitter.Conduit.Api
        , listsShow
        , ListsSubscriptions
        , listsSubscriptions
-       -- , listsMembersDestroyAll
+       , ListsMembersDestroyAll
+       , listsMembersDestroyAll
        , ListsOwnerships
        , listsOwnerships
 
@@ -764,6 +766,38 @@ deriveHasParamInstances ''ListsOwnerships
     [ "cursor"
     , "count"
     ]
+
+data ListsMembersCreateAll
+-- | Adds multiple members to a list.
+--
+-- You can perform request by using 'call':
+--
+-- @
+-- res <- 'call' twInfo mgr '$' 'listsMembersCreateAll' ('ListNameParam' "thimura/haskell") ('ScreenNameListParam' [\"thimura\", \"twitterapi\"])
+-- @
+--
+-- >>> listsMembersCreateAll (ListNameParam "thimura/haskell") (ScreenNameListParam ["thimura", "twitterapi"])
+-- APIRequestPost "https://api.twitter.com/1.1/lists/members/create_all.json" [("slug","haskell"),("owner_screen_name","thimura"),("screen_name","thimura,twitterapi")]
+-- >>> listsMembersCreateAll (ListIdParam 20849097) (UserIdListParam [69179963, 6253282])
+-- APIRequestPost "https://api.twitter.com/1.1/lists/members/create_all.json" [("list_id","20849097"),("user_id","69179963,6253282")]
+listsMembersCreateAll :: ListParam -> UserListParam -> APIRequest ListsMembersCreateAll List
+listsMembersCreateAll list users = APIRequestPost (endpoint ++ "lists/members/create_all.json") (mkListParam list ++ mkUserListParam users)
+
+data ListsMembersDestroyAll
+-- | Adds multiple members to a list.
+--
+-- You can perform request by using 'call':
+--
+-- @
+-- res <- 'call' twInfo mgr '$' 'listsMembersDestroyAll' ('ListNameParam' "thimura/haskell") ('ScreenNameListParam' [\"thimura\", \"twitterapi\"])
+-- @
+--
+-- >>> listsMembersDestroyAll (ListNameParam "thimura/haskell") (ScreenNameListParam ["thimura", "twitterapi"])
+-- APIRequestPost "https://api.twitter.com/1.1/lists/members/destroy_all.json" [("slug","haskell"),("owner_screen_name","thimura"),("screen_name","thimura,twitterapi")]
+-- >>> listsMembersDestroyAll (ListIdParam 20849097) (UserIdListParam [69179963, 6253282])
+-- APIRequestPost "https://api.twitter.com/1.1/lists/members/destroy_all.json" [("list_id","20849097"),("user_id","69179963,6253282")]
+listsMembersDestroyAll :: ListParam -> UserListParam -> APIRequest ListsMembersDestroyAll List
+listsMembersDestroyAll list users = APIRequestPost (endpoint ++ "lists/members/destroy_all.json") (mkListParam list ++ mkUserListParam users)
 
 data ListsMembers
 -- | Returns query data asks the members of the specified list.
