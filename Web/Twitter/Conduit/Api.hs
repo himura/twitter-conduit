@@ -211,6 +211,7 @@ deriveHasParamInstances ''DirectMessages
     , "count"
     , "include_entities"
     , "skip_status"
+    , "full_text"
     ]
 
 data DirectMessagesSent
@@ -235,6 +236,7 @@ deriveHasParamInstances ''DirectMessagesSent
     , "include_entities"
     , "page"
     , "skip_status"
+    , "full_text"
     ]
 
 data DirectMessagesShow
@@ -250,6 +252,9 @@ data DirectMessagesShow
 -- APIRequestGet "https://api.twitter.com/1.1/direct_messages/show.json" [("id","1234567890")]
 directMessagesShow :: StatusId -> APIRequest DirectMessagesShow DirectMessage
 directMessagesShow sId = APIRequestGet (endpoint ++ "direct_messages/show.json") [("id", PVInteger sId)]
+deriveHasParamInstances ''DirectMessagesShow
+    [ "full_text"
+    ]
 
 data DirectMessagesDestroy
 -- | Returns post data which destroys the direct message specified in the required ID parameter.

@@ -39,6 +39,7 @@ module Web.Twitter.Conduit.Parameters
        , HasProfileLinkColorParam (..)
        , HasLocationParam (..)
        , HasUrlParam (..)
+       , HasFullTextParam (..)
 
        , UserParam(..)
        , UserListParam(..)
@@ -95,6 +96,7 @@ defineHasParamClassString "name"
 defineHasParamClassString "profile_link_color"
 defineHasParamClassString "location"
 defineHasParamClassURI "url"
+defineHasParamClassBool "full_text"
 
 -- | converts 'UserParam' to 'HT.SimpleQuery'.
 --
