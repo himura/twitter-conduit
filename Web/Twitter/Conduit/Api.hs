@@ -815,7 +815,8 @@ data ListsMembers
 listsMembers :: ListParam -> APIRequest ListsMembers (WithCursor UsersCursorKey User)
 listsMembers q = APIRequestGet (endpoint ++ "lists/members.json") (mkListParam q)
 deriveHasParamInstances ''ListsMembers
-    [ "cursor"
+    [ "count"
+    , "cursor"
     , "skip_status"
     ]
 
