@@ -171,7 +171,7 @@ data SearchTweets
 -- >>> searchTweets "search text" & lang ?~ "ja" & count ?~ 100
 -- APIRequestGet "https://api.twitter.com/1.1/search/tweets.json" [("count","100"),("lang","ja"),("q","search text")]
 searchTweets :: T.Text -- ^ search string
-             -> APIRequest SearchTweets (SearchResult [SearchStatus])
+             -> APIRequest SearchTweets (SearchResult [Status])
 searchTweets q = APIRequestGet (endpoint ++ "search/tweets.json") [("q", PVString q)]
 deriveHasParamInstances ''SearchTweets
     [ "lang"
@@ -187,7 +187,7 @@ deriveHasParamInstances ''SearchTweets
 
 -- | Alias of 'searchTweets', for backward compatibility
 search :: T.Text -- ^ search string
-       -> APIRequest SearchTweets (SearchResult [SearchStatus])
+       -> APIRequest SearchTweets (SearchResult [Status])
 search = searchTweets
 
 data DirectMessages
