@@ -1,3 +1,11 @@
+## 0.2.1
+
+* Added `fullText` parameter to direct message calls [#47](https://github.com/himura/twitter-conduit/pull/47)
+* Replaced `SearchStatus` with `Status` type [#46](https://github.com/himura/twitter-conduit/pull/46)
+* Added `accountUpdateProfile` [#45](https://github.com/himura/twitter-conduit/pull/45)
+* Added `listsMembersCreateAll` and `listsMembersDestroyAll`
+* Parameter lenses in `Web.Twitter.Conduit` re-exported from `Web.Twitter.Conduit.Parameters` are deprecated
+
 ## 0.2.0
 
 * Changed the signature of functions defined in Web.Twitter.Conduit.Base,
