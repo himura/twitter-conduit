@@ -17,6 +17,7 @@ module Web.Twitter.Conduit.Parameters
        , HasExcludeRepliesParam (..)
        , HasContributorDetailsParam (..)
        , HasIncludeEntitiesParam (..)
+       , HasIncludeEmailParam (..)
        , HasIncludeUserEntitiesParam (..)
        , HasIncludeRtsParam (..)
        , HasIncludeMyRetweetParam (..)
@@ -74,6 +75,7 @@ defineHasParamClassBool "trim_user"
 defineHasParamClassBool "exclude_replies"
 defineHasParamClassBool "contributor_details"
 defineHasParamClassBool "include_entities"
+defineHasParamClassBool "include_email"
 defineHasParamClassBool "include_user_entities"
 defineHasParamClassBool "include_rts"
 defineHasParamClassBool "include_my_retweet"
