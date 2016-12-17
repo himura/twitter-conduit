@@ -191,6 +191,7 @@ deriveHasParamInstances ''StatusesShowId
     [ "trim_user"
     , "include_my_retweet"
     , "include_entities"
+    , "include_ext_alt_text"
     ]
 
 data StatusesDestroyId

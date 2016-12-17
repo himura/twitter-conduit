@@ -18,6 +18,7 @@ module Web.Twitter.Conduit.Parameters
        , HasContributorDetailsParam (..)
        , HasIncludeEntitiesParam (..)
        , HasIncludeEmailParam (..)
+       , HasIncludeExtAltTextParam (..)
        , HasIncludeUserEntitiesParam (..)
        , HasIncludeRtsParam (..)
        , HasIncludeMyRetweetParam (..)
@@ -79,6 +80,7 @@ defineHasParamClassBool "include_email"
 defineHasParamClassBool "include_user_entities"
 defineHasParamClassBool "include_rts"
 defineHasParamClassBool "include_my_retweet"
+defineHasParamClassBool "include_ext_alt_text"
 defineHasParamClassInteger "in_reply_to_status_id"
 defineHasParamClassBool "display_coordinates"
 defineHasParamClassBool "possibly_sensitive"
