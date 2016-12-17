@@ -1,3 +1,8 @@
+## 0.2.2
+
+* Added `include_email` parameter to `AccountVerifyCredentials` [#49](https://github.com/himura/twitter-conduit/pull/49)
+* Added `extAltText` parameter to `showId` [#50](https://github.com/himura/twitter-conduit/pull/50)
+
 ## 0.2.1
 
 * Added `fullText` parameter to direct message calls [#47](https://github.com/himura/twitter-conduit/pull/47)
