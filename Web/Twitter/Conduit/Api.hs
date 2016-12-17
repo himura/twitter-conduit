@@ -514,6 +514,7 @@ accountVerifyCredentials = APIRequestGet (endpoint ++ "account/verify_credential
 deriveHasParamInstances ''AccountVerifyCredentials
     [ "include_entities"
     , "skip_status"
+    , "include_email"
     ]
 
 data AccountUpdateProfile
