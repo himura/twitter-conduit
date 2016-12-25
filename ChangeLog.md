@@ -1,3 +1,8 @@
+## 0.2.2.1
+
+* Upgrade http-conduit and http-client dependencies to:
+  http-conduit >= 2.1.8 && http-client >= 0.4.30
+
 ## 0.2.2
 
 * Added `include_email` parameter to `AccountVerifyCredentials` [#49](https://github.com/himura/twitter-conduit/pull/49)
