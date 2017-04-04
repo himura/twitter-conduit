@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE RecordWildCards #-}
@@ -62,12 +63,20 @@ makeRequest' :: HT.Method -- ^ HTTP request method (GET or POST)
              -> HT.SimpleQuery -- ^ Query
              -> IO HTTP.Request
 makeRequest' m url query = do
+#if MIN_VERSION_http_client(0,4,30)
     req <- HTTP.parseRequest url
+#else
+    req <- HTTP.parseUrl url
+#endif
     let addParams =
             if m == "POST"
             then HTTP.urlEncodedBody query
             else \r -> r { HTTP.queryString = HT.renderSimpleQuery False query }
-    return $ addParams $ req { HTTP.method = m }
+    return $ addParams $ req { HTTP.method = m
+#if !MIN_VERSION_http_client(0,4,30)
+                             , HTTP.checkStatus = \_ _ _ -> Nothing
+#endif
+                             }
 
 getResponse :: MonadResource m
             => TWInfo
