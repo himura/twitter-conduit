@@ -270,7 +270,6 @@ sourceWithCursor info mgr req = loop (-1)
 --
 -- This function cooperate with instances of 'HasCursorParam'.
 sourceWithCursor' :: ( MonadBase IO m
-                     , FromJSON responseType
                      , CursorKey ck
                      , HasCursorParam (APIRequest apiName (WithCursor ck responseType))
                      )
@@ -280,9 +279,8 @@ sourceWithCursor' :: ( MonadBase IO m
                   -> C.Source m Value
 sourceWithCursor' info mgr req = loop (-1)
   where
-    relax :: FromJSON value
-          => APIRequest apiName (WithCursor ck responseType)
-          -> APIRequest apiName (WithCursor ck value)
+    relax :: APIRequest apiName (WithCursor ck responseType)
+          -> APIRequest apiName (WithCursor ck Value)
     relax = unsafeCoerce
     loop 0 = CL.sourceNull
     loop cur = do
@@ -293,7 +291,6 @@ sourceWithCursor' info mgr req = loop (-1)
 -- | A wrapper function to perform multiple API request with @SearchResult@.
 sourceWithSearchResult :: ( MonadBase IO m
                           , FromJSON responseType
-                          , HasMaxIdParam (APIRequest apiName (SearchResult [responseType]))
                           )
                        => TWInfo -- ^ Twitter Setting
                        -> HTTP.Manager
@@ -316,7 +313,6 @@ sourceWithSearchResult info mgr req = do
 
 -- | A wrapper function to perform multiple API request with @SearchResult@.
 sourceWithSearchResult' :: ( MonadBase IO m
-                           , HasMaxIdParam (APIRequest apiName (SearchResult [responseType]))
                            )
                         => TWInfo -- ^ Twitter Setting
                         -> HTTP.Manager
@@ -329,9 +325,8 @@ sourceWithSearchResult' info mgr req = do
     return $ res & searchResultStatuses .~ body
   where
     origQueryMap = req ^. params . to M.fromList
-    relax :: FromJSON value
-          => APIRequest apiName (SearchResult responseType)
-          -> APIRequest apiName (SearchResult value)
+    relax :: APIRequest apiName (SearchResult [responseType])
+          -> APIRequest apiName (SearchResult [Value])
     relax = unsafeCoerce
     loop Nothing = CL.sourceNull
     loop (Just nextResultsStr) = do
