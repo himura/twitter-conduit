@@ -52,3 +52,7 @@ script:
 cache:
   directories:
     - ~/.stack
+
+notifications:
+  slack:
+    secure: HUt3eZH5IBJXlgH1/ob+iMqaQRSloqT3VY0rMLmD7gOMpUFm3a5/XYejqD+hd7EYQRa/Z1YCpmIBe3RYGPt6TnNGvIFdcJFFO7lOs7Ooxp03yB5kAMw9eACv/FNJPd2aIjYdKGbSab4XY4s9wW0GewYv0FHrNFWj81Rhl8C4fGg=
