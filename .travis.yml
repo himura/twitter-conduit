@@ -28,6 +28,13 @@ matrix:
         apt:
           sources: [ hvr-ghc ]
           packages: [ ghc-8.0.2 ]
+    - env: GHCVER=8.0.2 STACK_LTS=nightly STACK_TEMPLATE=stack-nightly.yaml
+      addons:
+        apt:
+          sources: [ hvr-ghc ]
+          packages: [ ghc-8.0.2 ]
+  allow_failures:
+    - env: GHCVER=8.0.2 STACK_LTS=nightly STACK_TEMPLATE=stack-nightly.yaml
 
 before_install:
   # Download and unpack the stack executable
