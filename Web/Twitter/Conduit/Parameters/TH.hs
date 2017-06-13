@@ -3,7 +3,18 @@
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE TemplateHaskell #-}
 
-module Web.Twitter.Conduit.Parameters.TH where
+module Web.Twitter.Conduit.Parameters.TH
+       ( defineHasParamClass
+       , defineHasParamClass'
+       , defineHasParamClassBool
+       , defineHasParamClassDay
+       , defineHasParamClassInteger
+       , defineHasParamClassIntegerArray
+       , defineHasParamClassString
+       , defineHasParamClassStringArray
+       , defineHasParamClassURI
+       , deriveHasParamInstances
+       ) where
 
 import Web.Twitter.Conduit.Request
 import Language.Haskell.TH
