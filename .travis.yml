@@ -39,7 +39,7 @@ before_install:
   - m4 -D__RESOLVER__=$(curl -sL https://www.stackage.org/download/snapshots.json | jq '."'$STACK_LTS'"' -r) .travis/$STACK_TEMPLATE > stack.yaml
 
 install:
-  - travis_wait stack --no-terminal --skip-ghc-check setup
+  - travis_wait stack --no-terminal --skip-ghc-check setup --upgrade-cabal
   - travis_wait stack --no-terminal --skip-ghc-check test --only-snapshot
 
 script:
