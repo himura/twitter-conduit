@@ -7,7 +7,7 @@ maintainer:        Takahiro HIMURA <taka@himura.jp>
 synopsis:          Twitter API package with conduit interface and Streaming API support.
 category:          Web, Conduit
 stability:         Experimental
-cabal-version:     >= 1.24
+cabal-version:     >= 1.10
 build-type:        Custom
 homepage:          https://github.com/himura/twitter-conduit
 
@@ -100,6 +100,8 @@ library
     Web.Twitter.Conduit.Parameters
     Web.Twitter.Conduit.Parameters.TH
 
+  default-language: Haskell2010
+
 test-suite hlint
   type: exitcode-stdio-1.0
   main-is: hlint.hs
@@ -109,6 +111,8 @@ test-suite hlint
       base
     , hlint >= 1.7
 
+  default-language: Haskell2010
+
 test-suite doctests
   type: exitcode-stdio-1.0
   main-is: doctests.hs
@@ -117,6 +121,8 @@ test-suite doctests
   build-depends:
       base
     , doctest
+
+  default-language: Haskell2010
 
 test-suite spec_main
   type: exitcode-stdio-1.0
@@ -164,6 +170,8 @@ test-suite spec_main
     BaseSpec
     StatusSpec
     TestUtils
+
+  default-language: Haskell2010
 
 custom-setup
   setup-depends:
