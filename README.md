@@ -64,7 +64,7 @@ $ cabal run oauth_callback
 
 and open http://localhost:3000/signIn in your browser.
 
-In both cases, you can obtain OAUTH_ACCESSS_TOKEN and OAUTH_ACCESS_SECRET variables,
+In both cases, you can obtain `OAUTH_ACCESS_TOKEN` and `OAUTH_ACCESS_SECRET` variables,
 then you should set those values to environment variables as shown below:
 
 ~~~~
