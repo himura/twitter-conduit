@@ -1,6 +1,0 @@
-flags: {}
-packages:
-- '.'
-- 'sample'
-extra-deps: []
-resolver: __RESOLVER__

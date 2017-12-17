@@ -1,8 +1,0 @@
-flags: {}
-packages:
-- '.'
-- 'sample'
-extra-deps:
-- twitter-types-0.7.2.2
-- twitter-types-lens-0.7.2
-resolver: __RESOLVER__

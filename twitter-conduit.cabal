@@ -27,7 +27,6 @@ extra-source-files:
   .gitignore
   .travis.yml
   .travis/*.sh
-  .travis/*.yaml
   README.md
   ChangeLog.md
   sample/LICENSE
