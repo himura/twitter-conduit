@@ -29,6 +29,7 @@ extra-source-files:
   .travis/*.sh
   README.md
   ChangeLog.md
+  Warning.hs
   sample/LICENSE
   sample/twitter-conduit-sample.cabal
   sample/*.hs
