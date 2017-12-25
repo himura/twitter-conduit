@@ -32,14 +32,16 @@ import Web.Twitter.Conduit.Parameters.TH
 import Web.Twitter.Conduit.Request
 import Web.Twitter.Conduit.Response
 
+import Control.Monad.IO.Class
+import Control.Monad.Trans.Resource (MonadResource)
+import Data.Aeson
+import qualified Data.ByteString.Char8 as S8
+import Data.Char
 import qualified Data.Conduit as C
-import qualified Data.Conduit.List as CL
 import qualified Data.Conduit.Internal as CI
+import qualified Data.Conduit.List as CL
 import qualified Data.List as L
 import qualified Data.Text as T
-import Control.Monad.IO.Class
-import Data.Aeson
-import Control.Monad.Trans.Resource (MonadResource)
 import qualified Network.HTTP.Conduit as HTTP
 
 #if MIN_VERSION_conduit(1,0,16)
@@ -68,7 +70,9 @@ stream' :: (MonadResource m, FromJSON value)
         -> m (C.ResumableSource m value)
 stream' info mgr req = do
     rsrc <- getResponse info mgr =<< liftIO (makeRequest req)
-    responseBody rsrc $=+ CL.sequence sinkFromJSON
+    responseBody rsrc $=+ CL.sequence sinkFromJSONIgnoreSpaces
+  where
+    sinkFromJSONIgnoreSpaces = CL.filter (not . S8.all isSpace) C.=$ sinkFromJSON
 
 data Userstream
 userstream :: APIRequest Userstream StreamingAPI
