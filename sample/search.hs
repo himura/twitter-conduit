@@ -16,7 +16,7 @@ main = do
     twInfo <- getTWInfoFromEnv
     mgr <- newManager tlsManagerSettings
 
-    res <- call twInfo mgr $ search $ T.pack keyword
+    res <- call twInfo mgr $ searchTweets $ T.pack keyword
     let metadata = res ^. searchResultSearchMetadata
     putStrLn $ "search completed in: " ++ metadata ^. searchMetadataCompletedIn . to show
     putStrLn $ "search result max id: " ++ metadata ^. searchMetadataMaxId . to show

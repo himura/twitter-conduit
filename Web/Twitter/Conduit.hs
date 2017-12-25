@@ -21,7 +21,6 @@ module Web.Twitter.Conduit
        , module Web.Twitter.Conduit.Cursor
        , module Web.Twitter.Conduit.Request
        , module Web.Twitter.Conduit.Response
-       , module Web.Twitter.Conduit.Status
        , module Web.Twitter.Conduit.Stream
        , module Web.Twitter.Conduit.Types
 

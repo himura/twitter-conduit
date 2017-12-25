@@ -13,5 +13,5 @@ main = do
     putStrLn $ "Post message: " ++ status
     twInfo <- getTWInfoFromEnv
     mgr <- newManager tlsManagerSettings
-    res <- call twInfo mgr $ updateWithMedia (T.pack status) (MediaFromFile filepath)
+    res <- call twInfo mgr $ statusesUpdateWithMedia (T.pack status) (MediaFromFile filepath)
     print res
