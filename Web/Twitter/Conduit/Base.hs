@@ -32,6 +32,7 @@ import Web.Twitter.Types.Lens
 import Control.Lens
 import Control.Monad.Base
 import Control.Monad.Catch (MonadThrow (..))
+import Control.Monad.IO.Class
 import Control.Monad.Trans.Resource (MonadResource, ResourceT, runResourceT)
 import Data.Aeson
 import Data.Aeson.Lens
@@ -82,7 +83,11 @@ getResponse :: MonadResource m
             => TWInfo
             -> HTTP.Manager
             -> HTTP.Request
+#if MIN_VERSION_conduit(1,3,0)
+            -> m (Response (C.ConduitT () ByteString m ()))
+#else
             -> m (Response (C.ResumableSource m ByteString))
+#endif
 getResponse TWInfo{..} mgr req = do
     signedReq <- signOAuth (twOAuth twToken) (twCredential twToken) $ req { HTTP.proxy = twProxy }
     res <- HTTP.http signedReq mgr
@@ -95,10 +100,20 @@ getResponse TWInfo{..} mgr req = do
 endpoint :: String
 endpoint = "https://api.twitter.com/1.1/"
 
-getValue :: Response (C.ResumableSource (ResourceT IO) ByteString)
+getValue ::
+#if MIN_VERSION_conduit(1,3,0)
+            Response (C.ConduitT () ByteString (ResourceT IO) ())
+#else
+            Response (C.ResumableSource (ResourceT IO) ByteString)
+#endif
          -> ResourceT IO (Response Value)
 getValue res = do
-    value <- responseBody res C.$$+- sinkJSON
+    value <-
+#if MIN_VERSION_conduit(1,3,0)
+      C.runConduit $ responseBody res C..| sinkJSON
+#else
+      responseBody res C.$$+- sinkJSON
+#endif
     return $ res { responseBody = value }
 
 checkResponse :: Response Value
@@ -119,7 +134,11 @@ checkResponse Response{..} =
     sci = HT.statusCode responseStatus
 
 getValueOrThrow :: FromJSON a
+#if MIN_VERSION_conduit(1,3,0)
+                => Response (C.ConduitT () ByteString (ResourceT IO) ())
+#else
                 => Response (C.ResumableSource (ResourceT IO) ByteString)
+#endif
                 -> ResourceT IO (Response a)
 getValueOrThrow res = do
     res' <- getValue res
@@ -195,13 +214,13 @@ callWithResponse' :: FromJSON value
                   -> IO (Response value)
 callWithResponse' info mgr req =
     runResourceT $ do
-        res <- getResponse info mgr =<< liftBase (makeRequest req)
+        res <- getResponse info mgr =<< liftIO (makeRequest req)
         getValueOrThrow res
 
 -- | A wrapper function to perform multiple API request with changing @max_id@ parameter.
 --
 -- This function cooperate with instances of 'HasMaxIdParam'.
-sourceWithMaxId :: ( MonadBase IO m
+sourceWithMaxId :: ( MonadIO m
                    , FromJSON responseType
                    , AsStatus responseType
                    , HasMaxIdParam (APIRequest apiName [responseType])
@@ -213,7 +232,7 @@ sourceWithMaxId :: ( MonadBase IO m
 sourceWithMaxId info mgr = loop
   where
     loop req = do
-        res <- liftBase $ call info mgr req
+        res <- liftIO $ call info mgr req
         case getMinId res of
             Just mid -> do
                 CL.sourceList res
@@ -226,8 +245,8 @@ sourceWithMaxId info mgr = loop
 -- so you can choose an arbitrarily type of FromJSON instances.
 --
 -- This function cooperate with instances of 'HasMaxIdParam'.
-sourceWithMaxId' :: ( MonadBase IO m
-                    ,  HasMaxIdParam (APIRequest apiName [responseType])
+sourceWithMaxId' :: ( MonadIO m
+                    , HasMaxIdParam (APIRequest apiName [responseType])
                     )
                  => TWInfo -- ^ Twitter Setting
                  -> HTTP.Manager
@@ -236,7 +255,7 @@ sourceWithMaxId' :: ( MonadBase IO m
 sourceWithMaxId' info mgr = loop
   where
     loop req = do
-        res <- liftBase $ call' info mgr req
+        res <- liftIO $ call' info mgr req
         case getMinId res of
             Just mid -> do
                 CL.sourceList res
@@ -247,7 +266,7 @@ sourceWithMaxId' info mgr = loop
 -- | A wrapper function to perform multiple API request with changing @cursor@ parameter.
 --
 -- This function cooperate with instances of 'HasCursorParam'.
-sourceWithCursor :: ( MonadBase IO m
+sourceWithCursor :: ( MonadIO m
                     , FromJSON responseType
                     , CursorKey ck
                     , HasCursorParam (APIRequest apiName (WithCursor ck responseType))
@@ -260,7 +279,7 @@ sourceWithCursor info mgr req = loop (-1)
   where
     loop 0 = CL.sourceNull
     loop cur = do
-        res <- liftBase $ call info mgr $ req & cursor ?~ cur
+        res <- liftIO $ call info mgr $ req & cursor ?~ cur
         CL.sourceList $ contents res
         loop $ nextCursor res
 
@@ -269,7 +288,7 @@ sourceWithCursor info mgr req = loop (-1)
 -- so you can choose an arbitrarily type of FromJSON instances.
 --
 -- This function cooperate with instances of 'HasCursorParam'.
-sourceWithCursor' :: ( MonadBase IO m
+sourceWithCursor' :: ( MonadIO m
                      , CursorKey ck
                      , HasCursorParam (APIRequest apiName (WithCursor ck responseType))
                      )
@@ -284,12 +303,12 @@ sourceWithCursor' info mgr req = loop (-1)
     relax = unsafeCoerce
     loop 0 = CL.sourceNull
     loop cur = do
-        res <- liftBase $ call info mgr $ relax $ req & cursor ?~ cur
+        res <- liftIO $ call info mgr $ relax $ req & cursor ?~ cur
         CL.sourceList $ contents res
         loop $ nextCursor res
 
 -- | A wrapper function to perform multiple API request with @SearchResult@.
-sourceWithSearchResult :: ( MonadBase IO m
+sourceWithSearchResult :: ( MonadIO m
                           , FromJSON responseType
                           )
                        => TWInfo -- ^ Twitter Setting
@@ -297,7 +316,7 @@ sourceWithSearchResult :: ( MonadBase IO m
                        -> APIRequest apiName (SearchResult [responseType])
                        -> m (SearchResult (C.Source m responseType))
 sourceWithSearchResult info mgr req = do
-    res <- liftBase $ call info mgr req
+    res <- liftIO $ call info mgr req
     let body = CL.sourceList (res ^. searchResultStatuses) <>
                loop (res ^. searchResultSearchMetadata . searchMetadataNextResults)
     return $ res & searchResultStatuses .~ body
@@ -307,19 +326,19 @@ sourceWithSearchResult info mgr req = do
     loop (Just nextResultsStr) = do
         let nextResults = nextResultsStr & HT.parseSimpleQuery . T.encodeUtf8 & traversed . _2 %~ (PVString . T.decodeUtf8)
             nextParams = M.toList $ M.union (M.fromList nextResults) origQueryMap
-        res <- liftBase $ call info mgr $ req & params .~ nextParams
+        res <- liftIO $ call info mgr $ req & params .~ nextParams
         CL.sourceList (res ^. searchResultStatuses)
         loop $ res ^. searchResultSearchMetadata . searchMetadataNextResults
 
 -- | A wrapper function to perform multiple API request with @SearchResult@.
-sourceWithSearchResult' :: ( MonadBase IO m
+sourceWithSearchResult' :: ( MonadIO m
                            )
                         => TWInfo -- ^ Twitter Setting
                         -> HTTP.Manager
                         -> APIRequest apiName (SearchResult [responseType])
                         -> m (SearchResult (C.Source m Value))
 sourceWithSearchResult' info mgr req = do
-    res <- liftBase $ call info mgr $ relax req
+    res <- liftIO $ call info mgr $ relax req
     let body = CL.sourceList (res ^. searchResultStatuses) <>
                loop (res ^. searchResultSearchMetadata . searchMetadataNextResults)
     return $ res & searchResultStatuses .~ body
@@ -332,7 +351,7 @@ sourceWithSearchResult' info mgr req = do
     loop (Just nextResultsStr) = do
         let nextResults = nextResultsStr & HT.parseSimpleQuery . T.encodeUtf8 & traversed . _2 %~ (PVString . T.decodeUtf8)
             nextParams = M.toList $ M.union (M.fromList nextResults) origQueryMap
-        res <- liftBase $ call info mgr $ relax $ req & params .~ nextParams
+        res <- liftIO $ call info mgr $ relax $ req & params .~ nextParams
         CL.sourceList (res ^. searchResultStatuses)
         loop $ res ^. searchResultSearchMetadata . searchMetadataNextResults
 

@@ -66,7 +66,7 @@ library
     , conduit >= 1.1
     , conduit-extra >= 1.1
     , http-types
-    , http-conduit >= 2.0 && < 2.3
+    , http-conduit >= 2.0 && < 2.4
     , http-client >= 0.3.0
     , aeson >= 0.7.0.5
     , attoparsec >= 0.10
