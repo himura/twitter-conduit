@@ -70,8 +70,8 @@ stream ::
        => TWInfo
        -> HTTP.Manager
        -> APIRequest apiName responseType
-#if MIN_VERSION_conduit(1,3,0)
-        -> m (C.ConduitT () responseType m ())
+#if MIN_VERSION_http_conduit(2,3,0)
+        -> m (C.ConduitM () responseType m ())
 #else
        -> m (C.ResumableSource m responseType)
 #endif
@@ -87,14 +87,14 @@ stream' ::
         => TWInfo
         -> HTTP.Manager
         -> APIRequest apiName responseType
-#if MIN_VERSION_conduit(1,3,0)
-        -> m (C.ConduitT () value m ())
+#if MIN_VERSION_http_conduit(2,3,0)
+        -> m (C.ConduitM () value m ())
 #else
         -> m (C.ResumableSource m value)
 #endif
 stream' info mgr req = do
     rsrc <- getResponse info mgr =<< liftIO (makeRequest req)
-#if MIN_VERSION_conduit(1,3,0)
+#if MIN_VERSION_http_conduit(2,3,0)
     pure $ responseBody rsrc C..| CL.sequence sinkFromJSONIgnoreSpaces
 #else
     responseBody rsrc $=+ CL.sequence sinkFromJSONIgnoreSpaces

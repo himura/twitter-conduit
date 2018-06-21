@@ -83,8 +83,8 @@ getResponse :: MonadResource m
             => TWInfo
             -> HTTP.Manager
             -> HTTP.Request
-#if MIN_VERSION_conduit(1,3,0)
-            -> m (Response (C.ConduitT () ByteString m ()))
+#if MIN_VERSION_http_conduit(2,3,0)
+            -> m (Response (C.ConduitM () ByteString m ()))
 #else
             -> m (Response (C.ResumableSource m ByteString))
 #endif
@@ -101,15 +101,15 @@ endpoint :: String
 endpoint = "https://api.twitter.com/1.1/"
 
 getValue ::
-#if MIN_VERSION_conduit(1,3,0)
-            Response (C.ConduitT () ByteString (ResourceT IO) ())
+#if MIN_VERSION_http_conduit(2,3,0)
+            Response (C.ConduitM () ByteString (ResourceT IO) ())
 #else
             Response (C.ResumableSource (ResourceT IO) ByteString)
 #endif
          -> ResourceT IO (Response Value)
 getValue res = do
     value <-
-#if MIN_VERSION_conduit(1,3,0)
+#if MIN_VERSION_http_conduit(2,3,0)
       C.runConduit $ responseBody res C..| sinkJSON
 #else
       responseBody res C.$$+- sinkJSON
@@ -134,8 +134,8 @@ checkResponse Response{..} =
     sci = HT.statusCode responseStatus
 
 getValueOrThrow :: FromJSON a
-#if MIN_VERSION_conduit(1,3,0)
-                => Response (C.ConduitT () ByteString (ResourceT IO) ())
+#if MIN_VERSION_http_conduit(2,3,0)
+                => Response (C.ConduitM () ByteString (ResourceT IO) ())
 #else
                 => Response (C.ResumableSource (ResourceT IO) ByteString)
 #endif
