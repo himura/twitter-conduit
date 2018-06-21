@@ -32,6 +32,7 @@ import Web.Twitter.Conduit.Parameters.TH
 import Web.Twitter.Conduit.Request
 import Web.Twitter.Conduit.Response
 
+import Control.Monad.Catch
 import Control.Monad.IO.Class
 import Control.Monad.Trans.Resource (MonadResource)
 import Data.Aeson
@@ -44,6 +45,8 @@ import qualified Data.List as L
 import qualified Data.Text as T
 import qualified Network.HTTP.Conduit as HTTP
 
+#if MIN_VERSION_conduit(1,3,0)
+#else
 #if MIN_VERSION_conduit(1,0,16)
 ($=+) :: MonadIO m
       => CI.ResumableSource m a
@@ -55,22 +58,47 @@ rsrc $=+ cndt = do
     (src, finalizer) <- C.unwrapResumable rsrc
     return $ CI.ResumableSource (src C.$= cndt) finalizer
 #endif
+#endif
 
-stream :: (MonadResource m, FromJSON responseType)
+stream ::
+          ( MonadResource m
+          , FromJSON responseType
+#if MIN_VERSION_conduit(1,3,0)
+          , MonadThrow m
+#endif
+          )
        => TWInfo
        -> HTTP.Manager
        -> APIRequest apiName responseType
+#if MIN_VERSION_http_conduit(2,3,0)
+        -> m (C.ConduitM () responseType m ())
+#else
        -> m (C.ResumableSource m responseType)
+#endif
 stream = stream'
 
-stream' :: (MonadResource m, FromJSON value)
+stream' ::
+           ( MonadResource m
+           , FromJSON value
+#if MIN_VERSION_conduit(1,3,0)
+           , MonadThrow m
+#endif
+           )
         => TWInfo
         -> HTTP.Manager
         -> APIRequest apiName responseType
+#if MIN_VERSION_http_conduit(2,3,0)
+        -> m (C.ConduitM () value m ())
+#else
         -> m (C.ResumableSource m value)
+#endif
 stream' info mgr req = do
     rsrc <- getResponse info mgr =<< liftIO (makeRequest req)
+#if MIN_VERSION_http_conduit(2,3,0)
+    return $ responseBody rsrc C..| CL.sequence sinkFromJSONIgnoreSpaces
+#else
     responseBody rsrc $=+ CL.sequence sinkFromJSONIgnoreSpaces
+#endif
   where
     sinkFromJSONIgnoreSpaces = CL.filter (not . S8.all isSpace) C.=$ sinkFromJSON
 
