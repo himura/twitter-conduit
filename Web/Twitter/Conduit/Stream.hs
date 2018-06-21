@@ -95,7 +95,7 @@ stream' ::
 stream' info mgr req = do
     rsrc <- getResponse info mgr =<< liftIO (makeRequest req)
 #if MIN_VERSION_http_conduit(2,3,0)
-    pure $ responseBody rsrc C..| CL.sequence sinkFromJSONIgnoreSpaces
+    return $ responseBody rsrc C..| CL.sequence sinkFromJSONIgnoreSpaces
 #else
     responseBody rsrc $=+ CL.sequence sinkFromJSONIgnoreSpaces
 #endif
