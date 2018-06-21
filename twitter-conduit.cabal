@@ -1,5 +1,5 @@
 name:              twitter-conduit
-version:           0.2.3
+version:           0.3.0
 license:           BSD3
 license-file:      LICENSE
 author:            HATTORI Hiroki, Hideyuki Tanaka, Takahiro HIMURA
@@ -11,7 +11,7 @@ cabal-version:     >= 1.10
 build-type:        Custom
 homepage:          https://github.com/himura/twitter-conduit
 
-tested-with:       GHC == 7.8.4, GHC == 7.10.3, GHC == 8.0.2, GHC == 8.2.1
+tested-with:       GHC == 7.8.4, GHC == 7.10.3, GHC == 8.0.2, GHC == 8.2.2, GHC == 8.4.3
 
 description:
   This package provides bindings to Twitter's APIs (see <https://dev.twitter.com/>).

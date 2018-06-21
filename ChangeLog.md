@@ -1,3 +1,8 @@
+## 0.3.0
+
+* Upgrade http-conduit dependencies to:
+  http-conduit >= 2.0 && < 2.4 [#59](https://github.com/himura/twitter-conduit/pull/59)
+
 ## 0.2.2
 
 * Upgrade http-conduit and http-client dependencies to:
