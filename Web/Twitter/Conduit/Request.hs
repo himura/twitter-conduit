@@ -23,6 +23,7 @@ import qualified Data.Text.Encoding as T
 import Data.Time.Calendar (Day)
 import Network.HTTP.Client.MultipartFormData
 import qualified Network.HTTP.Types as HT
+import Data.Aeson as JSON
 
 class Parameters a where
     params :: Lens' a APIQuery
@@ -76,7 +77,8 @@ data APIRequest apiName responseType
       }
     | APIRequestPost
       { _url :: String
-      , _params :: APIQuery
+      , _params :: APIQuery,
+        _body :: Maybe JSON.Value
       }
     | APIRequestPostMultipart
       { _url :: String
@@ -85,12 +87,12 @@ data APIRequest apiName responseType
       }
 instance Parameters (APIRequest apiName responseType) where
     params f (APIRequestGet u pa) = APIRequestGet u <$> f pa
-    params f (APIRequestPost u pa) = APIRequestPost u <$> f pa
+    params f (APIRequestPost u pa b) = (\pa' -> APIRequestPost u pa' b) <$> f pa
     params f (APIRequestPostMultipart u pa prt) =
         (\p -> APIRequestPostMultipart u p prt) <$> f pa
 instance Show (APIRequest apiName responseType) where
     show (APIRequestGet u p) = "APIRequestGet " ++ show u ++ " " ++ show (makeSimpleQuery p)
-    show (APIRequestPost u p) = "APIRequestPost " ++ show u ++ " " ++ show (makeSimpleQuery p)
+    show (APIRequestPost u p b) = "APIRequestPost " ++ show u ++ " " ++ show (makeSimpleQuery p) ++ " body: " ++ (show $ encode b)
     show (APIRequestPostMultipart u p _) = "APIRequestPostMultipart " ++ show u ++ " " ++ show (makeSimpleQuery p)
 
 type APIQuery = [APIQueryItem]

@@ -206,7 +206,7 @@ data StatusesDestroyId
 -- >>> destroyId 1234567890
 -- APIRequestPost "https://api.twitter.com/1.1/statuses/destroy/1234567890.json" []
 destroyId :: StatusId -> APIRequest StatusesDestroyId Status
-destroyId status_id = APIRequestPost uri def
+destroyId status_id = APIRequestPost uri def Nothing
   where uri = endpoint ++ "statuses/destroy/" ++ show status_id ++ ".json"
 deriveHasParamInstances ''StatusesDestroyId
     [ "trim_user"
@@ -227,7 +227,7 @@ data StatusesUpdate
 -- >>> update "Hello World" & inReplyToStatusId ?~ 1234567890
 -- APIRequestPost "https://api.twitter.com/1.1/statuses/update.json" [("in_reply_to_status_id","1234567890"),("status","Hello World")]
 update :: T.Text -> APIRequest StatusesUpdate Status
-update status = APIRequestPost uri [("status", PVString status)]
+update status = APIRequestPost uri [("status", PVString status)] Nothing
   where uri = endpoint ++ "statuses/update.json"
 deriveHasParamInstances ''StatusesUpdate
     [ "in_reply_to_status_id"
@@ -250,7 +250,7 @@ data StatusesRetweetId
 -- >>> retweetId 1234567890
 -- APIRequestPost "https://api.twitter.com/1.1/statuses/retweet/1234567890.json" []
 retweetId :: StatusId -> APIRequest StatusesRetweetId RetweetedStatus
-retweetId status_id = APIRequestPost uri def
+retweetId status_id = APIRequestPost uri def Nothing
   where uri = endpoint ++ "statuses/retweet/" ++ show status_id ++ ".json"
 deriveHasParamInstances ''StatusesRetweetId
     [ "trim_user"

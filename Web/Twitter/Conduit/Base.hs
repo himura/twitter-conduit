@@ -34,8 +34,9 @@ import Control.Monad.Base
 import Control.Monad.Catch (MonadThrow (..))
 import Control.Monad.IO.Class
 import Control.Monad.Trans.Resource (MonadResource, ResourceT, runResourceT)
-import Data.Aeson
+import Data.Aeson as JSON
 import Data.Aeson.Lens
+import Data.Maybe
 import Data.ByteString (ByteString)
 import qualified Data.Conduit as C
 import qualified Data.Conduit.Attoparsec as CA
@@ -51,10 +52,10 @@ import Web.Authenticate.OAuth (signOAuth)
 
 makeRequest :: APIRequest apiName responseType
             -> IO HTTP.Request
-makeRequest (APIRequestGet u pa) = makeRequest' "GET" u (makeSimpleQuery pa)
-makeRequest (APIRequestPost u pa) = makeRequest' "POST" u (makeSimpleQuery pa)
+makeRequest (APIRequestGet u pa) = makeRequest' "GET" u (makeSimpleQuery pa) Nothing
+makeRequest (APIRequestPost u pa b) = makeRequest' "POST" u (makeSimpleQuery pa) b
 makeRequest (APIRequestPostMultipart u param prt) =
-    formDataBody body =<< makeRequest' "POST" u []
+    formDataBody body =<< makeRequest' "POST" u [] Nothing
   where
     body = prt ++ partParam
     partParam = Prelude.map (uncurry partBS . over _1 T.decodeUtf8) (makeSimpleQuery param)
@@ -62,8 +63,9 @@ makeRequest (APIRequestPostMultipart u param prt) =
 makeRequest' :: HT.Method -- ^ HTTP request method (GET or POST)
              -> String -- ^ API Resource URL
              -> HT.SimpleQuery -- ^ Query
+             -> Maybe JSON.Value
              -> IO HTTP.Request
-makeRequest' m url query = do
+makeRequest' m url query body = do
 #if MIN_VERSION_http_client(0,4,30)
     req <- HTTP.parseRequest url
 #else
@@ -71,7 +73,9 @@ makeRequest' m url query = do
 #endif
     let addParams =
             if m == "POST"
-            then HTTP.urlEncodedBody query
+            then if isJust body
+              then \r -> r { HTTP.requestBody = HTTP.RequestBodyLBS $ JSON.encode $ fromJust body }
+              else HTTP.urlEncodedBody query
             else \r -> r { HTTP.queryString = HT.renderSimpleQuery False query }
     return $ addParams $ req { HTTP.method = m
 #if !MIN_VERSION_http_client(0,4,30)

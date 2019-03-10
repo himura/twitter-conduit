@@ -153,6 +153,7 @@ import Web.Twitter.Conduit.Cursor
 import Network.HTTP.Client.MultipartFormData
 import qualified Data.Text as T
 import Data.Default
+import Data.Aeson
 
 -- $setup
 -- >>> :set -XOverloadedStrings
@@ -270,7 +271,7 @@ data DirectMessagesDestroy
 -- >>> directMessagesDestroy 1234567890
 -- APIRequestPost "https://api.twitter.com/1.1/direct_messages/destroy.json" [("id","1234567890")]
 directMessagesDestroy :: StatusId -> APIRequest DirectMessagesDestroy DirectMessage
-directMessagesDestroy sId = APIRequestPost (endpoint ++ "direct_messages/destroy.json") [("id", PVInteger sId)]
+directMessagesDestroy sId = APIRequestPost (endpoint ++ "direct_messages/destroy.json") [("id", PVInteger sId)] Nothing
 deriveHasParamInstances ''DirectMessagesDestroy
     [ "include_entities"
     ]
@@ -289,7 +290,14 @@ data DirectMessagesNew
 -- >>> directMessagesNew (UserIdParam 69179963) "Hello thimura! by UserId"
 -- APIRequestPost "https://api.twitter.com/1.1/direct_messages/new.json" [("text","Hello thimura! by UserId"),("user_id","69179963")]
 directMessagesNew :: UserParam -> T.Text -> APIRequest DirectMessagesNew DirectMessage
-directMessagesNew q msg = APIRequestPost (endpoint ++ "direct_messages/new.json") (("text", PVString msg):mkUserParam q)
+directMessagesNew up msg = APIRequestPost (endpoint ++ "direct_messages/events/new.json") [] (Just json) where
+  json = object ["event" .= object ["type"           .= ("message_create" :: String), 
+                                    "message_create" .= object [ "target"      .= object ["recipient_id" .= mkUserParam' up], 
+                                                                 "message_data".= object ["text" .= ("Hello World!" :: String)]]]]
+
+mkUserParam' :: UserParam -> String 
+mkUserParam' (UserIdParam uid) = show uid
+mkUserParam' (ScreenNameParam sn) = sn
 
 data FriendshipsNoRetweetsIds
 -- | Returns a collection of user_ids that the currently authenticated user does not want to receive retweets from.
@@ -421,7 +429,7 @@ data FriendshipsCreate
 -- >>> friendshipsCreate (UserIdParam 69179963)
 -- APIRequestPost "https://api.twitter.com/1.1/friendships/create.json" [("user_id","69179963")]
 friendshipsCreate :: UserParam -> APIRequest FriendshipsCreate User
-friendshipsCreate user = APIRequestPost (endpoint ++ "friendships/create.json") (mkUserParam user)
+friendshipsCreate user = APIRequestPost (endpoint ++ "friendships/create.json") (mkUserParam user) Nothing
 deriveHasParamInstances ''FriendshipsCreate
     [ "follow"
     ]
@@ -440,7 +448,7 @@ data FriendshipsDestroy
 -- >>> friendshipsDestroy (UserIdParam 69179963)
 -- APIRequestPost "https://api.twitter.com/1.1/friendships/destroy.json" [("user_id","69179963")]
 friendshipsDestroy :: UserParam -> APIRequest FriendshipsDestroy User
-friendshipsDestroy user = APIRequestPost (endpoint ++ "friendships/destroy.json") (mkUserParam user)
+friendshipsDestroy user = APIRequestPost (endpoint ++ "friendships/destroy.json") (mkUserParam user) Nothing
 
 data FriendsList
 -- | Returns query data which asks a cursored collection of user objects for every user the specified users is following.
@@ -530,7 +538,7 @@ data AccountUpdateProfile
 -- >>> accountUpdateProfile & url ?~ "http://www.example.com"
 -- APIRequestPost "https://api.twitter.com/1.1/account/update_profile.json" [("url","http://www.example.com")]
 accountUpdateProfile :: APIRequest AccountUpdateProfile User
-accountUpdateProfile = APIRequestPost (endpoint ++ "account/update_profile.json") []
+accountUpdateProfile = APIRequestPost (endpoint ++ "account/update_profile.json") [] Nothing
 deriveHasParamInstances ''AccountUpdateProfile
     [ "include_entities"
     , "skip_status"
@@ -614,7 +622,7 @@ data FavoritesCreate
 -- >>> favoritesCreate 1234567890
 -- APIRequestPost "https://api.twitter.com/1.1/favorites/create.json" [("id","1234567890")]
 favoritesCreate :: StatusId -> APIRequest FavoritesCreate Status
-favoritesCreate sid = APIRequestPost (endpoint ++ "favorites/create.json") [("id", PVInteger sid)]
+favoritesCreate sid = APIRequestPost (endpoint ++ "favorites/create.json") [("id", PVInteger sid)] Nothing
 deriveHasParamInstances ''FavoritesCreate
     [ "include_entities"
     ]
@@ -631,7 +639,7 @@ data FavoritesDestroy
 -- >>> favoritesDestroy 1234567890
 -- APIRequestPost "https://api.twitter.com/1.1/favorites/destroy.json" [("id","1234567890")]
 favoritesDestroy :: StatusId -> APIRequest FavoritesDestroy Status
-favoritesDestroy sid = APIRequestPost (endpoint ++ "favorites/destroy.json") [("id", PVInteger sid)]
+favoritesDestroy sid = APIRequestPost (endpoint ++ "favorites/destroy.json") [("id", PVInteger sid)] Nothing
 deriveHasParamInstances ''FavoritesDestroy
     [ "include_entities"
     ]
@@ -678,7 +686,7 @@ data ListsMembersDestroy
 -- >>> listsMembersDestroy (ListIdParam 20849097) (UserIdParam 69179963)
 -- APIRequestPost "https://api.twitter.com/1.1/lists/members/destroy.json" [("list_id","20849097"),("user_id","69179963")]
 listsMembersDestroy :: ListParam -> UserParam -> APIRequest ListsMembersDestroy List
-listsMembersDestroy list user = APIRequestPost (endpoint ++ "lists/members/destroy.json") (mkListParam list ++ mkUserParam user)
+listsMembersDestroy list user = APIRequestPost (endpoint ++ "lists/members/destroy.json") (mkListParam list ++ mkUserParam user) Nothing
 
 data ListsMemberships
 -- | Returns the request parameters which asks the lists the specified user has been added to.
@@ -782,7 +790,7 @@ data ListsMembersCreateAll
 -- >>> listsMembersCreateAll (ListIdParam 20849097) (UserIdListParam [69179963, 6253282])
 -- APIRequestPost "https://api.twitter.com/1.1/lists/members/create_all.json" [("list_id","20849097"),("user_id","69179963,6253282")]
 listsMembersCreateAll :: ListParam -> UserListParam -> APIRequest ListsMembersCreateAll List
-listsMembersCreateAll list users = APIRequestPost (endpoint ++ "lists/members/create_all.json") (mkListParam list ++ mkUserListParam users)
+listsMembersCreateAll list users = APIRequestPost (endpoint ++ "lists/members/create_all.json") (mkListParam list ++ mkUserListParam users) Nothing
 
 data ListsMembersDestroyAll
 -- | Adds multiple members to a list.
@@ -798,7 +806,7 @@ data ListsMembersDestroyAll
 -- >>> listsMembersDestroyAll (ListIdParam 20849097) (UserIdListParam [69179963, 6253282])
 -- APIRequestPost "https://api.twitter.com/1.1/lists/members/destroy_all.json" [("list_id","20849097"),("user_id","69179963,6253282")]
 listsMembersDestroyAll :: ListParam -> UserListParam -> APIRequest ListsMembersDestroyAll List
-listsMembersDestroyAll list users = APIRequestPost (endpoint ++ "lists/members/destroy_all.json") (mkListParam list ++ mkUserListParam users)
+listsMembersDestroyAll list users = APIRequestPost (endpoint ++ "lists/members/destroy_all.json") (mkListParam list ++ mkUserListParam users) Nothing
 
 data ListsMembers
 -- | Returns query data asks the members of the specified list.
@@ -835,7 +843,7 @@ data ListsMembersCreate
 -- >>> listsMembersCreate (ListIdParam 20849097) (UserIdParam 69179963)
 -- APIRequestPost "https://api.twitter.com/1.1/lists/members/create.json" [("list_id","20849097"),("user_id","69179963")]
 listsMembersCreate :: ListParam -> UserParam -> APIRequest ListsMembersCreate List
-listsMembersCreate list user = APIRequestPost (endpoint ++ "lists/members/create.json") (mkListParam list ++ mkUserParam user)
+listsMembersCreate list user = APIRequestPost (endpoint ++ "lists/members/create.json") (mkListParam list ++ mkUserParam user) Nothing
 
 data ListsDestroy
 -- | Returns the post parameter which deletes the specified list.
@@ -851,7 +859,7 @@ data ListsDestroy
 -- >>> listsDestroy (ListIdParam 20849097)
 -- APIRequestPost "https://api.twitter.com/1.1/lists/destroy.json" [("list_id","20849097")]
 listsDestroy :: ListParam -> APIRequest ListsDestroy List
-listsDestroy list = APIRequestPost (endpoint ++ "lists/destroy.json") (mkListParam list)
+listsDestroy list = APIRequestPost (endpoint ++ "lists/destroy.json") (mkListParam list) Nothing
 
 data ListsUpdate
 -- | Returns the post parameter which updates the specified list.
@@ -868,7 +876,7 @@ listsUpdate :: ListParam
             -> Bool -- ^ is public
             -> Maybe T.Text -- ^ description
             -> APIRequest ListsUpdate List
-listsUpdate list isPublic description = APIRequestPost (endpoint ++ "lists/update.json") (mkListParam list ++ p')
+listsUpdate list isPublic description = APIRequestPost (endpoint ++ "lists/update.json") (mkListParam list ++ p') Nothing
   where
     p = [("mode", PVString . mode $ isPublic)]
     p' = maybe id (\d -> (("description", PVString d):)) description p
@@ -894,7 +902,7 @@ listsCreate :: T.Text -- ^ list name
             -> Bool -- ^ whether public(True) or private(False)
             -> Maybe T.Text -- ^ the description to give the list
             -> APIRequest ListsCreate List
-listsCreate name isPublic description = APIRequestPost (endpoint ++ "lists/create.json") p'
+listsCreate name isPublic description = APIRequestPost (endpoint ++ "lists/create.json") p' Nothing
   where
     p = [("name", PVString name), ("mode", PVString . mode $ isPublic)]
     p' = maybe id (\d -> (("description", PVString d):)) description p
