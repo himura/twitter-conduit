@@ -293,7 +293,7 @@ directMessagesNew :: UserParam -> T.Text -> APIRequest DirectMessagesNew DirectM
 directMessagesNew up msg = APIRequestPost (endpoint ++ "direct_messages/events/new.json") [] (Just json) where
   json = object ["event" .= object ["type"           .= ("message_create" :: String), 
                                     "message_create" .= object [ "target"      .= object ["recipient_id" .= mkUserParam' up], 
-                                                                 "message_data".= object ["text" .= ("Hello World!" :: String)]]]]
+                                                                 "message_data".= object ["text" .= (msg)]]]]
 
 mkUserParam' :: UserParam -> String 
 mkUserParam' (UserIdParam uid) = show uid
