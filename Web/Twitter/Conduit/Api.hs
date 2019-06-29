@@ -286,9 +286,9 @@ data DirectMessagesNew
 -- @
 --
 -- >>> directMessagesNew (ScreenNameParam "thimura") "Hello DM"
--- APIRequestPost "https://api.twitter.com/1.1/direct_messages/new.json" [("text","Hello DM"),("screen_name","thimura")]
+-- APIRequestPostJSON "https://api.twitter.com/1.1/direct_messages/events/new.json" []
 -- >>> directMessagesNew (UserIdParam 69179963) "Hello thimura! by UserId"
--- APIRequestPost "https://api.twitter.com/1.1/direct_messages/new.json" [("text","Hello thimura! by UserId"),("user_id","69179963")]
+-- APIRequestPostJSON "https://api.twitter.com/1.1/direct_messages/events/new.json" []
 directMessagesNew :: UserParam -> T.Text -> APIRequest DirectMessagesNew DirectMessage
 directMessagesNew up msg =
     APIRequestPostJSON (endpoint ++ "direct_messages/events/new.json") [] body
