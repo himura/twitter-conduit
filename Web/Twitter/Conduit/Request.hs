@@ -16,6 +16,7 @@ module Web.Twitter.Conduit.Request
 import Control.Applicative
 #endif
 import Control.Lens
+import Data.Aeson
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as S8
 import Data.Text (Text)
@@ -23,7 +24,6 @@ import qualified Data.Text.Encoding as T
 import Data.Time.Calendar (Day)
 import Network.HTTP.Client.MultipartFormData
 import qualified Network.HTTP.Types as HT
-import Data.Aeson as JSON
 
 class Parameters a where
     params :: Lens' a APIQuery
@@ -77,23 +77,29 @@ data APIRequest apiName responseType
       }
     | APIRequestPost
       { _url :: String
-      , _params :: APIQuery,
-        _body :: Maybe JSON.Value
+      , _params :: APIQuery
       }
     | APIRequestPostMultipart
       { _url :: String
       , _params :: APIQuery
       , _part :: [Part]
       }
+    | APIRequestPostJSON
+      { _url :: String
+      , _params :: APIQuery
+      , _body :: Value
+      }
 instance Parameters (APIRequest apiName responseType) where
     params f (APIRequestGet u pa) = APIRequestGet u <$> f pa
-    params f (APIRequestPost u pa b) = (\pa' -> APIRequestPost u pa' b) <$> f pa
+    params f (APIRequestPost u pa) = APIRequestPost u <$> f pa
     params f (APIRequestPostMultipart u pa prt) =
         (\p -> APIRequestPostMultipart u p prt) <$> f pa
+    params f (APIRequestPostJSON u pa body) = (\p -> APIRequestPostJSON u p body) <$> f pa
 instance Show (APIRequest apiName responseType) where
     show (APIRequestGet u p) = "APIRequestGet " ++ show u ++ " " ++ show (makeSimpleQuery p)
-    show (APIRequestPost u p b) = "APIRequestPost " ++ show u ++ " " ++ show (makeSimpleQuery p) ++ " body: " ++ (show $ encode b)
+    show (APIRequestPost u p) = "APIRequestPost " ++ show u ++ " " ++ show (makeSimpleQuery p)
     show (APIRequestPostMultipart u p _) = "APIRequestPostMultipart " ++ show u ++ " " ++ show (makeSimpleQuery p)
+    show (APIRequestPostJSON u p _) = "APIRequestPostJSON " ++ show u ++ " " ++ show (makeSimpleQuery p)
 
 type APIQuery = [APIQueryItem]
 type APIQueryItem = (ByteString, PV)

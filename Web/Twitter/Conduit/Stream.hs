@@ -125,7 +125,7 @@ data FilterParameter = Follow [UserId]
 -- >>> statusesFilter [Follow [1,2,3],Track ["haskell","functional"]]
 -- APIRequestPost "https://stream.twitter.com/1.1/statuses/filter.json" [("follow","1,2,3"),("track","haskell,functional")]
 statusesFilter :: [FilterParameter] -> APIRequest StatusesFilter StreamingAPI
-statusesFilter fs = APIRequestPost statusesFilterEndpoint (L.map paramToQueryItem fs) Nothing
+statusesFilter fs = APIRequestPost statusesFilterEndpoint (L.map paramToQueryItem fs)
 
 paramToQueryItem :: FilterParameter -> APIQueryItem
 paramToQueryItem (Follow userIds) = ("follow", PVIntegerArray userIds)
