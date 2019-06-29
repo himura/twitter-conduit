@@ -60,7 +60,11 @@ makeRequest (APIRequestPostMultipart u param prt) =
     partParam = Prelude.map (uncurry partBS . over _1 T.decodeUtf8) (makeSimpleQuery param)
 makeRequest (APIRequestPostJSON u param body) = do
     req <- makeRequest' "POST" u (makeSimpleQuery param)
-    return $ req { HTTP.requestBody = HTTP.RequestBodyLBS $ encode body }
+    return $
+        req
+        { HTTP.requestBody = HTTP.RequestBodyLBS $ encode body
+        , HTTP.requestHeaders = ("Content-Type", "application/json") : HTTP.requestHeaders req
+        }
 
 makeRequest' :: HT.Method -- ^ HTTP request method (GET or POST)
              -> String -- ^ API Resource URL
