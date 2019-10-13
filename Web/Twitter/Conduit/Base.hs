@@ -276,16 +276,17 @@ sourceWithMaxId' info mgr = loop
 sourceWithCursor :: ( MonadIO m
                     , FromJSON responseType
                     , CursorKey ck
-                    , HasCursorParam (APIRequest apiName (WithCursor ck responseType))
+                    , HasCursorParam (APIRequest apiName (WithCursor Integer ck responseType))
                     )
                  => TWInfo -- ^ Twitter Setting
                  -> HTTP.Manager
-                 -> APIRequest apiName (WithCursor ck responseType)
+                 -> APIRequest apiName (WithCursor Integer ck responseType)
                  -> C.Source m responseType
-sourceWithCursor info mgr req = loop (-1)
+sourceWithCursor info mgr req = loop (Just (-1))
   where
-    loop 0 = CL.sourceNull
-    loop cur = do
+    loop Nothing = CL.sourceNull
+    loop (Just 0) = CL.sourceNull
+    loop (Just cur) = do
         res <- liftIO $ call info mgr $ req & cursor ?~ cur
         CL.sourceList $ contents res
         loop $ nextCursor res
@@ -297,19 +298,20 @@ sourceWithCursor info mgr req = loop (-1)
 -- This function cooperate with instances of 'HasCursorParam'.
 sourceWithCursor' :: ( MonadIO m
                      , CursorKey ck
-                     , HasCursorParam (APIRequest apiName (WithCursor ck responseType))
+                     , HasCursorParam (APIRequest apiName (WithCursor Integer ck responseType))
                      )
                   => TWInfo -- ^ Twitter Setting
                   -> HTTP.Manager
-                  -> APIRequest apiName (WithCursor ck responseType)
+                  -> APIRequest apiName (WithCursor Integer ck responseType)
                   -> C.Source m Value
-sourceWithCursor' info mgr req = loop (-1)
+sourceWithCursor' info mgr req = loop (Just (-1))
   where
-    relax :: APIRequest apiName (WithCursor ck responseType)
-          -> APIRequest apiName (WithCursor ck Value)
+    relax :: APIRequest apiName (WithCursor Integer ck responseType)
+          -> APIRequest apiName (WithCursor Integer ck Value)
     relax = unsafeCoerce
-    loop 0 = CL.sourceNull
-    loop cur = do
+    loop Nothing = CL.sourceNull
+    loop (Just 0) = CL.sourceNull
+    loop (Just cur) = do
         res <- liftIO $ call info mgr $ relax $ req & cursor ?~ cur
         CL.sourceList $ contents res
         loop $ nextCursor res

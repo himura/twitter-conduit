@@ -8,6 +8,7 @@ module Web.Twitter.Conduit.Cursor
        , IdsCursorKey
        , UsersCursorKey
        , ListsCursorKey
+       , EventsCursorKey
        , WithCursor (..)
        ) where
 
@@ -40,33 +41,43 @@ data ListsCursorKey
 instance CursorKey ListsCursorKey where
     cursorKey = const "lists"
 
+data EventsCursorKey
+instance CursorKey EventsCursorKey where
+    cursorKey = const "events"
+
 #if __GLASGOW_HASKELL__ >= 706
 -- | A wrapper for API responses which have "next_cursor" field.
 --
 -- The first type parameter of 'WithCursor' specifies the field name of contents.
 --
--- >>> let Just res = decode "{\"previous_cursor\": 0, \"next_cursor\": 1234567890, \"ids\": [1111111111]}" :: Maybe (WithCursor IdsCursorKey UserId)
+-- >>> let Just res = decode "{\"previous_cursor\": 0, \"next_cursor\": 1234567890, \"ids\": [1111111111]}" :: Maybe (WithCursor Integer IdsCursorKey UserId)
 -- >>> nextCursor res
--- 1234567890
+-- Just 1234567890
 -- >>> contents res
 -- [1111111111]
 --
--- >>> let Just res = decode "{\"previous_cursor\": 0, \"next_cursor\": 0, \"users\": [1000]}" :: Maybe (WithCursor UsersCursorKey UserId)
+-- >>> let Just res = decode "{\"previous_cursor\": 0, \"next_cursor\": 0, \"users\": [1000]}" :: Maybe (WithCursor Integer UsersCursorKey UserId)
 -- >>> nextCursor res
--- 0
+-- Just 0
+-- >>> contents res
+-- [1000]
+--
+-- >>> let Just res = decode "{\"next_cursor\": \"hogehoge\", \"events\": [1000]}" :: Maybe (WithCursor Text EventsCursorKey UserId)
+-- >>> nextCursor res
+-- Just "hogehoge"
 -- >>> contents res
 -- [1000]
 #endif
-data WithCursor cursorKey wrapped = WithCursor
-    { previousCursor :: Integer
-    , nextCursor :: Integer
+data WithCursor cursorType cursorKey wrapped = WithCursor
+    { previousCursor :: Maybe cursorType
+    , nextCursor :: Maybe cursorType
     , contents :: [wrapped]
     } deriving Show
 
-instance (FromJSON wrapped, CursorKey c) =>
-         FromJSON (WithCursor c wrapped) where
+instance (FromJSON wrapped, FromJSON ct, CursorKey c) =>
+         FromJSON (WithCursor ct c wrapped) where
     parseJSON (Object o) = checkError o >>
-      WithCursor <$> o .:  "previous_cursor"
-                 <*> o .:  "next_cursor"
+      WithCursor <$> o .:? "previous_cursor"
+                 <*> o .:? "next_cursor"
                  <*> o .:  cursorKey (undefined :: c)
     parseJSON _ = mempty

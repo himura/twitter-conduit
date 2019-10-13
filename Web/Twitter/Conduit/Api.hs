@@ -346,7 +346,7 @@ data FriendsIds
 -- APIRequestGet "https://api.twitter.com/1.1/friends/ids.json" [("screen_name","thimura")]
 -- >>> friendsIds (ScreenNameParam "thimura") & count ?~ 5000
 -- APIRequestGet "https://api.twitter.com/1.1/friends/ids.json" [("count","5000"),("screen_name","thimura")]
-friendsIds :: UserParam -> APIRequest FriendsIds (WithCursor IdsCursorKey UserId)
+friendsIds :: UserParam -> APIRequest FriendsIds (WithCursor Integer IdsCursorKey UserId)
 friendsIds q = APIRequestGet (endpoint ++ "friends/ids.json") (mkUserParam q)
 deriveHasParamInstances ''FriendsIds
     [ "cursor"
@@ -373,7 +373,7 @@ data FollowersIds
 -- APIRequestGet "https://api.twitter.com/1.1/followers/ids.json" [("screen_name","thimura")]
 -- >>> followersIds (ScreenNameParam "thimura") & count ?~ 5000
 -- APIRequestGet "https://api.twitter.com/1.1/followers/ids.json" [("count","5000"),("screen_name","thimura")]
-followersIds :: UserParam -> APIRequest FollowersIds (WithCursor IdsCursorKey UserId)
+followersIds :: UserParam -> APIRequest FollowersIds (WithCursor Integer IdsCursorKey UserId)
 followersIds q = APIRequestGet (endpoint ++ "followers/ids.json") (mkUserParam q)
 deriveHasParamInstances ''FollowersIds
     [ "cursor"
@@ -398,7 +398,7 @@ data FriendshipsIncoming
 --
 -- >>> friendshipsIncoming
 -- APIRequestGet "https://api.twitter.com/1.1/friendships/incoming.json" []
-friendshipsIncoming :: APIRequest FriendshipsIncoming (WithCursor IdsCursorKey UserId)
+friendshipsIncoming :: APIRequest FriendshipsIncoming (WithCursor Integer IdsCursorKey UserId)
 friendshipsIncoming = APIRequestGet (endpoint ++ "friendships/incoming.json") def
 deriveHasParamInstances ''FriendshipsIncoming
     [ "cursor"
@@ -422,7 +422,7 @@ data FriendshipsOutgoing
 --
 -- >>> friendshipsOutgoing
 -- APIRequestGet "https://api.twitter.com/1.1/friendships/outgoing.json" []
-friendshipsOutgoing :: APIRequest FriendshipsOutgoing (WithCursor IdsCursorKey UserId)
+friendshipsOutgoing :: APIRequest FriendshipsOutgoing (WithCursor Integer IdsCursorKey UserId)
 friendshipsOutgoing = APIRequestGet (endpoint ++ "friendships/outgoing.json") def
 deriveHasParamInstances ''FriendshipsOutgoing
     [ "cursor"
@@ -483,7 +483,7 @@ data FriendsList
 -- APIRequestGet "https://api.twitter.com/1.1/friends/list.json" [("screen_name","thimura")]
 -- >>> friendsList (UserIdParam 69179963)
 -- APIRequestGet "https://api.twitter.com/1.1/friends/list.json" [("user_id","69179963")]
-friendsList :: UserParam -> APIRequest FriendsList (WithCursor UsersCursorKey User)
+friendsList :: UserParam -> APIRequest FriendsList (WithCursor Integer UsersCursorKey User)
 friendsList q = APIRequestGet (endpoint ++ "friends/list.json") (mkUserParam q)
 deriveHasParamInstances ''FriendsList
     [ "cursor"
@@ -511,7 +511,7 @@ data FollowersList
 -- APIRequestGet "https://api.twitter.com/1.1/followers/list.json" [("screen_name","thimura")]
 -- >>> followersList (UserIdParam 69179963)
 -- APIRequestGet "https://api.twitter.com/1.1/followers/list.json" [("user_id","69179963")]
-followersList :: UserParam -> APIRequest FollowersList (WithCursor UsersCursorKey User)
+followersList :: UserParam -> APIRequest FollowersList (WithCursor Integer UsersCursorKey User)
 followersList q = APIRequestGet (endpoint ++ "followers/list.json") (mkUserParam q)
 deriveHasParamInstances ''FollowersList
     [ "cursor"
@@ -718,7 +718,7 @@ data ListsMemberships
 -- APIRequestGet "https://api.twitter.com/1.1/lists/memberships.json" [("screen_name","thimura")]
 -- >>> listsMemberships (Just (UserIdParam 69179963))
 -- APIRequestGet "https://api.twitter.com/1.1/lists/memberships.json" [("user_id","69179963")]
-listsMemberships :: Maybe UserParam -> APIRequest ListsMemberships (WithCursor ListsCursorKey List)
+listsMemberships :: Maybe UserParam -> APIRequest ListsMemberships (WithCursor Integer ListsCursorKey List)
 listsMemberships q = APIRequestGet (endpoint ++ "lists/memberships.json") $ maybe [] mkUserParam q
 deriveHasParamInstances ''ListsMemberships
     [ "cursor"
@@ -738,7 +738,7 @@ data ListsSubscribers
 -- APIRequestGet "https://api.twitter.com/1.1/lists/subscribers.json" [("slug","haskell"),("owner_screen_name","thimura")]
 -- >>> listsSubscribers (ListIdParam 20849097)
 -- APIRequestGet "https://api.twitter.com/1.1/lists/subscribers.json" [("list_id","20849097")]
-listsSubscribers :: ListParam -> APIRequest ListsSubscribers (WithCursor UsersCursorKey User)
+listsSubscribers :: ListParam -> APIRequest ListsSubscribers (WithCursor Integer UsersCursorKey User)
 listsSubscribers q = APIRequestGet (endpoint ++ "lists/subscribers.json") (mkListParam q)
 deriveHasParamInstances ''ListsSubscribers
     [ "cursor"
@@ -761,7 +761,7 @@ data ListsSubscriptions
 -- APIRequestGet "https://api.twitter.com/1.1/lists/subscriptions.json" [("screen_name","thimura")]
 -- >>> listsSubscriptions (Just (UserIdParam 69179963))
 -- APIRequestGet "https://api.twitter.com/1.1/lists/subscriptions.json" [("user_id","69179963")]
-listsSubscriptions :: Maybe UserParam -> APIRequest ListsSubscriptions (WithCursor ListsCursorKey List)
+listsSubscriptions :: Maybe UserParam -> APIRequest ListsSubscriptions (WithCursor Integer ListsCursorKey List)
 listsSubscriptions q = APIRequestGet (endpoint ++ "lists/subscriptions.json") $ maybe [] mkUserParam q
 deriveHasParamInstances ''ListsSubscriptions
     [ "cursor"
@@ -783,7 +783,7 @@ data ListsOwnerships
 -- APIRequestGet "https://api.twitter.com/1.1/lists/ownerships.json" [("screen_name","thimura")]
 -- >>> listsOwnerships (Just (UserIdParam 69179963))
 -- APIRequestGet "https://api.twitter.com/1.1/lists/ownerships.json" [("user_id","69179963")]
-listsOwnerships :: Maybe UserParam -> APIRequest ListsOwnerships (WithCursor ListsCursorKey List)
+listsOwnerships :: Maybe UserParam -> APIRequest ListsOwnerships (WithCursor Integer ListsCursorKey List)
 listsOwnerships q = APIRequestGet (endpoint ++ "lists/ownerships.json") $ maybe [] mkUserParam q
 deriveHasParamInstances ''ListsOwnerships
     [ "cursor"
@@ -835,7 +835,7 @@ data ListsMembers
 -- APIRequestGet "https://api.twitter.com/1.1/lists/members.json" [("slug","haskell"),("owner_screen_name","thimura")]
 -- >>> listsMembers (ListIdParam 20849097)
 -- APIRequestGet "https://api.twitter.com/1.1/lists/members.json" [("list_id","20849097")]
-listsMembers :: ListParam -> APIRequest ListsMembers (WithCursor UsersCursorKey User)
+listsMembers :: ListParam -> APIRequest ListsMembers (WithCursor Integer UsersCursorKey User)
 listsMembers q = APIRequestGet (endpoint ++ "lists/members.json") (mkListParam q)
 deriveHasParamInstances ''ListsMembers
     [ "count"

@@ -55,11 +55,11 @@ twitterErrorMessage :: Lens' TT.TwitterErrorMessage Text
 twitterErrorMessage afb s = (\b -> s { TT.twitterErrorMessage = b }) <$> afb (TT.twitterErrorMessage s)
 
 -- * Lenses for 'TT.WithCursor'
-previousCursor :: forall cursorKey wrapped. Lens' (TT.WithCursor cursorKey wrapped) Integer
+previousCursor :: forall cursorType cursorKey wrapped. Lens' (TT.WithCursor cursorType cursorKey wrapped) (Maybe cursorType)
 previousCursor afb s = (\b -> s { TT.previousCursor = b }) <$> afb (TT.previousCursor s)
 
-nextCursor :: forall cursorKey wrapped. Lens' (TT.WithCursor cursorKey wrapped) Integer
+nextCursor :: forall cursorType cursorKey wrapped. Lens' (TT.WithCursor cursorType cursorKey wrapped) (Maybe cursorType)
 nextCursor afb s = (\b -> s { TT.nextCursor = b }) <$> afb (TT.nextCursor s)
 
-contents :: forall cursorKey a b. Lens (TT.WithCursor cursorKey a) (TT.WithCursor cursorKey b) [a] [b]
+contents :: forall cursorType cursorKey a b. Lens (TT.WithCursor cursorType cursorKey a) (TT.WithCursor cursorType cursorKey b) [a] [b]
 contents afb s = (\b -> s { TT.contents = b }) <$> afb (TT.contents s)
