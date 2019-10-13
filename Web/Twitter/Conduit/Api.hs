@@ -285,11 +285,9 @@ data DirectMessagesNew
 -- res <- 'call' twInfo mgr '$' 'directMessagesNew' (ScreenNameParam \"thimura\") \"Hello DM\"
 -- @
 --
--- >>> directMessagesNew (ScreenNameParam "thimura") "Hello DM"
+-- >>> directMessagesNew 69179963 "Hello thimura! by UserId"
 -- APIRequestPostJSON "https://api.twitter.com/1.1/direct_messages/events/new.json" []
--- >>> directMessagesNew (UserIdParam 69179963) "Hello thimura! by UserId"
--- APIRequestPostJSON "https://api.twitter.com/1.1/direct_messages/events/new.json" []
-directMessagesNew :: UserParam -> T.Text -> APIRequest DirectMessagesNew DirectMessage
+directMessagesNew :: RecipientId -> T.Text -> APIRequest DirectMessagesNew DirectMessage
 directMessagesNew up msg =
     APIRequestPostJSON (endpoint ++ "direct_messages/events/new.json") [] body
   where
@@ -300,15 +298,13 @@ directMessagesNew up msg =
                   [ "type" .= ("message_create" :: String)
                   , "message_create" .=
                     object
-                        [ "target" .= object ["recipient_id" .= mkUserParam' up]
+                        [ "target" .= object ["recipient_id" .= up]
                         , "message_data" .= object ["text" .= msg]
                         ]
                   ]
             ]
 
-mkUserParam' :: UserParam -> String 
-mkUserParam' (UserIdParam uid) = show uid
-mkUserParam' (ScreenNameParam sn) = sn
+type RecipientId = Integer
 
 data FriendshipsNoRetweetsIds
 -- | Returns a collection of user_ids that the currently authenticated user does not want to receive retweets from.
