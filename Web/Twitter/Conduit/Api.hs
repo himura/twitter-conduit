@@ -276,6 +276,13 @@ deriveHasParamInstances ''DirectMessagesDestroy
     [ "include_entities"
     ]
 
+newtype DirectMessagesNewResponse = DirectMessagesNewResponse
+    { directMessageBody :: DirectMessage
+    } deriving (Show, Eq)
+
+instance FromJSON DirectMessagesNewResponse where
+    parseJSON = withObject "DirectMessagesNewResponse" $ \o -> DirectMessagesNewResponse <$> o .: "event"
+
 data DirectMessagesNew
 -- | Returns post data which sends a new direct message to the specified user from the authenticating user.
 --
@@ -287,7 +294,7 @@ data DirectMessagesNew
 --
 -- >>> directMessagesNew 69179963 "Hello thimura! by UserId"
 -- APIRequestPostJSON "https://api.twitter.com/1.1/direct_messages/events/new.json" []
-directMessagesNew :: RecipientId -> T.Text -> APIRequest DirectMessagesNew DirectMessage
+directMessagesNew :: RecipientId -> T.Text -> APIRequest DirectMessagesNew DirectMessagesNewResponse
 directMessagesNew up msg =
     APIRequestPostJSON (endpoint ++ "direct_messages/events/new.json") [] body
   where
