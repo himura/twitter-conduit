@@ -14,6 +14,7 @@ module Web.Twitter.Conduit.Parameters.TH
        , defineHasParamClassStringArray
        , defineHasParamClassURI
        , deriveHasParamInstances
+       , wrappedParam
        ) where
 
 import Web.Twitter.Conduit.Request

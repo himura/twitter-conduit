@@ -1,8 +1,9 @@
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE EmptyDataDecls #-}
-{-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE CPP #-}
+{-# LANGUAGE EmptyDataDecls #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TemplateHaskell #-}
 
 module Web.Twitter.Conduit.Api
        (
@@ -199,23 +200,23 @@ data DirectMessages
 -- You can perform a query using 'call':
 --
 -- @
--- res <- 'call' twInfo mgr '$' 'directMessages' '&' 'count' '?~' 100
+-- res <- 'call' twInfo mgr '$' 'directMessages' '&' 'count' '?~' 50
 -- @
 --
 -- >>> directMessages
--- APIRequestGet "https://api.twitter.com/1.1/direct_messages.json" []
--- >>> directMessages & count ?~ 100
--- APIRequestGet "https://api.twitter.com/1.1/direct_messages.json" [("count","100")]
-directMessages :: APIRequest DirectMessages [DirectMessage]
-directMessages = APIRequestGet (endpoint ++ "direct_messages.json") def
+-- APIRequestGet "https://api.twitter.com/1.1/direct_messages/events/list.json" []
+-- >>> directMessages & count ?~ 50
+-- APIRequestGet "https://api.twitter.com/1.1/direct_messages/events/list.json" [("count","50")]
+directMessages :: APIRequest DirectMessages (WithCursor T.Text EventsCursorKey DirectMessage)
+directMessages = APIRequestGet (endpoint ++ "direct_messages/events/list.json") def
 deriveHasParamInstances ''DirectMessages
-    [ "since_id"
-    , "max_id"
-    , "count"
+    [ "count"
     , "include_entities"
     , "skip_status"
     , "full_text"
     ]
+instance HasCursorParam (APIRequest DirectMessages a) T.Text where
+    cursor = wrappedParam "cursor" PVString unPVString
 
 data DirectMessagesSent
 -- | Returns query data which asks recent direct messages sent by the authenticating user.
@@ -349,10 +350,10 @@ data FriendsIds
 friendsIds :: UserParam -> APIRequest FriendsIds (WithCursor Integer IdsCursorKey UserId)
 friendsIds q = APIRequestGet (endpoint ++ "friends/ids.json") (mkUserParam q)
 deriveHasParamInstances ''FriendsIds
-    [ "cursor"
-    -- , "stringify_ids" -- (needless)
-    , "count"
+    [ "count"
     ]
+instance HasCursorParam (APIRequest FriendsIds a) Integer where
+    cursor = wrappedParam "cursor" PVInteger unPVInteger
 
 data FollowersIds
 -- | Returns query data which asks a collection of user IDs for every user following the specified user.
@@ -376,10 +377,10 @@ data FollowersIds
 followersIds :: UserParam -> APIRequest FollowersIds (WithCursor Integer IdsCursorKey UserId)
 followersIds q = APIRequestGet (endpoint ++ "followers/ids.json") (mkUserParam q)
 deriveHasParamInstances ''FollowersIds
-    [ "cursor"
-    -- , "stringify_ids" -- (needless)
-    , "count"
+    [ "count"
     ]
+instance HasCursorParam (APIRequest FollowersIds a) Integer where
+    cursor = wrappedParam "cursor" PVInteger unPVInteger
 
 data FriendshipsIncoming
 -- | Returns a collection of numeric IDs for every user who has a pending request to follow the authenticating user.
@@ -400,10 +401,8 @@ data FriendshipsIncoming
 -- APIRequestGet "https://api.twitter.com/1.1/friendships/incoming.json" []
 friendshipsIncoming :: APIRequest FriendshipsIncoming (WithCursor Integer IdsCursorKey UserId)
 friendshipsIncoming = APIRequestGet (endpoint ++ "friendships/incoming.json") def
-deriveHasParamInstances ''FriendshipsIncoming
-    [ "cursor"
-    -- , "stringify_ids" -- (needless)
-    ]
+instance HasCursorParam (APIRequest FriendshipsIncoming a) Integer where
+    cursor = wrappedParam "cursor" PVInteger unPVInteger
 
 data FriendshipsOutgoing
 -- | Returns a collection of numeric IDs for every protected user for whom the authenticating user has a pending follow request.
@@ -424,10 +423,8 @@ data FriendshipsOutgoing
 -- APIRequestGet "https://api.twitter.com/1.1/friendships/outgoing.json" []
 friendshipsOutgoing :: APIRequest FriendshipsOutgoing (WithCursor Integer IdsCursorKey UserId)
 friendshipsOutgoing = APIRequestGet (endpoint ++ "friendships/outgoing.json") def
-deriveHasParamInstances ''FriendshipsOutgoing
-    [ "cursor"
-    -- , "stringify_ids" -- (needless)
-    ]
+instance HasCursorParam (APIRequest FriendshipsOutgoing a) Integer where
+    cursor = wrappedParam "cursor" PVInteger unPVInteger
 
 data FriendshipsCreate
 -- | Returns post data which follows the user specified in the ID parameter.
@@ -486,11 +483,12 @@ data FriendsList
 friendsList :: UserParam -> APIRequest FriendsList (WithCursor Integer UsersCursorKey User)
 friendsList q = APIRequestGet (endpoint ++ "friends/list.json") (mkUserParam q)
 deriveHasParamInstances ''FriendsList
-    [ "cursor"
-    , "count"
+    [ "count"
     , "skip_status"
     , "include_user_entities"
     ]
+instance HasCursorParam (APIRequest FriendsList a) Integer where
+    cursor = wrappedParam "cursor" PVInteger unPVInteger
 
 data FollowersList
 -- | Returns query data which asks a cursored collection of user objects for users following the specified user.
@@ -514,11 +512,12 @@ data FollowersList
 followersList :: UserParam -> APIRequest FollowersList (WithCursor Integer UsersCursorKey User)
 followersList q = APIRequestGet (endpoint ++ "followers/list.json") (mkUserParam q)
 deriveHasParamInstances ''FollowersList
-    [ "cursor"
-    , "count"
+    [ "count"
     , "skip_status"
     , "include_user_entities"
     ]
+instance HasCursorParam (APIRequest FollowersList a) Integer where
+    cursor = wrappedParam "cursor" PVInteger unPVInteger
 
 data AccountVerifyCredentials
 -- | Returns query data asks that the credential is valid.
@@ -721,9 +720,10 @@ data ListsMemberships
 listsMemberships :: Maybe UserParam -> APIRequest ListsMemberships (WithCursor Integer ListsCursorKey List)
 listsMemberships q = APIRequestGet (endpoint ++ "lists/memberships.json") $ maybe [] mkUserParam q
 deriveHasParamInstances ''ListsMemberships
-    [ "cursor"
-    , "count"
+    [ "count"
     ]
+instance HasCursorParam (APIRequest ListsMemberships a) Integer where
+    cursor = wrappedParam "cursor" PVInteger unPVInteger
 
 data ListsSubscribers
 -- | Returns the request parameter which asks the subscribers of the specified list.
@@ -741,10 +741,11 @@ data ListsSubscribers
 listsSubscribers :: ListParam -> APIRequest ListsSubscribers (WithCursor Integer UsersCursorKey User)
 listsSubscribers q = APIRequestGet (endpoint ++ "lists/subscribers.json") (mkListParam q)
 deriveHasParamInstances ''ListsSubscribers
-    [ "cursor"
-    , "count"
+    [ "count"
     , "skip_status"
     ]
+instance HasCursorParam (APIRequest ListsSubscribers a) Integer where
+    cursor = wrappedParam "cursor" PVInteger unPVInteger
 
 data ListsSubscriptions
 -- | Returns the request parameter which obtains a collection of the lists the specified user is subscribed to.
@@ -764,9 +765,10 @@ data ListsSubscriptions
 listsSubscriptions :: Maybe UserParam -> APIRequest ListsSubscriptions (WithCursor Integer ListsCursorKey List)
 listsSubscriptions q = APIRequestGet (endpoint ++ "lists/subscriptions.json") $ maybe [] mkUserParam q
 deriveHasParamInstances ''ListsSubscriptions
-    [ "cursor"
-    , "count"
+    [ "count"
     ]
+instance HasCursorParam (APIRequest ListsSubscriptions a) Integer where
+    cursor = wrappedParam "cursor" PVInteger unPVInteger
 
 data ListsOwnerships
 -- | Returns the request parameter which asks the lists owned by the specified Twitter user.
@@ -786,9 +788,10 @@ data ListsOwnerships
 listsOwnerships :: Maybe UserParam -> APIRequest ListsOwnerships (WithCursor Integer ListsCursorKey List)
 listsOwnerships q = APIRequestGet (endpoint ++ "lists/ownerships.json") $ maybe [] mkUserParam q
 deriveHasParamInstances ''ListsOwnerships
-    [ "cursor"
-    , "count"
+    [ "count"
     ]
+instance HasCursorParam (APIRequest ListsOwnerships a) Integer where
+    cursor = wrappedParam "cursor" PVInteger unPVInteger
 
 data ListsMembersCreateAll
 -- | Adds multiple members to a list.
@@ -839,9 +842,10 @@ listsMembers :: ListParam -> APIRequest ListsMembers (WithCursor Integer UsersCu
 listsMembers q = APIRequestGet (endpoint ++ "lists/members.json") (mkListParam q)
 deriveHasParamInstances ''ListsMembers
     [ "count"
-    , "cursor"
     , "skip_status"
     ]
+instance HasCursorParam (APIRequest ListsMembers a) Integer where
+    cursor = wrappedParam "cursor" PVInteger unPVInteger
 
 data ListsMembersCreate
 -- | Returns the post parameter which adds a member to a list.

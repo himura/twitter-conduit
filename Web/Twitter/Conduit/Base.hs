@@ -276,7 +276,7 @@ sourceWithMaxId' info mgr = loop
 sourceWithCursor :: ( MonadIO m
                     , FromJSON responseType
                     , CursorKey ck
-                    , HasCursorParam (APIRequest apiName (WithCursor Integer ck responseType))
+                    , HasCursorParam (APIRequest apiName (WithCursor Integer ck responseType)) Integer
                     )
                  => TWInfo -- ^ Twitter Setting
                  -> HTTP.Manager
@@ -298,7 +298,7 @@ sourceWithCursor info mgr req = loop (Just (-1))
 -- This function cooperate with instances of 'HasCursorParam'.
 sourceWithCursor' :: ( MonadIO m
                      , CursorKey ck
-                     , HasCursorParam (APIRequest apiName (WithCursor Integer ck responseType))
+                     , HasCursorParam (APIRequest apiName (WithCursor Integer ck responseType)) Integer
                      )
                   => TWInfo -- ^ Twitter Setting
                   -> HTTP.Manager
