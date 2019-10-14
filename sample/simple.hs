@@ -34,8 +34,9 @@ authorize oauth getPIN mgr = do
 
 getTWInfo :: Manager -> IO TWInfo
 getTWInfo mgr = do
-    cred <- authorize tokens getPIN mgr
-    return $ setCredential tokens cred def
+    Credential cred <- authorize tokens getPIN mgr
+    let cred' = filter (\(k, _) -> k == "oauth_token" || k == "oauth_token_secret") cred
+    return $ setCredential tokens (Credential cred') def
   where
     getPIN url = do
         putStrLn $ "browse URL: " ++ url
