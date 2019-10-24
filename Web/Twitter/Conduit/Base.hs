@@ -51,15 +51,14 @@ import Web.Authenticate.OAuth (signOAuth)
 
 makeRequest :: APIRequest apiName responseType
             -> IO HTTP.Request
-makeRequest (APIRequestGet u pa) = makeRequest' "GET" u (makeSimpleQuery pa)
-makeRequest (APIRequestPost u pa) = makeRequest' "POST" u (makeSimpleQuery pa)
-makeRequest (APIRequestPostMultipart u param prt) =
-    formDataBody body =<< makeRequest' "POST" u []
+makeRequest (APIRequest m u pa) = makeRequest' m u (makeSimpleQuery pa)
+makeRequest (APIRequestMultipart m u param prt) =
+    formDataBody body =<< makeRequest' m u []
   where
     body = prt ++ partParam
     partParam = Prelude.map (uncurry partBS . over _1 T.decodeUtf8) (makeSimpleQuery param)
-makeRequest (APIRequestPostJSON u param body) = do
-    req <- makeRequest' "POST" u (makeSimpleQuery param)
+makeRequest (APIRequestJSON m u param body) = do
+    req <- makeRequest' m u (makeSimpleQuery param)
     return $
         req
         { HTTP.requestBody = HTTP.RequestBodyLBS $ encode body
