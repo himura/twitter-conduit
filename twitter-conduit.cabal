@@ -124,14 +124,14 @@ test-suite spec_main
 
   build-tool-depends: hspec-discover:hspec-discover >= 2.3.0
   build-depends:
-      base >= 4.5 && < 5
+      base
     , aeson
-    , attoparsec >= 0.10
+    , attoparsec
     , authenticate-oauth
     , bytestring
     , case-insensitive
     , conduit
-    , conduit-extra >= 1.1
+    , conduit-extra
     , containers
     , data-default
     , hspec
@@ -139,14 +139,14 @@ test-suite spec_main
     , http-conduit
     , http-types
     , lens
-    , lens-aeson >= 1
+    , lens-aeson
     , resourcet
     , template-haskell
     , text
     , time
     , twitter-conduit
-    , twitter-types >= 0.6
-    , twitter-types-lens >= 0.6
+    , twitter-types
+    , twitter-types-lens
 
   if flag(network-uri)
     build-depends: network-uri >= 2.6
@@ -165,6 +165,6 @@ test-suite spec_main
 
 custom-setup
   setup-depends:
-    base >= 4.5 && <5,
-    Cabal >= 1.24,
-    cabal-doctest >= 1 && < 1.1
+      base
+    , Cabal >= 1.24
+    , cabal-doctest >= 1 && < 1.1
