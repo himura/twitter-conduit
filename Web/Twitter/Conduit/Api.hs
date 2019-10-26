@@ -270,12 +270,9 @@ data DirectMessagesDestroy
 -- @
 --
 -- >>> directMessagesDestroy 1234567890
--- APIRequest "POST" "https://api.twitter.com/1.1/direct_messages/destroy.json" [("id","1234567890")]
-directMessagesDestroy :: StatusId -> APIRequest DirectMessagesDestroy DirectMessage
-directMessagesDestroy sId = APIRequest "POST" (endpoint ++ "direct_messages/destroy.json") [("id", PVInteger sId)]
-deriveHasParamInstances ''DirectMessagesDestroy
-    [ "include_entities"
-    ]
+-- APIRequest "DELETE" "https://api.twitter.com/1.1/direct_messages/events/destroy.json" [("id","1234567890")]
+directMessagesDestroy :: StatusId -> APIRequest DirectMessagesDestroy NoContent
+directMessagesDestroy sId = APIRequest "DELETE" (endpoint ++ "direct_messages/events/destroy.json") [("id", PVInteger sId)]
 
 newtype DirectMessagesNewResponse = DirectMessagesNewResponse
     { directMessageBody :: DirectMessage
