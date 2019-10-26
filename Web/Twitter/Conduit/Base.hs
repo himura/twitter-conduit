@@ -1,10 +1,14 @@
 {-# LANGUAGE CPP #-}
-{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE UndecidableInstances #-}
 
 module Web.Twitter.Conduit.Base
-       ( getResponse
+       ( ResponseBodyType (..)
+       , NoContent
+       , getResponse
        , call
        , call'
        , callWithResponse
@@ -30,6 +34,7 @@ import Web.Twitter.Conduit.Types
 import Web.Twitter.Types.Lens
 
 import Control.Lens
+import Control.Monad (void)
 import Control.Monad.Base
 import Control.Monad.Catch (MonadThrow (..))
 import Control.Monad.IO.Class
@@ -84,6 +89,27 @@ makeRequest' m url query = do
                              , HTTP.checkStatus = \_ _ _ -> Nothing
 #endif
                              }
+
+class ResponseBodyType a where
+    parseResponseBody ::
+#if MIN_VERSION_http_conduit(2,3,0)
+           Response (C.ConduitM () ByteString (ResourceT IO) ())
+#else
+           Response (C.ResumableSource m ByteString)
+#endif
+        -> ResourceT IO (Response a)
+
+type NoContent = ()
+instance ResponseBodyType NoContent where
+    parseResponseBody res =
+        case responseStatus res of
+            st | st == HT.status204 -> return $ void res
+            _ -> do
+                body <- C.runConduit $ responseBody res C..| sinkJSON
+                throwM $ TwitterStatusError (responseStatus res) (responseHeaders res) body
+
+instance {-# OVERLAPPABLE #-} FromJSON a => ResponseBodyType a where
+    parseResponseBody = getValueOrThrow
 
 getResponse :: MonadResource m
             => TWInfo
@@ -167,7 +193,7 @@ getValueOrThrow res = do
 --
 -- If you need raw JSON value which is parsed by <http://hackage.haskell.org/package/aeson aeson>,
 -- use 'call'' to obtain it.
-call :: FromJSON responseType
+call :: ResponseBodyType responseType
      => TWInfo -- ^ Twitter Setting
      -> HTTP.Manager
      -> APIRequest apiName responseType
@@ -177,7 +203,7 @@ call = call'
 -- | Perform an 'APIRequest' and then provide the response.
 -- The response of this function is not restrict to @responseType@,
 -- so you can choose an arbitrarily type of FromJSON instances.
-call' :: FromJSON value
+call' :: ResponseBodyType value
       => TWInfo -- ^ Twitter Setting
       -> HTTP.Manager
       -> APIRequest apiName responseType
@@ -194,7 +220,7 @@ call' info mgr req = responseBody `fmap` callWithResponse' info mgr req
 -- 'print' $ 'responseHeaders' res
 -- 'print' $ 'responseBody' res
 -- @
-callWithResponse :: FromJSON responseType
+callWithResponse :: ResponseBodyType responseType
                  => TWInfo -- ^ Twitter Setting
                  -> HTTP.Manager
                  -> APIRequest apiName responseType
@@ -213,7 +239,7 @@ callWithResponse = callWithResponse'
 -- 'print' $ 'responseHeaders' res
 -- 'print' $ 'responseBody' (res :: Value)
 -- @
-callWithResponse' :: FromJSON value
+callWithResponse' :: ResponseBodyType value
                   => TWInfo
                   -> HTTP.Manager
                   -> APIRequest apiName responseType
@@ -221,7 +247,7 @@ callWithResponse' :: FromJSON value
 callWithResponse' info mgr req =
     runResourceT $ do
         res <- getResponse info mgr =<< liftIO (makeRequest req)
-        getValueOrThrow res
+        parseResponseBody res
 
 -- | A wrapper function to perform multiple API request with changing @max_id@ parameter.
 --
