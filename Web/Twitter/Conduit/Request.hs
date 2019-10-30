@@ -16,6 +16,7 @@ module Web.Twitter.Conduit.Request
 import Control.Applicative
 #endif
 import Control.Lens
+import Data.Aeson
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as S8
 import Data.Text (Text)
@@ -41,7 +42,7 @@ class Parameters a where
 -- >>> type SampleId = Integer
 -- >>> instance HasCountParam (APIRequest SampleApi [SampleId])
 -- >>> instance HasMaxIdParam (APIRequest SampleApi [SampleId])
--- >>> let sampleApiRequest :: APIRequest SampleApi [SampleId]; sampleApiRequest = APIRequestGet "https://api.twitter.com/sample/api.json" def
+-- >>> let sampleApiRequest :: APIRequest SampleApi [SampleId]; sampleApiRequest = APIRequest "GET" "https://api.twitter.com/sample/api.json" def
 
 -- | API request. You should use specific builder functions instead of building this directly.
 --
@@ -54,7 +55,7 @@ class Parameters a where
 -- instance 'HasCountParam' ('APIRequest' 'SampleApi' ['SampleId'])
 -- instance 'HasMaxIdParam' ('APIRequest' 'SampleApi' ['SampleId'])
 -- 'sampleApiRequest' :: 'APIRequest' 'SampleApi' ['SampleId']
--- 'sampleApiRequest' = 'APIRequestGet' \"https:\/\/api.twitter.com\/sample\/api.json\" 'def'
+-- 'sampleApiRequest' = 'APIRequest' \"GET\" \"https:\/\/api.twitter.com\/sample\/api.json\" 'def'
 -- @
 --
 -- We can obtain request params from @'APIRequest' SampleApi [SampleId]@ :
@@ -70,28 +71,32 @@ class Parameters a where
 -- [("max_id",PVInteger {unPVInteger = 1234567890})]
 #endif
 data APIRequest apiName responseType
-    = APIRequestGet
-      { _url :: String
+    = APIRequest
+      { _method :: HT.Method
+      , _url :: String
       , _params :: APIQuery
       }
-    | APIRequestPost
-      { _url :: String
-      , _params :: APIQuery
-      }
-    | APIRequestPostMultipart
-      { _url :: String
+    | APIRequestMultipart
+      { _method :: HT.Method
+      , _url :: String
       , _params :: APIQuery
       , _part :: [Part]
       }
+    | APIRequestJSON
+      { _method :: HT.Method
+      , _url :: String
+      , _params :: APIQuery
+      , _body :: Value
+      }
 instance Parameters (APIRequest apiName responseType) where
-    params f (APIRequestGet u pa) = APIRequestGet u <$> f pa
-    params f (APIRequestPost u pa) = APIRequestPost u <$> f pa
-    params f (APIRequestPostMultipart u pa prt) =
-        (\p -> APIRequestPostMultipart u p prt) <$> f pa
+    params f (APIRequest m u pa) = APIRequest m u <$> f pa
+    params f (APIRequestMultipart m u pa prt) =
+        (\p -> APIRequestMultipart m u p prt) <$> f pa
+    params f (APIRequestJSON m u pa body) = (\p -> APIRequestJSON m u p body) <$> f pa
 instance Show (APIRequest apiName responseType) where
-    show (APIRequestGet u p) = "APIRequestGet " ++ show u ++ " " ++ show (makeSimpleQuery p)
-    show (APIRequestPost u p) = "APIRequestPost " ++ show u ++ " " ++ show (makeSimpleQuery p)
-    show (APIRequestPostMultipart u p _) = "APIRequestPostMultipart " ++ show u ++ " " ++ show (makeSimpleQuery p)
+    show (APIRequest m u p) = "APIRequest " ++ show m ++ " " ++ show u ++ " " ++ show (makeSimpleQuery p)
+    show (APIRequestMultipart m u p _) = "APIRequestMultipart " ++ show m ++ " " ++ show u ++ " " ++ show (makeSimpleQuery p)
+    show (APIRequestJSON m u p _) = "APIRequestJSON " ++ show m ++ " " ++ show u ++ " " ++ show (makeSimpleQuery p)
 
 type APIQuery = [APIQueryItem]
 type APIQueryItem = (ByteString, PV)

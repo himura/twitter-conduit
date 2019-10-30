@@ -1,3 +1,9 @@
+## 0.4.0 (wip)
+
+* Changed WithCursor type
+    * Added type parameter to WithCursor to supports `Text` as the next cursor type.
+    * Changed {previous,next}Cursor in WithCursor to be optional
+
 ## 0.3.0
 
 * Upgrade http-conduit dependencies to:

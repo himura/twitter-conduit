@@ -1,3 +1,4 @@
+{-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell #-}
 
@@ -53,6 +54,7 @@ module Web.Twitter.Conduit.Parameters
        , mkListParam
        ) where
 
+import Control.Lens
 import qualified Data.Text as T
 import Network.HTTP.Client (RequestBody)
 import Web.Twitter.Conduit.Parameters.TH
@@ -72,7 +74,6 @@ defineHasParamClassInteger "count"
 defineHasParamClassInteger "since_id"
 defineHasParamClassInteger "max_id"
 defineHasParamClassInteger "page"
-defineHasParamClassInteger "cursor"
 defineHasParamClassBool "trim_user"
 defineHasParamClassBool "exclude_replies"
 defineHasParamClassBool "contributor_details"
@@ -103,6 +104,9 @@ defineHasParamClassString "location"
 defineHasParamClassURI "url"
 defineHasParamClassBool "full_text"
 defineHasParamClassString "with"
+
+class Parameters p => HasCursorParam p a | p -> a where
+    cursor :: Lens' p (Maybe a)
 
 -- | converts 'UserParam' to 'HT.SimpleQuery'.
 --

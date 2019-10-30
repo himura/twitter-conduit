@@ -62,9 +62,9 @@ data StatusesMentionsTimeline
 -- @
 --
 -- >>> mentionsTimeline
--- APIRequestGet "https://api.twitter.com/1.1/statuses/mentions_timeline.json" []
+-- APIRequest "GET" "https://api.twitter.com/1.1/statuses/mentions_timeline.json" []
 mentionsTimeline :: APIRequest StatusesMentionsTimeline [Status]
-mentionsTimeline = APIRequestGet (endpoint ++ "statuses/mentions_timeline.json") def
+mentionsTimeline = APIRequest "GET" (endpoint ++ "statuses/mentions_timeline.json") def
 deriveHasParamInstances ''StatusesMentionsTimeline
     [ "count"
     , "since_id"
@@ -84,11 +84,11 @@ data StatusesUserTimeline
 -- @
 --
 -- >>> userTimeline (ScreenNameParam "thimura")
--- APIRequestGet "https://api.twitter.com/1.1/statuses/user_timeline.json" [("screen_name","thimura")]
+-- APIRequest "GET" "https://api.twitter.com/1.1/statuses/user_timeline.json" [("screen_name","thimura")]
 -- >>> userTimeline (ScreenNameParam "thimura") & includeRts ?~ True & count ?~ 200
--- APIRequestGet "https://api.twitter.com/1.1/statuses/user_timeline.json" [("count","200"),("include_rts","true"),("screen_name","thimura")]
+-- APIRequest "GET" "https://api.twitter.com/1.1/statuses/user_timeline.json" [("count","200"),("include_rts","true"),("screen_name","thimura")]
 userTimeline :: UserParam -> APIRequest StatusesUserTimeline [Status]
-userTimeline q = APIRequestGet (endpoint ++ "statuses/user_timeline.json") (mkUserParam q)
+userTimeline q = APIRequest "GET" (endpoint ++ "statuses/user_timeline.json") (mkUserParam q)
 deriveHasParamInstances ''StatusesUserTimeline
     [ "count"
     , "since_id"
@@ -109,11 +109,11 @@ data StatusesHomeTimeline
 -- @
 --
 -- >>> homeTimeline
--- APIRequestGet "https://api.twitter.com/1.1/statuses/home_timeline.json" []
+-- APIRequest "GET" "https://api.twitter.com/1.1/statuses/home_timeline.json" []
 -- >>> homeTimeline & count ?~ 200
--- APIRequestGet "https://api.twitter.com/1.1/statuses/home_timeline.json" [("count","200")]
+-- APIRequest "GET" "https://api.twitter.com/1.1/statuses/home_timeline.json" [("count","200")]
 homeTimeline :: APIRequest StatusesHomeTimeline [Status]
-homeTimeline = APIRequestGet (endpoint ++ "statuses/home_timeline.json") def
+homeTimeline = APIRequest "GET" (endpoint ++ "statuses/home_timeline.json") def
 deriveHasParamInstances ''StatusesHomeTimeline
     [ "count"
     , "since_id"
@@ -134,11 +134,11 @@ data StatusesRetweetsOfMe
 -- @
 --
 -- >>> retweetsOfMe
--- APIRequestGet "https://api.twitter.com/1.1/statuses/retweets_of_me.json" []
+-- APIRequest "GET" "https://api.twitter.com/1.1/statuses/retweets_of_me.json" []
 -- >>> retweetsOfMe & count ?~ 100
--- APIRequestGet "https://api.twitter.com/1.1/statuses/retweets_of_me.json" [("count","100")]
+-- APIRequest "GET" "https://api.twitter.com/1.1/statuses/retweets_of_me.json" [("count","100")]
 retweetsOfMe :: APIRequest StatusesRetweetsOfMe [Status]
-retweetsOfMe = APIRequestGet (endpoint ++ "statuses/retweets_of_me.json") def
+retweetsOfMe = APIRequest "GET" (endpoint ++ "statuses/retweets_of_me.json") def
 deriveHasParamInstances ''StatusesRetweetsOfMe
     [ "count"
     , "since_id"
@@ -160,11 +160,11 @@ data StatusesRetweetsId
 -- @
 --
 -- >>> retweetsId 1234567890
--- APIRequestGet "https://api.twitter.com/1.1/statuses/retweets/1234567890.json" []
+-- APIRequest "GET" "https://api.twitter.com/1.1/statuses/retweets/1234567890.json" []
 -- >>> retweetsId 1234567890 & count ?~ 100
--- APIRequestGet "https://api.twitter.com/1.1/statuses/retweets/1234567890.json" [("count","100")]
+-- APIRequest "GET" "https://api.twitter.com/1.1/statuses/retweets/1234567890.json" [("count","100")]
 retweetsId :: StatusId -> APIRequest StatusesRetweetsId [RetweetedStatus]
-retweetsId status_id = APIRequestGet uri def
+retweetsId status_id = APIRequest "GET" uri def
   where uri = endpoint ++ "statuses/retweets/" ++ show status_id ++ ".json"
 deriveHasParamInstances ''StatusesRetweetsId
     [ "count"
@@ -181,11 +181,11 @@ data StatusesShowId
 -- @
 --
 -- >>> showId 1234567890
--- APIRequestGet "https://api.twitter.com/1.1/statuses/show/1234567890.json" []
+-- APIRequest "GET" "https://api.twitter.com/1.1/statuses/show/1234567890.json" []
 -- >>> showId 1234567890 & includeMyRetweet ?~ True
--- APIRequestGet "https://api.twitter.com/1.1/statuses/show/1234567890.json" [("include_my_retweet","true")]
+-- APIRequest "GET" "https://api.twitter.com/1.1/statuses/show/1234567890.json" [("include_my_retweet","true")]
 showId :: StatusId -> APIRequest StatusesShowId Status
-showId status_id = APIRequestGet uri def
+showId status_id = APIRequest "GET" uri def
   where uri = endpoint ++ "statuses/show/" ++ show status_id ++ ".json"
 deriveHasParamInstances ''StatusesShowId
     [ "trim_user"
@@ -204,9 +204,9 @@ data StatusesDestroyId
 -- @
 --
 -- >>> destroyId 1234567890
--- APIRequestPost "https://api.twitter.com/1.1/statuses/destroy/1234567890.json" []
+-- APIRequest "POST" "https://api.twitter.com/1.1/statuses/destroy/1234567890.json" []
 destroyId :: StatusId -> APIRequest StatusesDestroyId Status
-destroyId status_id = APIRequestPost uri def
+destroyId status_id = APIRequest "POST" uri def
   where uri = endpoint ++ "statuses/destroy/" ++ show status_id ++ ".json"
 deriveHasParamInstances ''StatusesDestroyId
     [ "trim_user"
@@ -223,11 +223,11 @@ data StatusesUpdate
 -- @
 --
 -- >>> update "Hello World"
--- APIRequestPost "https://api.twitter.com/1.1/statuses/update.json" [("status","Hello World")]
+-- APIRequest "POST" "https://api.twitter.com/1.1/statuses/update.json" [("status","Hello World")]
 -- >>> update "Hello World" & inReplyToStatusId ?~ 1234567890
--- APIRequestPost "https://api.twitter.com/1.1/statuses/update.json" [("in_reply_to_status_id","1234567890"),("status","Hello World")]
+-- APIRequest "POST" "https://api.twitter.com/1.1/statuses/update.json" [("in_reply_to_status_id","1234567890"),("status","Hello World")]
 update :: T.Text -> APIRequest StatusesUpdate Status
-update status = APIRequestPost uri [("status", PVString status)]
+update status = APIRequest "POST" uri [("status", PVString status)]
   where uri = endpoint ++ "statuses/update.json"
 deriveHasParamInstances ''StatusesUpdate
     [ "in_reply_to_status_id"
@@ -248,9 +248,9 @@ data StatusesRetweetId
 -- @
 --
 -- >>> retweetId 1234567890
--- APIRequestPost "https://api.twitter.com/1.1/statuses/retweet/1234567890.json" []
+-- APIRequest "POST" "https://api.twitter.com/1.1/statuses/retweet/1234567890.json" []
 retweetId :: StatusId -> APIRequest StatusesRetweetId RetweetedStatus
-retweetId status_id = APIRequestPost uri def
+retweetId status_id = APIRequest "POST" uri def
   where uri = endpoint ++ "statuses/retweet/" ++ show status_id ++ ".json"
 deriveHasParamInstances ''StatusesRetweetId
     [ "trim_user"
@@ -266,12 +266,12 @@ data StatusesUpdateWithMedia
 -- @
 --
 -- >>> updateWithMedia "Hello World" (MediaFromFile "/home/fuga/test.jpeg")
--- APIRequestPostMultipart "https://api.twitter.com/1.1/statuses/update_with_media.json" [("status","Hello World")]
+-- APIRequestMultipart "POST" "https://api.twitter.com/1.1/statuses/update_with_media.json" [("status","Hello World")]
 updateWithMedia :: T.Text
                 -> MediaData
                 -> APIRequest StatusesUpdateWithMedia Status
 updateWithMedia tweet mediaData =
-    APIRequestPostMultipart uri [("status", PVString tweet)] [mediaBody mediaData]
+    APIRequestMultipart "POST" uri [("status", PVString tweet)] [mediaBody mediaData]
   where
     uri = endpoint ++ "statuses/update_with_media.json"
     mediaBody (MediaFromFile fp) = partFileSource "media[]" fp
@@ -294,13 +294,13 @@ data StatusesLookup
 -- @
 --
 -- >>> lookup [10]
--- APIRequestGet "https://api.twitter.com/1.1/statuses/lookup.json" [("id","10")]
+-- APIRequest "GET" "https://api.twitter.com/1.1/statuses/lookup.json" [("id","10")]
 -- >>> lookup [10, 432656548536401920]
--- APIRequestGet "https://api.twitter.com/1.1/statuses/lookup.json" [("id","10,432656548536401920")]
+-- APIRequest "GET" "https://api.twitter.com/1.1/statuses/lookup.json" [("id","10,432656548536401920")]
 -- >>> lookup [10, 432656548536401920] & includeEntities ?~ True
--- APIRequestGet "https://api.twitter.com/1.1/statuses/lookup.json" [("include_entities","true"),("id","10,432656548536401920")]
+-- APIRequest "GET" "https://api.twitter.com/1.1/statuses/lookup.json" [("include_entities","true"),("id","10,432656548536401920")]
 lookup :: [StatusId] -> APIRequest StatusesLookup [Status]
-lookup ids = APIRequestGet (endpoint ++ "statuses/lookup.json") [("id", PVIntegerArray ids)]
+lookup ids = APIRequest "GET" (endpoint ++ "statuses/lookup.json") [("id", PVIntegerArray ids)]
 deriveHasParamInstances ''StatusesLookup
     [ "include_entities"
     , "trim_user"

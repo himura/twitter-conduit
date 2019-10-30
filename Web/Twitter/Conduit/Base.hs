@@ -1,10 +1,14 @@
 {-# LANGUAGE CPP #-}
-{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE UndecidableInstances #-}
 
 module Web.Twitter.Conduit.Base
-       ( getResponse
+       ( ResponseBodyType (..)
+       , NoContent
+       , getResponse
        , call
        , call'
        , callWithResponse
@@ -30,6 +34,7 @@ import Web.Twitter.Conduit.Types
 import Web.Twitter.Types.Lens
 
 import Control.Lens
+import Control.Monad (void)
 import Control.Monad.Base
 import Control.Monad.Catch (MonadThrow (..))
 import Control.Monad.IO.Class
@@ -51,13 +56,19 @@ import Web.Authenticate.OAuth (signOAuth)
 
 makeRequest :: APIRequest apiName responseType
             -> IO HTTP.Request
-makeRequest (APIRequestGet u pa) = makeRequest' "GET" u (makeSimpleQuery pa)
-makeRequest (APIRequestPost u pa) = makeRequest' "POST" u (makeSimpleQuery pa)
-makeRequest (APIRequestPostMultipart u param prt) =
-    formDataBody body =<< makeRequest' "POST" u []
+makeRequest (APIRequest m u pa) = makeRequest' m u (makeSimpleQuery pa)
+makeRequest (APIRequestMultipart m u param prt) =
+    formDataBody body =<< makeRequest' m u []
   where
     body = prt ++ partParam
     partParam = Prelude.map (uncurry partBS . over _1 T.decodeUtf8) (makeSimpleQuery param)
+makeRequest (APIRequestJSON m u param body) = do
+    req <- makeRequest' m u (makeSimpleQuery param)
+    return $
+        req
+        { HTTP.requestBody = HTTP.RequestBodyLBS $ encode body
+        , HTTP.requestHeaders = ("Content-Type", "application/json") : HTTP.requestHeaders req
+        }
 
 makeRequest' :: HT.Method -- ^ HTTP request method (GET or POST)
              -> String -- ^ API Resource URL
@@ -78,6 +89,27 @@ makeRequest' m url query = do
                              , HTTP.checkStatus = \_ _ _ -> Nothing
 #endif
                              }
+
+class ResponseBodyType a where
+    parseResponseBody ::
+#if MIN_VERSION_http_conduit(2,3,0)
+           Response (C.ConduitM () ByteString (ResourceT IO) ())
+#else
+           Response (C.ResumableSource m ByteString)
+#endif
+        -> ResourceT IO (Response a)
+
+type NoContent = ()
+instance ResponseBodyType NoContent where
+    parseResponseBody res =
+        case responseStatus res of
+            st | st == HT.status204 -> return $ void res
+            _ -> do
+                body <- C.runConduit $ responseBody res C..| sinkJSON
+                throwM $ TwitterStatusError (responseStatus res) (responseHeaders res) body
+
+instance {-# OVERLAPPABLE #-} FromJSON a => ResponseBodyType a where
+    parseResponseBody = getValueOrThrow
 
 getResponse :: MonadResource m
             => TWInfo
@@ -161,7 +193,7 @@ getValueOrThrow res = do
 --
 -- If you need raw JSON value which is parsed by <http://hackage.haskell.org/package/aeson aeson>,
 -- use 'call'' to obtain it.
-call :: FromJSON responseType
+call :: ResponseBodyType responseType
      => TWInfo -- ^ Twitter Setting
      -> HTTP.Manager
      -> APIRequest apiName responseType
@@ -171,7 +203,7 @@ call = call'
 -- | Perform an 'APIRequest' and then provide the response.
 -- The response of this function is not restrict to @responseType@,
 -- so you can choose an arbitrarily type of FromJSON instances.
-call' :: FromJSON value
+call' :: ResponseBodyType value
       => TWInfo -- ^ Twitter Setting
       -> HTTP.Manager
       -> APIRequest apiName responseType
@@ -188,7 +220,7 @@ call' info mgr req = responseBody `fmap` callWithResponse' info mgr req
 -- 'print' $ 'responseHeaders' res
 -- 'print' $ 'responseBody' res
 -- @
-callWithResponse :: FromJSON responseType
+callWithResponse :: ResponseBodyType responseType
                  => TWInfo -- ^ Twitter Setting
                  -> HTTP.Manager
                  -> APIRequest apiName responseType
@@ -207,7 +239,7 @@ callWithResponse = callWithResponse'
 -- 'print' $ 'responseHeaders' res
 -- 'print' $ 'responseBody' (res :: Value)
 -- @
-callWithResponse' :: FromJSON value
+callWithResponse' :: ResponseBodyType value
                   => TWInfo
                   -> HTTP.Manager
                   -> APIRequest apiName responseType
@@ -215,7 +247,7 @@ callWithResponse' :: FromJSON value
 callWithResponse' info mgr req =
     runResourceT $ do
         res <- getResponse info mgr =<< liftIO (makeRequest req)
-        getValueOrThrow res
+        parseResponseBody res
 
 -- | A wrapper function to perform multiple API request with changing @max_id@ parameter.
 --
@@ -269,16 +301,17 @@ sourceWithMaxId' info mgr = loop
 sourceWithCursor :: ( MonadIO m
                     , FromJSON responseType
                     , CursorKey ck
-                    , HasCursorParam (APIRequest apiName (WithCursor ck responseType))
+                    , HasCursorParam (APIRequest apiName (WithCursor Integer ck responseType)) Integer
                     )
                  => TWInfo -- ^ Twitter Setting
                  -> HTTP.Manager
-                 -> APIRequest apiName (WithCursor ck responseType)
+                 -> APIRequest apiName (WithCursor Integer ck responseType)
                  -> C.Source m responseType
-sourceWithCursor info mgr req = loop (-1)
+sourceWithCursor info mgr req = loop (Just (-1))
   where
-    loop 0 = CL.sourceNull
-    loop cur = do
+    loop Nothing = CL.sourceNull
+    loop (Just 0) = CL.sourceNull
+    loop (Just cur) = do
         res <- liftIO $ call info mgr $ req & cursor ?~ cur
         CL.sourceList $ contents res
         loop $ nextCursor res
@@ -290,19 +323,20 @@ sourceWithCursor info mgr req = loop (-1)
 -- This function cooperate with instances of 'HasCursorParam'.
 sourceWithCursor' :: ( MonadIO m
                      , CursorKey ck
-                     , HasCursorParam (APIRequest apiName (WithCursor ck responseType))
+                     , HasCursorParam (APIRequest apiName (WithCursor Integer ck responseType)) Integer
                      )
                   => TWInfo -- ^ Twitter Setting
                   -> HTTP.Manager
-                  -> APIRequest apiName (WithCursor ck responseType)
+                  -> APIRequest apiName (WithCursor Integer ck responseType)
                   -> C.Source m Value
-sourceWithCursor' info mgr req = loop (-1)
+sourceWithCursor' info mgr req = loop (Just (-1))
   where
-    relax :: APIRequest apiName (WithCursor ck responseType)
-          -> APIRequest apiName (WithCursor ck Value)
+    relax :: APIRequest apiName (WithCursor Integer ck responseType)
+          -> APIRequest apiName (WithCursor Integer ck Value)
     relax = unsafeCoerce
-    loop 0 = CL.sourceNull
-    loop cur = do
+    loop Nothing = CL.sourceNull
+    loop (Just 0) = CL.sourceNull
+    loop (Just cur) = do
         res <- liftIO $ call info mgr $ relax $ req & cursor ?~ cur
         CL.sourceList $ contents res
         loop $ nextCursor res
