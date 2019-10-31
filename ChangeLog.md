@@ -1,8 +1,10 @@
-## 0.4.0 (wip)
+## 0.4.0
 
-* Changed WithCursor type
+* Follow direct message API changes [#65](https://github.com/himura/twitter-conduit/pull/65) [#62](https://github.com/himura/twitter-conduit/pull/62)
+* Changed WithCursor type [5b9e9d7a](https://github.com/himura/twitter-conduit/commit/5b9e9d7a13d33327fe637cae8e2359a38fce92b5)
     * Added type parameter to WithCursor to supports `Text` as the next cursor type.
     * Changed {previous,next}Cursor in WithCursor to be optional
+* Changed APIRequest type to take HTTP Method [f25fd9b3](https://github.com/himura/twitter-conduit/commit/f25fd9b3b860032f384d01b3457ea896e596366b)
 
 ## 0.3.0
 
