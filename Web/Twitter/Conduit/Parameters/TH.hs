@@ -7,16 +7,14 @@
 {-# LANGUAGE TypeOperators #-}
 
 module Web.Twitter.Conduit.Parameters.TH
-       ( defineHasParamClass
-       , defineHasParamClass'
-       , defineHasParamClassBool
-       , defineHasParamClassDay
-       , defineHasParamClassInteger
-       , defineHasParamClassIntegerArray
-       , defineHasParamClassString
-       , defineHasParamClassStringArray
-       , defineHasParamClassURI
-       , deriveHasParamInstances
+       ( HasParam
+       , defineParam
+       , defineParamBool
+       , defineParamDay
+       , defineParamInteger
+       , defineParamIntegerArray
+       , defineParamString
+       , defineParamStringArray
        , wrappedParam
        ) where
 
@@ -25,7 +23,7 @@ import qualified Data.ByteString.Char8 as S8
 import Data.Char
 import Data.Text (Text)
 import Data.Time.Calendar (Day)
-import GHC.Prim (Constraint)
+import GHC.Types (Constraint)
 import GHC.TypeLits (Symbol, symbolVal, KnownSymbol)
 import Web.Twitter.Conduit.Request
 import Language.Haskell.TH
