@@ -22,16 +22,12 @@ import qualified Data.ByteString.Char8 as S8
 import Data.Char
 import Data.Text (Text)
 import Data.Time.Calendar (Day)
-import GHC.Types (Constraint)
 import GHC.TypeLits (Symbol, symbolVal, KnownSymbol)
+import Web.Twitter.Conduit.Parameters.Internal
 import Web.Twitter.Conduit.Request
 import Language.Haskell.TH
 
 import Data.Proxy
-
-type family HasParam (key :: Symbol) (ks :: [Symbol]) :: Constraint where
-    HasParam (key :: Symbol) (key ': ks) = ()
-    HasParam (key :: Symbol) (k ': ks) = HasParam key ks
 
 wrappedParam :: (HasParam (key :: Symbol) supports, KnownSymbol key)
              => Proxy key

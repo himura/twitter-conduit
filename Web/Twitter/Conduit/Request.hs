@@ -17,19 +17,11 @@ module Web.Twitter.Conduit.Request
 #if __GLASGOW_HASKELL__ < 710
 import Control.Applicative
 #endif
-import Control.Lens
 import Data.Aeson
-import Data.ByteString (ByteString)
-import qualified Data.ByteString.Char8 as S8
-import Data.Text (Text)
-import qualified Data.Text.Encoding as T
-import Data.Time.Calendar (Day)
 import GHC.TypeLits (Symbol)
 import Network.HTTP.Client.MultipartFormData
 import qualified Network.HTTP.Types as HT
-
-class Parameters a where
-    params :: Lens' a APIQuery
+import Web.Twitter.Conduit.Request.Internal
 
 -- In GHC 7.4.2, the following test fails with Overlapping instances error.
 -- It may be caused by #5820 "defining instance in GHCi leads to duplicated instances".
@@ -98,26 +90,3 @@ instance Show (APIRequest apiName responseType) where
     show (APIRequestMultipart m u p _) = "APIRequestMultipart " ++ show m ++ " " ++ show u ++ " " ++ show (makeSimpleQuery p)
     show (APIRequestJSON m u p _) = "APIRequestJSON " ++ show m ++ " " ++ show u ++ " " ++ show (makeSimpleQuery p)
 
-type APIQuery = [APIQueryItem]
-type APIQueryItem = (ByteString, PV)
-
-data PV
-    = PVInteger { unPVInteger :: Integer }
-    | PVBool { unPVBool :: Bool }
-    | PVString { unPVString :: Text }
-    | PVIntegerArray { unPVIntegerArray :: [Integer] }
-    | PVStringArray { unPVStringArray :: [Text] }
-    | PVDay { unPVDay :: Day }
-    deriving (Show, Eq)
-
-makeSimpleQuery :: APIQuery -> HT.SimpleQuery
-makeSimpleQuery = traversed . _2 %~ paramValueBS
-
-paramValueBS :: PV -> ByteString
-paramValueBS (PVInteger i) = S8.pack . show $ i
-paramValueBS (PVBool True) = "true"
-paramValueBS (PVBool False) = "false"
-paramValueBS (PVString txt) = T.encodeUtf8 txt
-paramValueBS (PVIntegerArray iarr) = S8.intercalate "," $ map (S8.pack . show) iarr
-paramValueBS (PVStringArray iarr) = S8.intercalate "," $ map T.encodeUtf8 iarr
-paramValueBS (PVDay day) = S8.pack . show $ day

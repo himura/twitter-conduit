@@ -85,6 +85,7 @@ library
     Web.Twitter.Conduit.Status
     Web.Twitter.Conduit.Base
     Web.Twitter.Conduit.Request
+    Web.Twitter.Conduit.Request.Internal
     Web.Twitter.Conduit.Response
     Web.Twitter.Conduit.Cursor
     Web.Twitter.Conduit.Parameters
