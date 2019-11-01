@@ -1,3 +1,5 @@
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE KindSignatures #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE CPP #-}
@@ -22,6 +24,7 @@ import qualified Data.ByteString.Char8 as S8
 import Data.Text (Text)
 import qualified Data.Text.Encoding as T
 import Data.Time.Calendar (Day)
+import GHC.TypeLits (Symbol)
 import Network.HTTP.Client.MultipartFormData
 import qualified Network.HTTP.Types as HT
 
@@ -34,14 +37,12 @@ class Parameters a where
 -- see details: https://ghc.haskell.org/trac/ghc/ticket/5820
 #if __GLASGOW_HASKELL__ >= 706
 -- $setup
--- >>> :set -XOverloadedStrings -XRank2Types -XEmptyDataDecls -XFlexibleInstances
+-- >>> :set -XOverloadedStrings -XDataKinds
 -- >>> import Control.Lens
 -- >>> import Data.Default
 -- >>> import Web.Twitter.Conduit.Parameters
--- >>> data SampleApi
 -- >>> type SampleId = Integer
--- >>> instance HasCountParam (APIRequest SampleApi [SampleId])
--- >>> instance HasMaxIdParam (APIRequest SampleApi [SampleId])
+-- >>> type SampleApi = '["count", "max_id"]
 -- >>> let sampleApiRequest :: APIRequest SampleApi [SampleId]; sampleApiRequest = APIRequest "GET" "https://api.twitter.com/sample/api.json" def
 
 -- | API request. You should use specific builder functions instead of building this directly.
@@ -50,12 +51,11 @@ class Parameters a where
 -- In addition, @'APIRequest' SampleApi [SampleId]@ is a instance of both of 'HasCountParam' and 'HasMaxIdParam'.
 --
 -- @
--- data 'SampleApi'
 -- type 'SampleId' = 'Integer'
--- instance 'HasCountParam' ('APIRequest' 'SampleApi' ['SampleId'])
--- instance 'HasMaxIdParam' ('APIRequest' 'SampleApi' ['SampleId'])
 -- 'sampleApiRequest' :: 'APIRequest' 'SampleApi' ['SampleId']
 -- 'sampleApiRequest' = 'APIRequest' \"GET\" \"https:\/\/api.twitter.com\/sample\/api.json\" 'def'
+-- type 'SampleApi' = '["count", "max_id"]
+--
 -- @
 --
 -- We can obtain request params from @'APIRequest' SampleApi [SampleId]@ :
@@ -70,7 +70,7 @@ class Parameters a where
 -- >>> (sampleApiRequest & count ?~ 100 & maxId ?~ 1234567890 & count .~ Nothing) ^. params
 -- [("max_id",PVInteger {unPVInteger = 1234567890})]
 #endif
-data APIRequest apiName responseType
+data APIRequest (supports :: [Symbol]) responseType
     = APIRequest
       { _method :: HT.Method
       , _url :: String

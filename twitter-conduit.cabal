@@ -61,6 +61,7 @@ library
     , containers
     , data-default >= 0.3
     , exceptions >= 0.5
+    , ghc-prim
     , http-client >= 0.3.0
     , http-conduit >= 2.0 && < 2.4
     , http-types

@@ -1,9 +1,12 @@
 {-# LANGUAGE CPP #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 module Web.Twitter.Conduit.Base
        ( ResponseBodyType (..)
@@ -255,11 +258,11 @@ callWithResponse' info mgr req =
 sourceWithMaxId :: ( MonadIO m
                    , FromJSON responseType
                    , AsStatus responseType
-                   , HasMaxIdParam (APIRequest apiName [responseType])
+                   , HasParam "max_id" supports
                    )
                 => TWInfo -- ^ Twitter Setting
                 -> HTTP.Manager
-                -> APIRequest apiName [responseType]
+                -> APIRequest supports [responseType]
                 -> C.Source m responseType
 sourceWithMaxId info mgr = loop
   where
@@ -278,22 +281,21 @@ sourceWithMaxId info mgr = loop
 --
 -- This function cooperate with instances of 'HasMaxIdParam'.
 sourceWithMaxId' :: ( MonadIO m
-                    , HasMaxIdParam (APIRequest apiName [responseType])
+                    , HasParam "max_id" supports
                     )
                  => TWInfo -- ^ Twitter Setting
                  -> HTTP.Manager
-                 -> APIRequest apiName [responseType]
+                 -> APIRequest supports [responseType]
                  -> C.Source m Value
 sourceWithMaxId' info mgr = loop
   where
     loop req = do
-        res <- liftIO $ call' info mgr req
-        case getMinId res of
+        (res :: [Value]) <- liftIO $ call' info mgr req
+        case minimumOf (traverse . key "id" . _Integer) res of
             Just mid -> do
                 CL.sourceList res
                 loop $ req & maxId ?~ mid - 1
             Nothing -> CL.sourceList res
-    getMinId = minimumOf (traverse . key "id" . _Integer)
 
 -- | A wrapper function to perform multiple API request with changing @cursor@ parameter.
 --
@@ -301,11 +303,11 @@ sourceWithMaxId' info mgr = loop
 sourceWithCursor :: ( MonadIO m
                     , FromJSON responseType
                     , CursorKey ck
-                    , HasCursorParam (APIRequest apiName (WithCursor Integer ck responseType)) Integer
+                    , HasParam "cursor" supports
                     )
                  => TWInfo -- ^ Twitter Setting
                  -> HTTP.Manager
-                 -> APIRequest apiName (WithCursor Integer ck responseType)
+                 -> APIRequest supports (WithCursor Integer ck responseType)
                  -> C.Source m responseType
 sourceWithCursor info mgr req = loop (Just (-1))
   where
@@ -323,11 +325,11 @@ sourceWithCursor info mgr req = loop (Just (-1))
 -- This function cooperate with instances of 'HasCursorParam'.
 sourceWithCursor' :: ( MonadIO m
                      , CursorKey ck
-                     , HasCursorParam (APIRequest apiName (WithCursor Integer ck responseType)) Integer
+                     , HasParam "cursor" supports
                      )
                   => TWInfo -- ^ Twitter Setting
                   -> HTTP.Manager
-                  -> APIRequest apiName (WithCursor Integer ck responseType)
+                  -> APIRequest supports (WithCursor Integer ck responseType)
                   -> C.Source m Value
 sourceWithCursor' info mgr req = loop (Just (-1))
   where
@@ -347,7 +349,7 @@ sourceWithSearchResult :: ( MonadIO m
                           )
                        => TWInfo -- ^ Twitter Setting
                        -> HTTP.Manager
-                       -> APIRequest apiName (SearchResult [responseType])
+                       -> APIRequest supports (SearchResult [responseType])
                        -> m (SearchResult (C.Source m responseType))
 sourceWithSearchResult info mgr req = do
     res <- liftIO $ call info mgr req
@@ -369,7 +371,7 @@ sourceWithSearchResult' :: ( MonadIO m
                            )
                         => TWInfo -- ^ Twitter Setting
                         -> HTTP.Manager
-                        -> APIRequest apiName (SearchResult [responseType])
+                        -> APIRequest supports (SearchResult [responseType])
                         -> m (SearchResult (C.Source m Value))
 sourceWithSearchResult' info mgr req = do
     res <- liftIO $ call info mgr $ relax req
