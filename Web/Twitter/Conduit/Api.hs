@@ -177,8 +177,8 @@ data SearchTweets
 searchTweets :: T.Text -- ^ search string
              -> APIRequest SearchTweets (SearchResult [Status])
 searchTweets q = APIRequest "GET" (endpoint ++ "search/tweets.json") [("q", PVString q)]
-deriveHasParamInstances ''SearchTweets
-    [ "lang"
+type SearchTweets = '[
+      "lang"
     , "locale"
     -- , "result_type"
     , "count"
@@ -209,8 +209,8 @@ data DirectMessages
 -- APIRequest "GET" "https://api.twitter.com/1.1/direct_messages/events/list.json" [("count","50")]
 directMessages :: APIRequest DirectMessages (WithCursor T.Text EventsCursorKey DirectMessage)
 directMessages = APIRequest "GET" (endpoint ++ "direct_messages/events/list.json") def
-deriveHasParamInstances ''DirectMessages
-    [ "count"
+type DirectMessages = '[
+      "count"
     , "include_entities"
     , "skip_status"
     , "full_text"
@@ -233,8 +233,8 @@ data DirectMessagesSent
 -- APIRequest "GET" "https://api.twitter.com/1.1/direct_messages/sent.json" [("count","100")]
 directMessagesSent :: APIRequest DirectMessagesSent [DirectMessage]
 directMessagesSent = APIRequest "GET" (endpoint ++ "direct_messages/sent.json") def
-deriveHasParamInstances ''DirectMessagesSent
-    [ "since_id"
+type DirectMessagesSent = '[
+      "since_id"
     , "max_id"
     , "count"
     , "include_entities"
@@ -256,8 +256,8 @@ data DirectMessagesShow
 -- APIRequest "GET" "https://api.twitter.com/1.1/direct_messages/show.json" [("id","1234567890")]
 directMessagesShow :: StatusId -> APIRequest DirectMessagesShow DirectMessage
 directMessagesShow sId = APIRequest "GET" (endpoint ++ "direct_messages/show.json") [("id", PVInteger sId)]
-deriveHasParamInstances ''DirectMessagesShow
-    [ "full_text"
+type DirectMessagesShow = '[
+      "full_text"
     ]
 
 data DirectMessagesDestroy
@@ -346,8 +346,8 @@ data FriendsIds
 -- APIRequest "GET" "https://api.twitter.com/1.1/friends/ids.json" [("count","5000"),("screen_name","thimura")]
 friendsIds :: UserParam -> APIRequest FriendsIds (WithCursor Integer IdsCursorKey UserId)
 friendsIds q = APIRequest "GET" (endpoint ++ "friends/ids.json") (mkUserParam q)
-deriveHasParamInstances ''FriendsIds
-    [ "count"
+type FriendsIds = '[
+      "count"
     ]
 instance HasCursorParam (APIRequest FriendsIds a) Integer where
     cursor = wrappedParam "cursor" PVInteger unPVInteger
@@ -373,8 +373,8 @@ data FollowersIds
 -- APIRequest "GET" "https://api.twitter.com/1.1/followers/ids.json" [("count","5000"),("screen_name","thimura")]
 followersIds :: UserParam -> APIRequest FollowersIds (WithCursor Integer IdsCursorKey UserId)
 followersIds q = APIRequest "GET" (endpoint ++ "followers/ids.json") (mkUserParam q)
-deriveHasParamInstances ''FollowersIds
-    [ "count"
+type FollowersIds = '[
+      "count"
     ]
 instance HasCursorParam (APIRequest FollowersIds a) Integer where
     cursor = wrappedParam "cursor" PVInteger unPVInteger
@@ -438,8 +438,8 @@ data FriendshipsCreate
 -- APIRequest "POST" "https://api.twitter.com/1.1/friendships/create.json" [("user_id","69179963")]
 friendshipsCreate :: UserParam -> APIRequest FriendshipsCreate User
 friendshipsCreate user = APIRequest "POST" (endpoint ++ "friendships/create.json") (mkUserParam user)
-deriveHasParamInstances ''FriendshipsCreate
-    [ "follow"
+type FriendshipsCreate = '[
+      "follow"
     ]
 
 data FriendshipsDestroy
@@ -479,8 +479,8 @@ data FriendsList
 -- APIRequest "GET" "https://api.twitter.com/1.1/friends/list.json" [("user_id","69179963")]
 friendsList :: UserParam -> APIRequest FriendsList (WithCursor Integer UsersCursorKey User)
 friendsList q = APIRequest "GET" (endpoint ++ "friends/list.json") (mkUserParam q)
-deriveHasParamInstances ''FriendsList
-    [ "count"
+type FriendsList = '[
+      "count"
     , "skip_status"
     , "include_user_entities"
     ]
@@ -508,8 +508,8 @@ data FollowersList
 -- APIRequest "GET" "https://api.twitter.com/1.1/followers/list.json" [("user_id","69179963")]
 followersList :: UserParam -> APIRequest FollowersList (WithCursor Integer UsersCursorKey User)
 followersList q = APIRequest "GET" (endpoint ++ "followers/list.json") (mkUserParam q)
-deriveHasParamInstances ''FollowersList
-    [ "count"
+type FollowersList = '[
+      "count"
     , "skip_status"
     , "include_user_entities"
     ]
@@ -529,8 +529,8 @@ data AccountVerifyCredentials
 -- APIRequest "GET" "https://api.twitter.com/1.1/account/verify_credentials.json" []
 accountVerifyCredentials :: APIRequest AccountVerifyCredentials User
 accountVerifyCredentials = APIRequest "GET" (endpoint ++ "account/verify_credentials.json") []
-deriveHasParamInstances ''AccountVerifyCredentials
-    [ "include_entities"
+type AccountVerifyCredentials = '[
+      "include_entities"
     , "skip_status"
     , "include_email"
     ]
@@ -549,8 +549,8 @@ data AccountUpdateProfile
 -- APIRequest "POST" "https://api.twitter.com/1.1/account/update_profile.json" [("url","http://www.example.com")]
 accountUpdateProfile :: APIRequest AccountUpdateProfile User
 accountUpdateProfile = APIRequest "POST" (endpoint ++ "account/update_profile.json") []
-deriveHasParamInstances ''AccountUpdateProfile
-    [ "include_entities"
+type AccountUpdateProfile = '[
+      "include_entities"
     , "skip_status"
     , "name"
     , "url"
@@ -572,8 +572,8 @@ data UsersLookup
 -- APIRequest "GET" "https://api.twitter.com/1.1/users/lookup.json" [("screen_name","thimura,twitterapi")]
 usersLookup :: UserListParam -> APIRequest UsersLookup [User]
 usersLookup q = APIRequest "GET" (endpoint ++ "users/lookup.json") (mkUserListParam q)
-deriveHasParamInstances ''UsersLookup
-    [ "include_entities"
+type UsersLookup = '[
+      "include_entities"
     ]
 
 data UsersShow
@@ -589,8 +589,8 @@ data UsersShow
 -- APIRequest "GET" "https://api.twitter.com/1.1/users/show.json" [("screen_name","thimura")]
 usersShow :: UserParam -> APIRequest UsersShow User
 usersShow q = APIRequest "GET" (endpoint ++ "users/show.json") (mkUserParam q)
-deriveHasParamInstances ''UsersShow
-    [ "include_entities"
+type UsersShow = '[
+      "include_entities"
     ]
 
 data FavoritesList
@@ -613,8 +613,8 @@ favoritesList mbuser = APIRequest "GET" (endpoint ++ "favorites/list.json") (mkP
   where
     mkParam Nothing = []
     mkParam (Just usr) = mkUserParam usr
-deriveHasParamInstances ''FavoritesList
-    [ "count"
+type FavoritesList = '[
+      "count"
     , "since_id"
     , "max_id"
     , "include_entities"
@@ -633,8 +633,8 @@ data FavoritesCreate
 -- APIRequest "POST" "https://api.twitter.com/1.1/favorites/create.json" [("id","1234567890")]
 favoritesCreate :: StatusId -> APIRequest FavoritesCreate Status
 favoritesCreate sid = APIRequest "POST" (endpoint ++ "favorites/create.json") [("id", PVInteger sid)]
-deriveHasParamInstances ''FavoritesCreate
-    [ "include_entities"
+type FavoritesCreate = '[
+      "include_entities"
     ]
 
 data FavoritesDestroy
@@ -650,8 +650,8 @@ data FavoritesDestroy
 -- APIRequest "POST" "https://api.twitter.com/1.1/favorites/destroy.json" [("id","1234567890")]
 favoritesDestroy :: StatusId -> APIRequest FavoritesDestroy Status
 favoritesDestroy sid = APIRequest "POST" (endpoint ++ "favorites/destroy.json") [("id", PVInteger sid)]
-deriveHasParamInstances ''FavoritesDestroy
-    [ "include_entities"
+type FavoritesDestroy = '[
+      "include_entities"
     ]
 
 data ListsStatuses
@@ -674,8 +674,8 @@ data ListsStatuses
 -- APIRequest "GET" "https://api.twitter.com/1.1/lists/statuses.json" [("list_id","20849097")]
 listsStatuses :: ListParam -> APIRequest ListsStatuses [Status]
 listsStatuses q = APIRequest "GET" (endpoint ++ "lists/statuses.json") (mkListParam q)
-deriveHasParamInstances ''ListsStatuses
-    [ "since_id"
+type ListsStatuses = '[
+      "since_id"
     , "max_id"
     , "count"
     , "include_entities"
@@ -716,8 +716,8 @@ data ListsMemberships
 -- APIRequest "GET" "https://api.twitter.com/1.1/lists/memberships.json" [("user_id","69179963")]
 listsMemberships :: Maybe UserParam -> APIRequest ListsMemberships (WithCursor Integer ListsCursorKey List)
 listsMemberships q = APIRequest "GET" (endpoint ++ "lists/memberships.json") $ maybe [] mkUserParam q
-deriveHasParamInstances ''ListsMemberships
-    [ "count"
+type ListsMemberships = '[
+      "count"
     ]
 instance HasCursorParam (APIRequest ListsMemberships a) Integer where
     cursor = wrappedParam "cursor" PVInteger unPVInteger
@@ -737,8 +737,8 @@ data ListsSubscribers
 -- APIRequest "GET" "https://api.twitter.com/1.1/lists/subscribers.json" [("list_id","20849097")]
 listsSubscribers :: ListParam -> APIRequest ListsSubscribers (WithCursor Integer UsersCursorKey User)
 listsSubscribers q = APIRequest "GET" (endpoint ++ "lists/subscribers.json") (mkListParam q)
-deriveHasParamInstances ''ListsSubscribers
-    [ "count"
+type ListsSubscribers = '[
+      "count"
     , "skip_status"
     ]
 instance HasCursorParam (APIRequest ListsSubscribers a) Integer where
@@ -761,8 +761,8 @@ data ListsSubscriptions
 -- APIRequest "GET" "https://api.twitter.com/1.1/lists/subscriptions.json" [("user_id","69179963")]
 listsSubscriptions :: Maybe UserParam -> APIRequest ListsSubscriptions (WithCursor Integer ListsCursorKey List)
 listsSubscriptions q = APIRequest "GET" (endpoint ++ "lists/subscriptions.json") $ maybe [] mkUserParam q
-deriveHasParamInstances ''ListsSubscriptions
-    [ "count"
+type ListsSubscriptions = '[
+      "count"
     ]
 instance HasCursorParam (APIRequest ListsSubscriptions a) Integer where
     cursor = wrappedParam "cursor" PVInteger unPVInteger
@@ -784,8 +784,8 @@ data ListsOwnerships
 -- APIRequest "GET" "https://api.twitter.com/1.1/lists/ownerships.json" [("user_id","69179963")]
 listsOwnerships :: Maybe UserParam -> APIRequest ListsOwnerships (WithCursor Integer ListsCursorKey List)
 listsOwnerships q = APIRequest "GET" (endpoint ++ "lists/ownerships.json") $ maybe [] mkUserParam q
-deriveHasParamInstances ''ListsOwnerships
-    [ "count"
+type ListsOwnerships = '[
+      "count"
     ]
 instance HasCursorParam (APIRequest ListsOwnerships a) Integer where
     cursor = wrappedParam "cursor" PVInteger unPVInteger
@@ -837,8 +837,8 @@ data ListsMembers
 -- APIRequest "GET" "https://api.twitter.com/1.1/lists/members.json" [("list_id","20849097")]
 listsMembers :: ListParam -> APIRequest ListsMembers (WithCursor Integer UsersCursorKey User)
 listsMembers q = APIRequest "GET" (endpoint ++ "lists/members.json") (mkListParam q)
-deriveHasParamInstances ''ListsMembers
-    [ "count"
+type ListsMembers = '[
+      "count"
     , "skip_status"
     ]
 instance HasCursorParam (APIRequest ListsMembers a) Integer where
