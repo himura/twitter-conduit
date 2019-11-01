@@ -1,4 +1,3 @@
-{-# LANGUAGE CPP #-}
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE Rank2Types #-}
@@ -28,11 +27,7 @@ import GHC.TypeLits (Symbol, symbolVal, KnownSymbol)
 import Web.Twitter.Conduit.Request
 import Language.Haskell.TH
 
-#if __GLASGOW_HASKELL__ >= 708
 import Data.Proxy
-#else
-data Proxy (a :: k) = Proxy
-#endif
 
 type family HasParam (key :: Symbol) (ks :: [Symbol]) :: Constraint where
     HasParam (key :: Symbol) (key ': ks) = ()
