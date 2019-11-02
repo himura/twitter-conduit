@@ -1,12 +1,12 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE DataKinds #-}
-{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE OverloadedLabels #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards #-}
-{-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE UndecidableInstances #-}
 
 module Web.Twitter.Conduit.Base
        ( ResponseBodyType (..)
@@ -30,7 +30,6 @@ module Web.Twitter.Conduit.Base
        ) where
 
 import Web.Twitter.Conduit.Cursor
-import Web.Twitter.Conduit.Parameters hiding (url)
 import Web.Twitter.Conduit.Request
 import Web.Twitter.Conduit.Response
 import Web.Twitter.Conduit.Types
@@ -38,7 +37,6 @@ import Web.Twitter.Types.Lens
 
 import Control.Lens
 import Control.Monad (void)
-import Control.Monad.Base
 import Control.Monad.Catch (MonadThrow (..))
 import Control.Monad.IO.Class
 import Control.Monad.Trans.Resource (MonadResource, ResourceT, runResourceT)
@@ -258,7 +256,7 @@ callWithResponse' info mgr req =
 sourceWithMaxId :: ( MonadIO m
                    , FromJSON responseType
                    , AsStatus responseType
-                   , HasParam "max_id" supports
+                   , HasParam "max_id" Integer supports
                    )
                 => TWInfo -- ^ Twitter Setting
                 -> HTTP.Manager
@@ -271,7 +269,7 @@ sourceWithMaxId info mgr = loop
         case getMinId res of
             Just mid -> do
                 CL.sourceList res
-                loop $ req & maxId ?~ mid - 1
+                loop $ req & #max_id ?~ mid - 1
             Nothing -> CL.sourceList res
     getMinId = minimumOf (traverse . status_id)
 
@@ -281,7 +279,7 @@ sourceWithMaxId info mgr = loop
 --
 -- This function cooperate with instances of 'HasMaxIdParam'.
 sourceWithMaxId' :: ( MonadIO m
-                    , HasParam "max_id" supports
+                    , HasParam "max_id" Integer supports
                     )
                  => TWInfo -- ^ Twitter Setting
                  -> HTTP.Manager
@@ -294,7 +292,7 @@ sourceWithMaxId' info mgr = loop
         case minimumOf (traverse . key "id" . _Integer) res of
             Just mid -> do
                 CL.sourceList res
-                loop $ req & maxId ?~ mid - 1
+                loop $ req & #max_id ?~ mid - 1
             Nothing -> CL.sourceList res
 
 -- | A wrapper function to perform multiple API request with changing @cursor@ parameter.
@@ -303,7 +301,7 @@ sourceWithMaxId' info mgr = loop
 sourceWithCursor :: ( MonadIO m
                     , FromJSON responseType
                     , CursorKey ck
-                    , HasParam "cursor" supports
+                    , HasParam "cursor" Integer supports
                     )
                  => TWInfo -- ^ Twitter Setting
                  -> HTTP.Manager
@@ -314,7 +312,7 @@ sourceWithCursor info mgr req = loop (Just (-1))
     loop Nothing = CL.sourceNull
     loop (Just 0) = CL.sourceNull
     loop (Just cur) = do
-        res <- liftIO $ call info mgr $ req & cursor ?~ cur
+        res <- liftIO $ call info mgr $ req & #cursor ?~ cur
         CL.sourceList $ contents res
         loop $ nextCursor res
 
@@ -325,7 +323,7 @@ sourceWithCursor info mgr req = loop (Just (-1))
 -- This function cooperate with instances of 'HasCursorParam'.
 sourceWithCursor' :: ( MonadIO m
                      , CursorKey ck
-                     , HasParam "cursor" supports
+                     , HasParam "cursor" Integer supports
                      )
                   => TWInfo -- ^ Twitter Setting
                   -> HTTP.Manager
@@ -339,7 +337,7 @@ sourceWithCursor' info mgr req = loop (Just (-1))
     loop Nothing = CL.sourceNull
     loop (Just 0) = CL.sourceNull
     loop (Just cur) = do
-        res <- liftIO $ call info mgr $ relax $ req & cursor ?~ cur
+        res <- liftIO $ call info mgr $ relax $ req & #cursor ?~ cur
         CL.sourceList $ contents res
         loop $ nextCursor res
 
