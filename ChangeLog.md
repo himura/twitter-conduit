@@ -1,3 +1,25 @@
+## 0.5.0 (wip)
+
+* Support for OverloadedLabels
+
+  `twitter-conduit` now supports the OverloadedLabels extensions for overloaded parameters in `APIRequest` (e.g.: `#count`, `#max_id`).
+
+  We can now write:
+
+  ```haskell
+  homeTimeline & #count ?~ 200
+  ```
+
+  instead of:
+
+  ```haskell
+  import qualified Web.Twitter.Conduit.Parameters as P
+
+  homeTimeline & P.count ?~ 200
+  ```
+
+  NOTE: See `Web.Twitter.Conduit.ParametersDeprecated` module if you would like to use classic value lenses.
+
 ## 0.4.0
 
 * Follow direct message API changes [#65](https://github.com/himura/twitter-conduit/pull/65) [#62](https://github.com/himura/twitter-conduit/pull/62)

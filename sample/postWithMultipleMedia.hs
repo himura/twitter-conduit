@@ -1,4 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE OverloadedLabels #-}
+
 module Main where
 
 import Web.Twitter.Conduit
@@ -27,5 +29,5 @@ main = do
         putStrLn $ "Upload completed: media_id: " ++ ret ^. uploadedMediaId . to show ++ ", filepath: " ++ filepath
         return ret
     putStrLn $ "Post message: " ++ status
-    res <- call twInfo mgr $ update (T.pack status) & P.mediaIds ?~ (uploadedMediaList ^.. traversed .  uploadedMediaId)
+    res <- call twInfo mgr $ update (T.pack status) & #media_ids ?~ (uploadedMediaList ^.. traversed .  uploadedMediaId)
     print res

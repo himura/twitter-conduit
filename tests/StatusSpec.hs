@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE OverloadedLabels #-}
 {-# LANGUAGE CPP #-}
 
 module StatusSpec where
@@ -56,11 +57,11 @@ integrated = do
         it "returns the recent tweets which include RTs when specified include_rts option" $ do
             res <- call twInfo mgr
                    $ userTimeline (Param.ScreenNameParam "thimura")
-                   & Param.count ?~ 100 & Param.includeRts ?~ True
+                   & #count ?~ 100 & #include_rts ?~ True
             res `shouldSatisfy` (anyOf (folded . statusRetweetedStatus . _Just . statusUser . userScreenName) (/= "thimura"))
         it "iterate with sourceWithMaxId" $ do
             let src = sourceWithMaxId twInfo mgr $
-                      userTimeline (Param.ScreenNameParam "thimura") & Param.count ?~ 200
+                      userTimeline (Param.ScreenNameParam "thimura") & #count ?~ 200
             tl <- src $$ CL.isolate 600 =$ CL.consume
             length tl `shouldSatisfy` (== 600)
 

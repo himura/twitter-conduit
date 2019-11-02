@@ -38,10 +38,10 @@ module Web.Twitter.Conduit
        , sourceWithSearchResult'
 
        -- * 'Web.Twitter.Conduit.Parameters'
-       , Parameters.ListParam(..)
-       , Parameters.MediaData(..)
-       , Parameters.UserListParam(..)
-       , Parameters.UserParam(..)
+       , ListParam(..)
+       , MediaData(..)
+       , UserListParam(..)
+       , UserParam(..)
 
        -- * re-exports
        , OAuth (..)
@@ -55,7 +55,7 @@ module Web.Twitter.Conduit
 import Web.Twitter.Conduit.Api
 import Web.Twitter.Conduit.Base
 import Web.Twitter.Conduit.Cursor
-import qualified Web.Twitter.Conduit.Parameters as Parameters
+import Web.Twitter.Conduit.Parameters
 import Web.Twitter.Conduit.Request
 import Web.Twitter.Conduit.Response
 import Web.Twitter.Conduit.Status
@@ -161,7 +161,7 @@ import Control.Lens
 -- includes 20 tweets, and you can change the number of tweets by the /count/ parameter.
 --
 -- @
--- timeline \<- 'call' twInfo mgr '$' 'homeTimeline' '&' 'count' '?~' 200
+-- timeline \<- 'call' twInfo mgr '$' 'homeTimeline' '&' #count '?~' 200
 -- @
 --
 -- If you need more statuses, you can obtain those with multiple API requests.
@@ -171,7 +171,7 @@ import Control.Lens
 -- or use the conduit wrapper 'sourceWithCursor' as below:
 --
 -- @
--- friends \<- 'sourceWithCursor' twInfo mgr ('friendsList' ('ScreenNameParam' \"thimura\") '&' 'count' '?~' 200) '$$' 'CL.consume'
+-- friends \<- 'sourceWithCursor' twInfo mgr ('friendsList' ('ScreenNameParam' \"thimura\") '&' #count '?~' 200) '$$' 'CL.consume'
 -- @
 --
 -- Statuses APIs, for instance, 'homeTimeline', are also wrapped by 'sourceWithMaxId'.

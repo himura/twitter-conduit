@@ -1,51 +1,7 @@
-{-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TemplateHaskell #-}
 
 module Web.Twitter.Conduit.Parameters
-       ( Parameters(..)
-       , PV(..)
-       , APIQuery
-       , APIQueryItem
-       , makeSimpleQuery
-
-       , HasSinceIdParam (..)
-       , HasCountParam (..)
-       , HasMaxIdParam (..)
-       , HasPageParam (..)
-       , HasCursorParam (..)
-       , HasTrimUserParam (..)
-       , HasExcludeRepliesParam (..)
-       , HasContributorDetailsParam (..)
-       , HasIncludeEntitiesParam (..)
-       , HasIncludeEmailParam (..)
-       , HasIncludeExtAltTextParam (..)
-       , HasIncludeUserEntitiesParam (..)
-       , HasIncludeRtsParam (..)
-       , HasIncludeMyRetweetParam (..)
-       , HasInReplyToStatusIdParam (..)
-       , HasDisplayCoordinatesParam (..)
-       , HasPossiblySensitiveParam (..)
-       , HasLangParam (..)
-       , HasLanguageParam (..)
-       , HasLocaleParam (..)
-       , HasFilterLevelParam (..)
-       , HasStallWarningsParam (..)
-       , HasRepliesParam (..)
-       , HasUntilParam (..)
-       , HasSkipStatusParam (..)
-       , HasFollowParam (..)
-       , HasMapParam (..)
-       , HasMediaIdsParam (..)
-       , HasDescriptionParam (..)
-       , HasNameParam (..)
-       , HasProfileLinkColorParam (..)
-       , HasLocationParam (..)
-       , HasUrlParam (..)
-       , HasFullTextParam (..)
-       , HasWithParam (..)
-
-       , UserParam(..)
+       ( UserParam(..)
        , UserListParam(..)
        , ListParam(..)
        , MediaData(..)
@@ -54,12 +10,13 @@ module Web.Twitter.Conduit.Parameters
        , mkListParam
        ) where
 
-import Control.Lens
 import qualified Data.Text as T
 import Network.HTTP.Client (RequestBody)
-import Web.Twitter.Conduit.Parameters.TH
-import Web.Twitter.Conduit.Request
+import Web.Twitter.Conduit.Request.Internal (APIQuery, PV(..))
 import Web.Twitter.Types
+
+-- $setup
+-- >>> import Web.Twitter.Conduit.Request.Internal
 
 data UserParam = UserIdParam UserId | ScreenNameParam String
                deriving (Show, Eq)
@@ -69,44 +26,6 @@ data ListParam = ListIdParam Integer | ListNameParam String
                deriving (Show, Eq)
 data MediaData = MediaFromFile FilePath
                | MediaRequestBody FilePath RequestBody
-
-defineHasParamClassInteger "count"
-defineHasParamClassInteger "since_id"
-defineHasParamClassInteger "max_id"
-defineHasParamClassInteger "page"
-defineHasParamClassBool "trim_user"
-defineHasParamClassBool "exclude_replies"
-defineHasParamClassBool "contributor_details"
-defineHasParamClassBool "include_entities"
-defineHasParamClassBool "include_email"
-defineHasParamClassBool "include_user_entities"
-defineHasParamClassBool "include_rts"
-defineHasParamClassBool "include_my_retweet"
-defineHasParamClassBool "include_ext_alt_text"
-defineHasParamClassInteger "in_reply_to_status_id"
-defineHasParamClassBool "display_coordinates"
-defineHasParamClassBool "possibly_sensitive"
-defineHasParamClassString "lang"
-defineHasParamClassString "language"
-defineHasParamClassString "locale"
-defineHasParamClassString "filter_level"
-defineHasParamClassBool "stall_warnings"
-defineHasParamClassString "replies"
-defineHasParamClassDay "until"
-defineHasParamClassBool "skip_status"
-defineHasParamClassBool "follow"
-defineHasParamClassBool "map"
-defineHasParamClassIntegerArray "media_ids"
-defineHasParamClassString "description"
-defineHasParamClassString "name"
-defineHasParamClassString "profile_link_color"
-defineHasParamClassString "location"
-defineHasParamClassURI "url"
-defineHasParamClassBool "full_text"
-defineHasParamClassString "with"
-
-class Parameters p => HasCursorParam p a | p -> a where
-    cursor :: Lens' p (Maybe a)
 
 -- | converts 'UserParam' to 'HT.SimpleQuery'.
 --
@@ -128,7 +47,7 @@ mkUserParam (ScreenNameParam sn) = [("screen_name", PVString . T.pack $ sn)]
 -- [("screen_name","thimura,NikaidouShinku")]
 mkUserListParam :: UserListParam -> APIQuery
 mkUserListParam (UserIdListParam uids) =  [("user_id", PVIntegerArray uids)]
-mkUserListParam (ScreenNameListParam sns) = [("screen_name", PVStringArray (Prelude.map T.pack sns))]
+mkUserListParam (ScreenNameListParam sns) = [("screen_name", PVStringArray (map T.pack sns))]
 
 -- | converts 'ListParam' to 'HT.SimpleQuery'.
 --
