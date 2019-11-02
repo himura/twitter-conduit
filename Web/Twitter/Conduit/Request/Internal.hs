@@ -1,3 +1,4 @@
+{-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
@@ -20,16 +21,16 @@ import qualified Data.Text.Encoding as T
 import Data.Time.Calendar (Day)
 import GHC.OverloadedLabels
 import GHC.TypeLits
-import GHC.Types (Constraint)
 import qualified Network.HTTP.Types as HT
 
 data Param label t = label := t
 
 type EmptyParams = ('[] :: [Param Symbol *])
 
-type family HasParam (label :: Symbol) (paramType :: *) (params :: [Param Symbol *]) :: Constraint where
-    HasParam label paramType ((label ':= paramType) ': ks) = ()
-    HasParam label paramType ((label' ':= paramType') ': ks) = HasParam label paramType ks
+type HasParam (label :: Symbol) (paramType :: *) (params :: [Param Symbol *]) = ParamType label params ~ paramType
+type family ParamType (label :: Symbol) (params :: [Param Symbol *]) :: * where
+    ParamType label ((label ':= paramType) ': ks) = paramType
+    ParamType label ((label' ':= paramType') ': ks) = ParamType label ks
 
 type APIQuery = [APIQueryItem]
 type APIQueryItem = (ByteString, PV)
@@ -47,23 +48,27 @@ class Parameters req where
     type SupportParameters req :: [Param Symbol *]
     params :: Lens' req APIQuery
 
-class Parameter a where
-    param ::
-           Parameters p
-        => ByteString -- ^ key
-        -> Lens' p (Maybe a)
-instance Parameter Integer where
-    param key = rawParam key PVInteger unPVInteger
-instance Parameter Bool where
-    param key = rawParam key PVBool unPVBool
-instance Parameter Text where
-    param key = rawParam key PVString unPVString
-instance Parameter [Integer] where
-    param key = rawParam key PVIntegerArray unPVIntegerArray
-instance Parameter [Text] where
-    param key = rawParam key PVStringArray unPVStringArray
-instance Parameter Day where
-    param key = rawParam key PVDay unPVDay
+class ParameterValue a where
+    wrap :: a -> PV
+    unwrap :: PV -> a
+instance ParameterValue Integer where
+    wrap = PVInteger
+    unwrap = unPVInteger
+instance ParameterValue Bool where
+    wrap = PVBool
+    unwrap = unPVBool
+instance ParameterValue Text where
+    wrap = PVString
+    unwrap = unPVString
+instance ParameterValue [Integer] where
+    wrap = PVIntegerArray
+    unwrap = unPVIntegerArray
+instance ParameterValue [Text] where
+    wrap = PVStringArray
+    unwrap = unPVStringArray
+instance ParameterValue Day where
+    wrap = PVDay
+    unwrap = unPVDay
 
 makeSimpleQuery :: APIQuery -> HT.SimpleQuery
 makeSimpleQuery = traversed . _2 %~ paramValueBS
@@ -78,12 +83,10 @@ paramValueBS (PVStringArray iarr) = S8.intercalate "," $ map T.encodeUtf8 iarr
 paramValueBS (PVDay day) = S8.pack . show $ day
 
 rawParam ::
-       Parameters p
+       (Parameters p, ParameterValue a)
     => ByteString -- ^ key
-    -> (a -> PV) -- ^ wrap
-    -> (PV -> a) -- ^ unwrap
     -> Lens' p (Maybe a)
-rawParam key wrap unwrap = lens getter setter
+rawParam key = lens getter setter
    where
      getter = preview $ params . to (lookup key) . _Just . to unwrap
      setter = flip (over params . replace key)
@@ -92,12 +95,12 @@ rawParam key wrap unwrap = lens getter setter
      dropAssoc k = filter ((/= k) . fst)
 
 instance ( Parameters req
-         , Parameter a
+         , ParameterValue a
          , KnownSymbol label
          , HasParam label a (SupportParameters req)
          , Functor f
          , lens ~ (((Maybe a) -> f (Maybe a)) -> req -> f req)) =>
-         IsLabel label lens where
-    fromLabel = param key
+         IsLabel label lens  where
+    fromLabel = rawParam key
       where
         key = S8.pack (symbolVal (Proxy :: Proxy label))
