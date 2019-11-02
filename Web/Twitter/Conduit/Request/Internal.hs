@@ -25,6 +25,8 @@ import qualified Network.HTTP.Types as HT
 
 data Param label t = label := t
 
+type EmptyParams = ('[] :: [Param Symbol *])
+
 type family HasParam (label :: Symbol) (paramType :: *) (params :: [Param Symbol *]) :: Constraint where
     HasParam label paramType ((label ':= paramType) ': ks) = ()
     HasParam label paramType ((label' ':= paramType') ': ks) = HasParam label paramType ks
