@@ -42,7 +42,7 @@ data PV
     deriving (Show, Eq)
 
 class Parameters req where
-    type SupportedParams req :: [Param Symbol *]
+    type SupportParameters req :: [Param Symbol *]
     params :: Lens' req APIQuery
 
 class Parameter a where
@@ -92,7 +92,7 @@ rawParam key wrap unwrap = lens getter setter
 instance ( Parameters req
          , Parameter a
          , KnownSymbol label
-         , HasParam label a (SupportedParams req)
+         , HasParam label a (SupportParameters req)
          , Functor f
          , lens ~ (((Maybe a) -> f (Maybe a)) -> req -> f req)) =>
          IsLabel label lens where
