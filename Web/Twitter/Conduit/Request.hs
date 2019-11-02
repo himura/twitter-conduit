@@ -17,24 +17,22 @@ import Web.Twitter.Conduit.Request.Internal
 -- $setup
 -- >>> :set -XOverloadedStrings -XDataKinds -XTypeOperators
 -- >>> import Control.Lens
--- >>> import Data.Default
 -- >>> import Web.Twitter.Conduit.Parameters
 -- >>> type SampleId = Integer
 -- >>> type SampleApi = '["count" ':= Integer, "max_id" ':= Integer]
--- >>> let sampleApiRequest :: APIRequest SampleApi [SampleId]; sampleApiRequest = APIRequest "GET" "https://api.twitter.com/sample/api.json" def
+-- >>> let sampleApiRequest :: APIRequest SampleApi [SampleId]; sampleApiRequest = APIRequest "GET" "https://api.twitter.com/sample/api.json" []
 
 -- | API request. You should use specific builder functions instead of building this directly.
 --
 -- For example, if there were a @SampleApi@ type and a builder function which named @sampleApiRequest@.
--- In addition, @'APIRequest' SampleApi [SampleId]@ is a instance of both of 'HasCountParam' and 'HasMaxIdParam'.
 --
 -- @
--- type 'SampleId' = 'Integer'
--- 'sampleApiRequest' :: 'APIRequest' 'SampleApi' ['SampleId']
--- 'sampleApiRequest' = 'APIRequest' \"GET\" \"https:\/\/api.twitter.com\/sample\/api.json\" 'def'
--- type 'SampleApi' = '[ "count" ':= Integer
---                     , "max_id" ':= Integer
---                     ]
+-- type SampleId = 'Integer'
+-- sampleApiRequest :: 'APIRequest' SampleApi [SampleId]
+-- sampleApiRequest = 'APIRequest' \"GET\" \"https:\/\/api.twitter.com\/sample\/api.json\" []
+-- type SampleApi = '[ "count" ':= Integer
+--                   , "max_id" ':= Integer
+--                   ]
 --
 -- @
 --
@@ -43,7 +41,9 @@ import Web.Twitter.Conduit.Request.Internal
 -- >>> sampleApiRequest ^. params
 -- []
 --
--- And update request parameters.
+-- The second type parameter of the APIRequest represents the allowed parameters for the APIRequest.
+-- For example, @sampleApiRequest@ has 2 @Integer@ parameters, that is "count" and "max_id".
+-- You can update those parameters by label lenses (@#count@ and @#max_id@ respectively)
 --
 -- >>> (sampleApiRequest & #count ?~ 100 & #max_id ?~ 1234567890) ^. params
 -- [("max_id",PVInteger {unPVInteger = 1234567890}),("count",PVInteger {unPVInteger = 100})]

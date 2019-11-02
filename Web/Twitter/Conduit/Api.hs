@@ -921,7 +921,7 @@ type ListsShow = EmptyParams
 -- and then collect the resulting media IDs and update your status by calling 'update':
 --
 -- @
--- 'call' twInfo mgr '$' 'update' \"Hello World\" '&' #media_ids '?~' ['mediaId' res1, 'mediaId' res2]
+-- 'call' twInfo mgr '$' 'update' \"Hello World\" '&' #media_ids '?~' ['uploadedMediaId' res1, 'uploadedMediaId' res2]
 -- @
 --
 -- See: <https://dev.twitter.com/docs/api/multiple-media-extended-entities>
