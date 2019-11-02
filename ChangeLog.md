@@ -12,7 +12,7 @@
 
   instead of:
 
-  ```
+  ```haskell
   import qualified Web.Twitter.Conduit.Parameters as P
 
   homeTimeline & P.count ?~ 200
