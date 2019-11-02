@@ -45,7 +45,7 @@ import Network.HTTP.Client.MultipartFormData
 import Data.Default
 
 -- $setup
--- >>> :set -XOverloadedStrings
+-- >>> :set -XOverloadedStrings -XOverloadedLabels
 -- >>> import Control.Lens
 
 -- * Timelines
@@ -81,7 +81,7 @@ type StatusesMentionsTimeline = '[
 --
 -- >>> userTimeline (ScreenNameParam "thimura")
 -- APIRequest "GET" "https://api.twitter.com/1.1/statuses/user_timeline.json" [("screen_name","thimura")]
--- >>> userTimeline (ScreenNameParam "thimura") & includeRts ?~ True & count ?~ 200
+-- >>> userTimeline (ScreenNameParam "thimura") & #include_rts ?~ True & #count ?~ 200
 -- APIRequest "GET" "https://api.twitter.com/1.1/statuses/user_timeline.json" [("count","200"),("include_rts","true"),("screen_name","thimura")]
 userTimeline :: UserParam -> APIRequest StatusesUserTimeline [Status]
 userTimeline q = APIRequest "GET" (endpoint ++ "statuses/user_timeline.json") (mkUserParam q)
@@ -105,7 +105,7 @@ type StatusesUserTimeline = '[
 --
 -- >>> homeTimeline
 -- APIRequest "GET" "https://api.twitter.com/1.1/statuses/home_timeline.json" []
--- >>> homeTimeline & count ?~ 200
+-- >>> homeTimeline & #count ?~ 200
 -- APIRequest "GET" "https://api.twitter.com/1.1/statuses/home_timeline.json" [("count","200")]
 homeTimeline :: APIRequest StatusesHomeTimeline [Status]
 homeTimeline = APIRequest "GET" (endpoint ++ "statuses/home_timeline.json") def
@@ -129,7 +129,7 @@ type StatusesHomeTimeline = '[
 --
 -- >>> retweetsOfMe
 -- APIRequest "GET" "https://api.twitter.com/1.1/statuses/retweets_of_me.json" []
--- >>> retweetsOfMe & count ?~ 100
+-- >>> retweetsOfMe & #count ?~ 100
 -- APIRequest "GET" "https://api.twitter.com/1.1/statuses/retweets_of_me.json" [("count","100")]
 retweetsOfMe :: APIRequest StatusesRetweetsOfMe [Status]
 retweetsOfMe = APIRequest "GET" (endpoint ++ "statuses/retweets_of_me.json") def
@@ -154,7 +154,7 @@ type StatusesRetweetsOfMe = '[
 --
 -- >>> retweetsId 1234567890
 -- APIRequest "GET" "https://api.twitter.com/1.1/statuses/retweets/1234567890.json" []
--- >>> retweetsId 1234567890 & count ?~ 100
+-- >>> retweetsId 1234567890 & #count ?~ 100
 -- APIRequest "GET" "https://api.twitter.com/1.1/statuses/retweets/1234567890.json" [("count","100")]
 retweetsId :: StatusId -> APIRequest StatusesRetweetsId [RetweetedStatus]
 retweetsId status_id = APIRequest "GET" uri def
@@ -174,7 +174,7 @@ type StatusesRetweetsId = '[
 --
 -- >>> showId 1234567890
 -- APIRequest "GET" "https://api.twitter.com/1.1/statuses/show/1234567890.json" []
--- >>> showId 1234567890 & includeMyRetweet ?~ True
+-- >>> showId 1234567890 & #include_my_retweet ?~ True
 -- APIRequest "GET" "https://api.twitter.com/1.1/statuses/show/1234567890.json" [("include_my_retweet","true")]
 showId :: StatusId -> APIRequest StatusesShowId Status
 showId status_id = APIRequest "GET" uri def
@@ -214,7 +214,7 @@ type StatusesDestroyId = '[
 --
 -- >>> update "Hello World"
 -- APIRequest "POST" "https://api.twitter.com/1.1/statuses/update.json" [("status","Hello World")]
--- >>> update "Hello World" & inReplyToStatusId ?~ 1234567890
+-- >>> update "Hello World" & #in_reply_to_status_id ?~ 1234567890
 -- APIRequest "POST" "https://api.twitter.com/1.1/statuses/update.json" [("in_reply_to_status_id","1234567890"),("status","Hello World")]
 update :: T.Text -> APIRequest StatusesUpdate Status
 update status = APIRequest "POST" uri [("status", PVString status)]
@@ -284,7 +284,7 @@ type StatusesUpdateWithMedia = '[
 -- APIRequest "GET" "https://api.twitter.com/1.1/statuses/lookup.json" [("id","10")]
 -- >>> lookup [10, 432656548536401920]
 -- APIRequest "GET" "https://api.twitter.com/1.1/statuses/lookup.json" [("id","10,432656548536401920")]
--- >>> lookup [10, 432656548536401920] & includeEntities ?~ True
+-- >>> lookup [10, 432656548536401920] & #include_entities ?~ True
 -- APIRequest "GET" "https://api.twitter.com/1.1/statuses/lookup.json" [("include_entities","true"),("id","10,432656548536401920")]
 lookup :: [StatusId] -> APIRequest StatusesLookup [Status]
 lookup ids = APIRequest "GET" (endpoint ++ "statuses/lookup.json") [("id", PVIntegerArray ids)]

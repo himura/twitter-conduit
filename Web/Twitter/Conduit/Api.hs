@@ -158,7 +158,7 @@ import Data.Time.Calendar (Day)
 import Data.Aeson
 
 -- $setup
--- >>> :set -XOverloadedStrings
+-- >>> :set -XOverloadedStrings -XOverloadedLabels
 -- >>> import Control.Lens
 
 -- | Returns search query.
@@ -172,14 +172,14 @@ import Data.Aeson
 --
 -- >>> searchTweets "search text"
 -- APIRequest "GET" "https://api.twitter.com/1.1/search/tweets.json" [("q","search text")]
--- >>> searchTweets "search text" & lang ?~ "ja" & count ?~ 100
+-- >>> searchTweets "search text" & #lang ?~ "ja" & #count ?~ 100
 -- APIRequest "GET" "https://api.twitter.com/1.1/search/tweets.json" [("count","100"),("lang","ja"),("q","search text")]
 searchTweets :: T.Text -- ^ search string
              -> APIRequest SearchTweets (SearchResult [Status])
 searchTweets q = APIRequest "GET" (endpoint ++ "search/tweets.json") [("q", PVString q)]
 type SearchTweets = '[
-      "lang" ':= String
-    , "locale" ':= String
+      "lang" ':= T.Text
+    , "locale" ':= T.Text
     , "count" ':= Integer
     , "until" ':= Day
     , "since_id" ':= Integer
@@ -197,12 +197,12 @@ search = searchTweets
 -- You can perform a query using 'call':
 --
 -- @
--- res <- 'call' twInfo mgr '$' 'directMessages' '&' 'count' '?~' 50
+-- res <- 'call' twInfo mgr '$' 'directMessages' '&' #count '?~' 50
 -- @
 --
 -- >>> directMessages
 -- APIRequest "GET" "https://api.twitter.com/1.1/direct_messages/events/list.json" []
--- >>> directMessages & count ?~ 50
+-- >>> directMessages & #count ?~ 50
 -- APIRequest "GET" "https://api.twitter.com/1.1/direct_messages/events/list.json" [("count","50")]
 directMessages :: APIRequest DirectMessages (WithCursor T.Text EventsCursorKey DirectMessage)
 directMessages = APIRequest "GET" (endpoint ++ "direct_messages/events/list.json") def
@@ -219,12 +219,12 @@ type DirectMessages = '[
 -- You can perform a query using 'call':
 --
 -- @
--- res <- 'call' twInfo mgr '$' 'directMessagesSent' '&' 'count' '?~' 100
+-- res <- 'call' twInfo mgr '$' 'directMessagesSent' '&' #count '?~' 100
 -- @
 --
 -- >>> directMessagesSent
 -- APIRequest "GET" "https://api.twitter.com/1.1/direct_messages/sent.json" []
--- >>> directMessagesSent & count ?~ 100
+-- >>> directMessagesSent & #count ?~ 100
 -- APIRequest "GET" "https://api.twitter.com/1.1/direct_messages/sent.json" [("count","100")]
 directMessagesSent :: APIRequest DirectMessagesSent [DirectMessage]
 directMessagesSent = APIRequest "GET" (endpoint ++ "direct_messages/sent.json") def
@@ -335,7 +335,7 @@ type FriendshipsNoRetweetsIds = EmptyParams
 --
 -- >>> friendsIds (ScreenNameParam "thimura")
 -- APIRequest "GET" "https://api.twitter.com/1.1/friends/ids.json" [("screen_name","thimura")]
--- >>> friendsIds (ScreenNameParam "thimura") & count ?~ 5000
+-- >>> friendsIds (ScreenNameParam "thimura") & #count ?~ 5000
 -- APIRequest "GET" "https://api.twitter.com/1.1/friends/ids.json" [("count","5000"),("screen_name","thimura")]
 friendsIds :: UserParam -> APIRequest FriendsIds (WithCursor Integer IdsCursorKey UserId)
 friendsIds q = APIRequest "GET" (endpoint ++ "friends/ids.json") (mkUserParam q)
@@ -360,7 +360,7 @@ type FriendsIds = '[
 --
 -- >>> followersIds (ScreenNameParam "thimura")
 -- APIRequest "GET" "https://api.twitter.com/1.1/followers/ids.json" [("screen_name","thimura")]
--- >>> followersIds (ScreenNameParam "thimura") & count ?~ 5000
+-- >>> followersIds (ScreenNameParam "thimura") & #count ?~ 5000
 -- APIRequest "GET" "https://api.twitter.com/1.1/followers/ids.json" [("count","5000"),("screen_name","thimura")]
 followersIds :: UserParam -> APIRequest FollowersIds (WithCursor Integer IdsCursorKey UserId)
 followersIds q = APIRequest "GET" (endpoint ++ "followers/ids.json") (mkUserParam q)
@@ -525,10 +525,10 @@ type AccountVerifyCredentials = '[
 -- You can perform request by using 'call':
 --
 -- @
--- res <- 'call' twInfo mgr '$' 'accountUpdateProfile' & 'Web.Twitter.Conduit.Parameters.url' ?~ \"http://www.example.com\"
+-- res <- 'call' twInfo mgr '$' 'accountUpdateProfile' & #url ?~ \"http://www.example.com\"
 -- @
 --
--- >>> accountUpdateProfile & url ?~ "http://www.example.com"
+-- >>> accountUpdateProfile & #url ?~ "http://www.example.com"
 -- APIRequest "POST" "https://api.twitter.com/1.1/account/update_profile.json" [("url","http://www.example.com")]
 accountUpdateProfile :: APIRequest AccountUpdateProfile User
 accountUpdateProfile = APIRequest "POST" (endpoint ++ "account/update_profile.json") []
@@ -642,7 +642,7 @@ type FavoritesDestroy = '[
 --
 -- If you need more statuses, you can obtain those by using 'sourceWithMaxId':
 -- @
--- res <- sourceWithMaxId ('listsStatuses' ('ListNameParam' "thimura/haskell") & count ?~ 200) $$ CL.take 1000
+-- res <- sourceWithMaxId ('listsStatuses' ('ListNameParam' "thimura/haskell") & #count ?~ 200) $$ CL.take 1000
 -- @
 --
 -- >>> listsStatuses (ListNameParam "thimura/haskell")
@@ -921,7 +921,7 @@ type ListsShow = EmptyParams
 -- and then collect the resulting media IDs and update your status by calling 'update':
 --
 -- @
--- 'call' twInfo mgr '$' 'update' \"Hello World\" '&' 'mediaIds' '?~' ['mediaId' res1, 'mediaId' res2]
+-- 'call' twInfo mgr '$' 'update' \"Hello World\" '&' #media_ids '?~' ['mediaId' res1, 'mediaId' res2]
 -- @
 --
 -- See: <https://dev.twitter.com/docs/api/multiple-media-extended-entities>

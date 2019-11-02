@@ -24,12 +24,12 @@ import Web.Twitter.Conduit.Request.Internal
 -- see details: https://ghc.haskell.org/trac/ghc/ticket/5820
 #if __GLASGOW_HASKELL__ >= 706
 -- $setup
--- >>> :set -XOverloadedStrings -XDataKinds
+-- >>> :set -XOverloadedStrings -XDataKinds -XTypeOperators
 -- >>> import Control.Lens
 -- >>> import Data.Default
 -- >>> import Web.Twitter.Conduit.Parameters
 -- >>> type SampleId = Integer
--- >>> type SampleApi = '["count", "max_id"]
+-- >>> type SampleApi = '["count" ':= Integer, "max_id" ':= Integer]
 -- >>> let sampleApiRequest :: APIRequest SampleApi [SampleId]; sampleApiRequest = APIRequest "GET" "https://api.twitter.com/sample/api.json" def
 
 -- | API request. You should use specific builder functions instead of building this directly.
@@ -41,7 +41,9 @@ import Web.Twitter.Conduit.Request.Internal
 -- type 'SampleId' = 'Integer'
 -- 'sampleApiRequest' :: 'APIRequest' 'SampleApi' ['SampleId']
 -- 'sampleApiRequest' = 'APIRequest' \"GET\" \"https:\/\/api.twitter.com\/sample\/api.json\" 'def'
--- type 'SampleApi' = '["count", "max_id"]
+-- type 'SampleApi' = '[ "count" ':= Integer
+--                     , "max_id" ':= Integer
+--                     ]
 --
 -- @
 --
@@ -52,9 +54,9 @@ import Web.Twitter.Conduit.Request.Internal
 --
 -- And update request parameters.
 --
--- >>> (sampleApiRequest & count ?~ 100 & maxId ?~ 1234567890) ^. params
+-- >>> (sampleApiRequest & #count ?~ 100 & #max_id ?~ 1234567890) ^. params
 -- [("max_id",PVInteger {unPVInteger = 1234567890}),("count",PVInteger {unPVInteger = 100})]
--- >>> (sampleApiRequest & count ?~ 100 & maxId ?~ 1234567890 & count .~ Nothing) ^. params
+-- >>> (sampleApiRequest & #count ?~ 100 & #max_id ?~ 1234567890 & #count .~ Nothing) ^. params
 -- [("max_id",PVInteger {unPVInteger = 1234567890})]
 #endif
 data APIRequest (supports :: [Param Symbol *]) responseType

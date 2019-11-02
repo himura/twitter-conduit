@@ -99,7 +99,7 @@ instance ( Parameters req
          , KnownSymbol label
          , HasParam label a (SupportParameters req)
          , Functor f
-         , lens ~ (((Maybe a) -> f (Maybe a)) -> req -> f req)) =>
+         , lens ~ ((Maybe a -> f (Maybe a)) -> req -> f req)) =>
          IsLabel label lens  where
     fromLabel = rawParam key
       where

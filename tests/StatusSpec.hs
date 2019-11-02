@@ -57,11 +57,11 @@ integrated = do
         it "returns the recent tweets which include RTs when specified include_rts option" $ do
             res <- call twInfo mgr
                    $ userTimeline (Param.ScreenNameParam "thimura")
-                   & #count ?~ (100 :: Integer) & #include_rts ?~ True
+                   & #count ?~ 100 & #include_rts ?~ True
             res `shouldSatisfy` (anyOf (folded . statusRetweetedStatus . _Just . statusUser . userScreenName) (/= "thimura"))
         it "iterate with sourceWithMaxId" $ do
             let src = sourceWithMaxId twInfo mgr $
-                      userTimeline (Param.ScreenNameParam "thimura") & #count ?~ (200 :: Integer)
+                      userTimeline (Param.ScreenNameParam "thimura") & #count ?~ 200
             tl <- src $$ CL.isolate 600 =$ CL.consume
             length tl `shouldSatisfy` (== 600)
 

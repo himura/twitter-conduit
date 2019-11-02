@@ -1,5 +1,4 @@
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TemplateHaskell #-}
 
 module Web.Twitter.Conduit.Parameters
        ( UserParam(..)
@@ -16,8 +15,8 @@ import Network.HTTP.Client (RequestBody)
 import Web.Twitter.Conduit.Request.Internal (APIQuery, PV(..))
 import Web.Twitter.Types
 
-import Prelude hiding (map, until)
-import qualified Prelude
+-- $setup
+-- >>> import Web.Twitter.Conduit.Request.Internal
 
 data UserParam = UserIdParam UserId | ScreenNameParam String
                deriving (Show, Eq)
@@ -48,7 +47,7 @@ mkUserParam (ScreenNameParam sn) = [("screen_name", PVString . T.pack $ sn)]
 -- [("screen_name","thimura,NikaidouShinku")]
 mkUserListParam :: UserListParam -> APIQuery
 mkUserListParam (UserIdListParam uids) =  [("user_id", PVIntegerArray uids)]
-mkUserListParam (ScreenNameListParam sns) = [("screen_name", PVStringArray (Prelude.map T.pack sns))]
+mkUserListParam (ScreenNameListParam sns) = [("screen_name", PVStringArray (map T.pack sns))]
 
 -- | converts 'ListParam' to 'HT.SimpleQuery'.
 --
