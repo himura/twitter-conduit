@@ -1,4 +1,3 @@
-{-# LANGUAGE CPP #-}
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE Rank2Types #-}
@@ -9,20 +8,12 @@ module Web.Twitter.Conduit.Request
        , APIRequest(..)
        ) where
 
-#if __GLASGOW_HASKELL__ < 710
-import Control.Applicative
-#endif
 import Data.Aeson
 import GHC.TypeLits (Symbol)
 import Network.HTTP.Client.MultipartFormData
 import qualified Network.HTTP.Types as HT
 import Web.Twitter.Conduit.Request.Internal
 
--- In GHC 7.4.2, the following test fails with Overlapping instances error.
--- It may be caused by #5820 "defining instance in GHCi leads to duplicated instances".
--- So, we bypass below tests when GHC version older than 7.6.
--- see details: https://ghc.haskell.org/trac/ghc/ticket/5820
-#if __GLASGOW_HASKELL__ >= 706
 -- $setup
 -- >>> :set -XOverloadedStrings -XDataKinds -XTypeOperators
 -- >>> import Control.Lens
@@ -58,7 +49,6 @@ import Web.Twitter.Conduit.Request.Internal
 -- [("max_id",PVInteger {unPVInteger = 1234567890}),("count",PVInteger {unPVInteger = 100})]
 -- >>> (sampleApiRequest & #count ?~ 100 & #max_id ?~ 1234567890 & #count .~ Nothing) ^. params
 -- [("max_id",PVInteger {unPVInteger = 1234567890})]
-#endif
 data APIRequest (supports :: [Param Symbol *]) responseType
     = APIRequest
       { _method :: HT.Method

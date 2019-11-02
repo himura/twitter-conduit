@@ -47,19 +47,12 @@ import qualified Network.HTTP.Conduit as HTTP
 import qualified Data.Conduit.Internal as CI
 #endif
 
-#if MIN_VERSION_conduit(1,3,0)
-#else
-#if MIN_VERSION_conduit(1,0,16)
+#if !MIN_VERSION_conduit(1,3,0)
 ($=+) :: MonadIO m
       => CI.ResumableSource m a
       -> CI.Conduit a m o
       -> m (CI.ResumableSource m o)
 ($=+) = (return .) . (C.$=+)
-#else
-rsrc $=+ cndt = do
-    (src, finalizer) <- C.unwrapResumable rsrc
-    return $ CI.ResumableSource (src C.$= cndt) finalizer
-#endif
 #endif
 
 stream ::

@@ -1,7 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE EmptyDataDecls #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE CPP #-}
 
 module Web.Twitter.Conduit.Cursor
        ( CursorKey (..)
@@ -12,10 +11,6 @@ module Web.Twitter.Conduit.Cursor
        , WithCursor (..)
        ) where
 
-#if __GLASGOW_HASKELL__ < 710
-import Control.Applicative
-import Data.Monoid
-#endif
 import Data.Aeson
 import Data.Text (Text)
 import Web.Twitter.Types (checkError)
@@ -45,7 +40,6 @@ data EventsCursorKey
 instance CursorKey EventsCursorKey where
     cursorKey = const "events"
 
-#if __GLASGOW_HASKELL__ >= 706
 -- | A wrapper for API responses which have "next_cursor" field.
 --
 -- The first type parameter of 'WithCursor' specifies the field name of contents.
@@ -67,7 +61,6 @@ instance CursorKey EventsCursorKey where
 -- Just "hogehoge"
 -- >>> contents res
 -- [1000]
-#endif
 data WithCursor cursorType cursorKey wrapped = WithCursor
     { previousCursor :: Maybe cursorType
     , nextCursor :: Maybe cursorType
