@@ -1,45 +1,8 @@
-{-# LANGUAGE DataKinds #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE TemplateHaskell #-}
-{-# LANGUAGE TypeFamilies #-}
-{-# LANGUAGE TypeOperators #-}
 
 module Web.Twitter.Conduit.Parameters
-       ( Parameters(..)
-       , PV(..)
-       , APIQuery
-       , APIQueryItem
-       , makeSimpleQuery
-
-
-       , HasParam
-       , count
-       , sinceId
-       , maxId
-       , page
-       , cursor
-       , trimUser
-       , excludeReplies
-       , contributorDetails
-       , includeEntities
-       , includeUserEntities
-       , includeRts
-       , includeMyRetweet
-       , inReplyToStatusId
-       , displayCoordinates
-       , possiblySensitive
-       , lang
-       , language
-       , locale
-       , filterLevel
-       , stallWarnings
-       , replies
-       , until
-       , skipStatus
-       , follow
-       , map
-       , mediaIds
+       ( makeSimpleQuery
 
        , UserParam(..)
        , UserListParam(..)
@@ -50,10 +13,8 @@ module Web.Twitter.Conduit.Parameters
        , mkListParam
        ) where
 
-import Control.Lens
 import qualified Data.Text as T
 import Network.HTTP.Client (RequestBody)
-import Web.Twitter.Conduit.Parameters.TH
 import Web.Twitter.Conduit.Request
 import Web.Twitter.Types
 
@@ -68,33 +29,6 @@ data ListParam = ListIdParam Integer | ListNameParam String
                deriving (Show, Eq)
 data MediaData = MediaFromFile FilePath
                | MediaRequestBody FilePath RequestBody
-
-defineParamInteger "count"
-defineParamInteger "since_id"
-defineParamInteger "max_id"
-defineParamInteger "page"
-defineParamInteger "cursor"
-defineParamBool "trim_user"
-defineParamBool "exclude_replies"
-defineParamBool "contributor_details"
-defineParamBool "include_entities"
-defineParamBool "include_user_entities"
-defineParamBool "include_rts"
-defineParamBool "include_my_retweet"
-defineParamInteger "in_reply_to_status_id"
-defineParamBool "display_coordinates"
-defineParamBool "possibly_sensitive"
-defineParamString "lang"
-defineParamString "language"
-defineParamString "locale"
-defineParamString "filter_level"
-defineParamBool "stall_warnings"
-defineParamString "replies"
-defineParamDay "until"
-defineParamBool "skip_status"
-defineParamBool "follow"
-defineParamBool "map"
-defineParamIntegerArray "media_ids"
 
 -- | converts 'UserParam' to 'HT.SimpleQuery'.
 --
