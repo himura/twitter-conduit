@@ -29,6 +29,7 @@ import Web.Twitter.Conduit.Types
 import Web.Twitter.Conduit.Base
 import Web.Twitter.Types
 import Web.Twitter.Conduit.Request
+import Web.Twitter.Conduit.Request.Internal
 import Web.Twitter.Conduit.Response
 
 import Control.Monad.Catch

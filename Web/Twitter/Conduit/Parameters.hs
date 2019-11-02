@@ -2,9 +2,7 @@
 {-# LANGUAGE TemplateHaskell #-}
 
 module Web.Twitter.Conduit.Parameters
-       ( makeSimpleQuery
-
-       , UserParam(..)
+       ( UserParam(..)
        , UserListParam(..)
        , ListParam(..)
        , MediaData(..)
@@ -15,7 +13,7 @@ module Web.Twitter.Conduit.Parameters
 
 import qualified Data.Text as T
 import Network.HTTP.Client (RequestBody)
-import Web.Twitter.Conduit.Request
+import Web.Twitter.Conduit.Request.Internal (APIQuery, PV(..))
 import Web.Twitter.Types
 
 import Prelude hiding (map, until)

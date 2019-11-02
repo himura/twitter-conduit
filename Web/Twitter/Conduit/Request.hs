@@ -6,17 +6,8 @@
 {-# LANGUAGE TypeFamilies #-}
 
 module Web.Twitter.Conduit.Request
-       ( Parameters(..)
-       , Param(..)
-       , HasParam
-       , Parameter(..)
-       , rawParam
+       ( HasParam
        , APIRequest(..)
-       , APIQuery
-       , APIQueryItem
-       , PV(..)
-       , makeSimpleQuery
-       , paramValueBS
        ) where
 
 #if __GLASGOW_HASKELL__ < 710
