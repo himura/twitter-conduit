@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE FlexibleInstances #-}
@@ -100,7 +101,11 @@ instance ( Parameters req
          , HasParam label a (SupportParameters req)
          , Functor f
          , lens ~ ((Maybe a -> f (Maybe a)) -> req -> f req)) =>
-         IsLabel label lens  where
+         IsLabel label lens where
+#if MIN_VERSION_base(4, 10, 0)
     fromLabel = rawParam key
+#else
+    fromLabel _ = rawParam key
+#endif
       where
         key = S8.pack (symbolVal (Proxy :: Proxy label))
