@@ -1,11 +1,16 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE KindSignatures #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE Rank2Types #-}
-{-# LANGUAGE CPP #-}
+{-# LANGUAGE TypeFamilies #-}
 
 module Web.Twitter.Conduit.Request
        ( Parameters(..)
+       , Param(..)
+       , HasParam
+       , Parameter(..)
+       , rawParam
        , APIRequest(..)
        , APIQuery
        , APIQueryItem
@@ -62,7 +67,7 @@ import Web.Twitter.Conduit.Request.Internal
 -- >>> (sampleApiRequest & count ?~ 100 & maxId ?~ 1234567890 & count .~ Nothing) ^. params
 -- [("max_id",PVInteger {unPVInteger = 1234567890})]
 #endif
-data APIRequest (supports :: [Symbol]) responseType
+data APIRequest (supports :: [Param Symbol *]) responseType
     = APIRequest
       { _method :: HT.Method
       , _url :: String
@@ -80,7 +85,9 @@ data APIRequest (supports :: [Symbol]) responseType
       , _params :: APIQuery
       , _body :: Value
       }
-instance Parameters (APIRequest apiName responseType) where
+instance Parameters (APIRequest supports responseType) where
+    type SupportParameters (APIRequest supports responseType) = supports
+
     params f (APIRequest m u pa) = APIRequest m u <$> f pa
     params f (APIRequestMultipart m u pa prt) =
         (\p -> APIRequestMultipart m u p prt) <$> f pa
@@ -89,4 +96,3 @@ instance Show (APIRequest apiName responseType) where
     show (APIRequest m u p) = "APIRequest " ++ show m ++ " " ++ show u ++ " " ++ show (makeSimpleQuery p)
     show (APIRequestMultipart m u p _) = "APIRequestMultipart " ++ show m ++ " " ++ show u ++ " " ++ show (makeSimpleQuery p)
     show (APIRequestJSON m u p _) = "APIRequestJSON " ++ show m ++ " " ++ show u ++ " " ++ show (makeSimpleQuery p)
-
