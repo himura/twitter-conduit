@@ -4,7 +4,6 @@
 module Main where
 
 import Web.Twitter.Conduit
-import qualified Web.Twitter.Conduit.Parameters as P
 import Web.Twitter.Types.Lens
 import Common
 

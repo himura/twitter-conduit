@@ -8,11 +8,10 @@
 
 module Main where
 
-import Web.Twitter.Conduit hiding (lookup,url)
+import Web.Twitter.Conduit hiding (lookup)
 import Web.Authenticate.OAuth as OA
 import qualified Data.ByteString.Char8 as S8
 import Data.Maybe
-import Data.Monoid
 import System.Environment
 import System.IO (hFlush, stdout)
 

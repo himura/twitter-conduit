@@ -49,13 +49,16 @@ import qualified Data.Conduit as C
 import qualified Data.Conduit.Attoparsec as CA
 import qualified Data.Conduit.List as CL
 import qualified Data.Map as M
-import Data.Monoid
 import qualified Data.Text.Encoding as T
 import Network.HTTP.Client.MultipartFormData
 import qualified Network.HTTP.Conduit as HTTP
 import qualified Network.HTTP.Types as HT
 import Unsafe.Coerce
 import Web.Authenticate.OAuth (signOAuth)
+
+#if __GLASGOW_HASKELL__ < 804
+import Data.Monoid
+#endif
 
 makeRequest :: APIRequest apiName responseType
             -> IO HTTP.Request
@@ -78,28 +81,16 @@ makeRequest' :: HT.Method -- ^ HTTP request method (GET or POST)
              -> HT.SimpleQuery -- ^ Query
              -> IO HTTP.Request
 makeRequest' m url query = do
-#if MIN_VERSION_http_client(0,4,30)
     req <- HTTP.parseRequest url
-#else
-    req <- HTTP.parseUrl url
-#endif
     let addParams =
             if m == "POST"
             then HTTP.urlEncodedBody query
             else \r -> r { HTTP.queryString = HT.renderSimpleQuery False query }
-    return $ addParams $ req { HTTP.method = m
-#if !MIN_VERSION_http_client(0,4,30)
-                             , HTTP.checkStatus = \_ _ _ -> Nothing
-#endif
-                             }
+    return $ addParams $ req { HTTP.method = m }
 
 class ResponseBodyType a where
     parseResponseBody ::
-#if MIN_VERSION_http_conduit(2,3,0)
            Response (C.ConduitM () ByteString (ResourceT IO) ())
-#else
-           Response (C.ResumableSource m ByteString)
-#endif
         -> ResourceT IO (Response a)
 
 type NoContent = ()
@@ -118,11 +109,7 @@ getResponse :: MonadResource m
             => TWInfo
             -> HTTP.Manager
             -> HTTP.Request
-#if MIN_VERSION_http_conduit(2,3,0)
             -> m (Response (C.ConduitM () ByteString m ()))
-#else
-            -> m (Response (C.ResumableSource m ByteString))
-#endif
 getResponse TWInfo{..} mgr req = do
     signedReq <- signOAuth (twOAuth twToken) (twCredential twToken) $ req { HTTP.proxy = twProxy }
     res <- HTTP.http signedReq mgr
@@ -136,19 +123,11 @@ endpoint :: String
 endpoint = "https://api.twitter.com/1.1/"
 
 getValue ::
-#if MIN_VERSION_http_conduit(2,3,0)
             Response (C.ConduitM () ByteString (ResourceT IO) ())
-#else
-            Response (C.ResumableSource (ResourceT IO) ByteString)
-#endif
          -> ResourceT IO (Response Value)
 getValue res = do
     value <-
-#if MIN_VERSION_http_conduit(2,3,0)
       C.runConduit $ responseBody res C..| sinkJSON
-#else
-      responseBody res C.$$+- sinkJSON
-#endif
     return $ res { responseBody = value }
 
 checkResponse :: Response Value
@@ -169,11 +148,7 @@ checkResponse Response{..} =
     sci = HT.statusCode responseStatus
 
 getValueOrThrow :: FromJSON a
-#if MIN_VERSION_http_conduit(2,3,0)
                 => Response (C.ConduitM () ByteString (ResourceT IO) ())
-#else
-                => Response (C.ResumableSource (ResourceT IO) ByteString)
-#endif
                 -> ResourceT IO (Response a)
 getValueOrThrow res = do
     res' <- getValue res
@@ -263,7 +238,7 @@ sourceWithMaxId :: ( MonadIO m
                 => TWInfo -- ^ Twitter Setting
                 -> HTTP.Manager
                 -> APIRequest supports [responseType]
-                -> C.Source m responseType
+                -> C.ConduitT () responseType m ()
 sourceWithMaxId info mgr = loop
   where
     loop req = do
@@ -286,7 +261,7 @@ sourceWithMaxId' :: ( MonadIO m
                  => TWInfo -- ^ Twitter Setting
                  -> HTTP.Manager
                  -> APIRequest supports [responseType]
-                 -> C.Source m Value
+                 -> C.ConduitT () Value m ()
 sourceWithMaxId' info mgr = loop
   where
     loop req = do
@@ -308,7 +283,7 @@ sourceWithCursor :: ( MonadIO m
                  => TWInfo -- ^ Twitter Setting
                  -> HTTP.Manager
                  -> APIRequest supports (WithCursor Integer ck responseType)
-                 -> C.Source m responseType
+                 -> C.ConduitT () responseType m ()
 sourceWithCursor info mgr req = loop (Just (-1))
   where
     loop Nothing = CL.sourceNull
@@ -330,7 +305,7 @@ sourceWithCursor' :: ( MonadIO m
                   => TWInfo -- ^ Twitter Setting
                   -> HTTP.Manager
                   -> APIRequest supports (WithCursor Integer ck responseType)
-                  -> C.Source m Value
+                  -> C.ConduitT () Value m ()
 sourceWithCursor' info mgr req = loop (Just (-1))
   where
     relax :: APIRequest apiName (WithCursor Integer ck responseType)
@@ -350,7 +325,7 @@ sourceWithSearchResult :: ( MonadIO m
                        => TWInfo -- ^ Twitter Setting
                        -> HTTP.Manager
                        -> APIRequest supports (SearchResult [responseType])
-                       -> m (SearchResult (C.Source m responseType))
+                       -> m (SearchResult (C.ConduitT () responseType m ()))
 sourceWithSearchResult info mgr req = do
     res <- liftIO $ call info mgr req
     let body = CL.sourceList (res ^. searchResultStatuses) <>
@@ -372,7 +347,7 @@ sourceWithSearchResult' :: ( MonadIO m
                         => TWInfo -- ^ Twitter Setting
                         -> HTTP.Manager
                         -> APIRequest supports (SearchResult [responseType])
-                        -> m (SearchResult (C.Source m Value))
+                        -> m (SearchResult (C.ConduitT () Value m ()))
 sourceWithSearchResult' info mgr req = do
     res <- liftIO $ call info mgr $ relax req
     let body = CL.sourceList (res ^. searchResultStatuses) <>
@@ -392,12 +367,12 @@ sourceWithSearchResult' info mgr req = do
         loop $ res ^. searchResultSearchMetadata . searchMetadataNextResults
 
 sinkJSON :: ( MonadThrow m
-            ) => C.Consumer ByteString m Value
+            ) => C.ConduitT ByteString o m Value
 sinkJSON = CA.sinkParser json
 
 sinkFromJSON :: ( FromJSON a
                 , MonadThrow m
-                ) => C.Consumer ByteString m a
+                ) => C.ConduitT ByteString o m a
 sinkFromJSON = do
     v <- sinkJSON
     case fromJSON v of
