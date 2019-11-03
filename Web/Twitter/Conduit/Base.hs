@@ -45,6 +45,7 @@ import Control.Monad.Trans.Resource (MonadResource, ResourceT, runResourceT)
 import Data.Aeson
 import Data.Aeson.Lens
 import Data.ByteString (ByteString)
+import Data.Coerce
 import qualified Data.Conduit as C
 import qualified Data.Conduit.Attoparsec as CA
 import qualified Data.Conduit.List as CL
@@ -53,7 +54,6 @@ import qualified Data.Text.Encoding as T
 import Network.HTTP.Client.MultipartFormData
 import qualified Network.HTTP.Conduit as HTTP
 import qualified Network.HTTP.Types as HT
-import Unsafe.Coerce
 import Web.Authenticate.OAuth (signOAuth)
 
 #if __GLASGOW_HASKELL__ < 804
@@ -310,7 +310,7 @@ sourceWithCursor' info mgr req = loop (Just (-1))
   where
     relax :: APIRequest apiName (WithCursor Integer ck responseType)
           -> APIRequest apiName (WithCursor Integer ck Value)
-    relax = unsafeCoerce
+    relax = coerce
     loop Nothing = CL.sourceNull
     loop (Just 0) = CL.sourceNull
     loop (Just cur) = do
@@ -357,7 +357,7 @@ sourceWithSearchResult' info mgr req = do
     origQueryMap = req ^. params . to M.fromList
     relax :: APIRequest apiName (SearchResult [responseType])
           -> APIRequest apiName (SearchResult [Value])
-    relax = unsafeCoerce
+    relax = coerce
     loop Nothing = CL.sourceNull
     loop (Just nextResultsStr) = do
         let nextResults = nextResultsStr & HT.parseSimpleQuery . T.encodeUtf8 & traversed . _2 %~ (PVString . T.decodeUtf8)
