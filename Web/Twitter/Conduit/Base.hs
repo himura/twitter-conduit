@@ -1,4 +1,3 @@
-{-# LANGUAGE CPP #-}
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
@@ -78,28 +77,16 @@ makeRequest' :: HT.Method -- ^ HTTP request method (GET or POST)
              -> HT.SimpleQuery -- ^ Query
              -> IO HTTP.Request
 makeRequest' m url query = do
-#if MIN_VERSION_http_client(0,4,30)
     req <- HTTP.parseRequest url
-#else
-    req <- HTTP.parseUrl url
-#endif
     let addParams =
             if m == "POST"
             then HTTP.urlEncodedBody query
             else \r -> r { HTTP.queryString = HT.renderSimpleQuery False query }
-    return $ addParams $ req { HTTP.method = m
-#if !MIN_VERSION_http_client(0,4,30)
-                             , HTTP.checkStatus = \_ _ _ -> Nothing
-#endif
-                             }
+    return $ addParams $ req { HTTP.method = m }
 
 class ResponseBodyType a where
     parseResponseBody ::
-#if MIN_VERSION_http_conduit(2,3,0)
            Response (C.ConduitM () ByteString (ResourceT IO) ())
-#else
-           Response (C.ResumableSource m ByteString)
-#endif
         -> ResourceT IO (Response a)
 
 type NoContent = ()
@@ -118,11 +105,7 @@ getResponse :: MonadResource m
             => TWInfo
             -> HTTP.Manager
             -> HTTP.Request
-#if MIN_VERSION_http_conduit(2,3,0)
             -> m (Response (C.ConduitM () ByteString m ()))
-#else
-            -> m (Response (C.ResumableSource m ByteString))
-#endif
 getResponse TWInfo{..} mgr req = do
     signedReq <- signOAuth (twOAuth twToken) (twCredential twToken) $ req { HTTP.proxy = twProxy }
     res <- HTTP.http signedReq mgr
@@ -136,19 +119,11 @@ endpoint :: String
 endpoint = "https://api.twitter.com/1.1/"
 
 getValue ::
-#if MIN_VERSION_http_conduit(2,3,0)
             Response (C.ConduitM () ByteString (ResourceT IO) ())
-#else
-            Response (C.ResumableSource (ResourceT IO) ByteString)
-#endif
          -> ResourceT IO (Response Value)
 getValue res = do
     value <-
-#if MIN_VERSION_http_conduit(2,3,0)
       C.runConduit $ responseBody res C..| sinkJSON
-#else
-      responseBody res C.$$+- sinkJSON
-#endif
     return $ res { responseBody = value }
 
 checkResponse :: Response Value
@@ -169,11 +144,7 @@ checkResponse Response{..} =
     sci = HT.statusCode responseStatus
 
 getValueOrThrow :: FromJSON a
-#if MIN_VERSION_http_conduit(2,3,0)
                 => Response (C.ConduitM () ByteString (ResourceT IO) ())
-#else
-                => Response (C.ResumableSource (ResourceT IO) ByteString)
-#endif
                 -> ResourceT IO (Response a)
 getValueOrThrow res = do
     res' <- getValue res
