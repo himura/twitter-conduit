@@ -1,10 +1,10 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Main where
 
-import Web.Twitter.Conduit hiding (map)
+import Web.Twitter.Conduit
 import Common
 
-import qualified Data.Conduit as C
+import Data.Conduit
 import qualified Data.Conduit.List as CL
 import qualified Data.Map as M
 import System.Environment
@@ -16,8 +16,8 @@ main = do
     mgr <- newManager tlsManagerSettings
     let sn = ScreenNameParam screenName
 
-    folids <- sourceWithCursor twInfo mgr (followersIds sn) C.$$ CL.consume
-    friids <- sourceWithCursor twInfo mgr (friendsIds sn) C.$$ CL.consume
+    folids <- runConduit $ sourceWithCursor twInfo mgr (followersIds sn) .| CL.consume
+    friids <- runConduit $ sourceWithCursor twInfo mgr (friendsIds sn) .| CL.consume
 
     let folmap = M.fromList $ map (flip (,) True) folids
         os = filter (\uid -> M.notMember uid folmap) friids

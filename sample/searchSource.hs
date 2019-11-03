@@ -22,4 +22,4 @@ main = do
     let metadata = res ^. searchResultSearchMetadata
     putStrLn $ "search completed in: " ++ metadata ^. searchMetadataCompletedIn . to show
     putStrLn $ "search result max id: " ++ metadata ^. searchMetadataMaxId . to show
-    res ^. searchResultStatuses $$ CL.isolate (read num) =$ CL.mapM_ print
+    runConduit $ res ^. searchResultStatuses .| CL.isolate (read num) .| CL.mapM_ print

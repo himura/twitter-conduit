@@ -9,14 +9,13 @@ module Main where
 
 import Web.Scotty
 import qualified Network.HTTP.Types as HT
-import Web.Twitter.Conduit hiding (lookup,url)
+import Web.Twitter.Conduit hiding (lookup)
 import qualified Web.Authenticate.OAuth as OA
 import qualified Data.Text.Lazy as LT
 import qualified Data.ByteString as S
 import qualified Data.ByteString.Char8 as S8
 import qualified Data.Map as M
 import Data.Maybe
-import Data.Monoid
 import Data.IORef
 import Control.Monad.IO.Class
 import System.Environment

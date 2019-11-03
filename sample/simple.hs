@@ -9,7 +9,7 @@ import Web.Twitter.Types.Lens
 
 import Control.Lens
 import qualified Data.ByteString.Char8 as B8
-import qualified Data.Conduit as C
+import Data.Conduit
 import qualified Data.Conduit.List as CL
 import qualified Data.Text as T
 import qualified Data.Text.IO as T
@@ -49,12 +49,15 @@ main = do
     mgr <- newManager tlsManagerSettings
     twInfo <- getTWInfo mgr
     putStrLn $ "# your home timeline (up to 800 tweets):"
-    sourceWithMaxId twInfo mgr (homeTimeline & #count ?~ 200)
-        C.$= CL.isolate 800
-        C.$$ CL.mapM_ $ \status -> do
-            T.putStrLn $ T.concat [ T.pack . show $ status ^. statusId
-                                  , ": "
-                                  , status ^. statusUser . userScreenName
-                                  , ": "
-                                  , status ^. statusText
-                                  ]
+    runConduit $ sourceWithMaxId twInfo mgr (homeTimeline & #count ?~ 200)
+        .| CL.isolate 800
+        .| CL.mapM_
+            (\status -> do
+                 T.putStrLn $
+                     T.concat
+                         [ T.pack . show $ status ^. statusId
+                         , ": "
+                         , status ^. statusUser . userScreenName
+                         , ": "
+                         , status ^. statusText
+                         ])
