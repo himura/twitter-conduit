@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
@@ -48,13 +49,16 @@ import qualified Data.Conduit as C
 import qualified Data.Conduit.Attoparsec as CA
 import qualified Data.Conduit.List as CL
 import qualified Data.Map as M
-import Data.Monoid
 import qualified Data.Text.Encoding as T
 import Network.HTTP.Client.MultipartFormData
 import qualified Network.HTTP.Conduit as HTTP
 import qualified Network.HTTP.Types as HT
 import Unsafe.Coerce
 import Web.Authenticate.OAuth (signOAuth)
+
+#if __GLASGOW_HASKELL__ < 804
+import Data.Monoid
+#endif
 
 makeRequest :: APIRequest apiName responseType
             -> IO HTTP.Request
@@ -234,7 +238,7 @@ sourceWithMaxId :: ( MonadIO m
                 => TWInfo -- ^ Twitter Setting
                 -> HTTP.Manager
                 -> APIRequest supports [responseType]
-                -> C.Source m responseType
+                -> C.ConduitT () responseType m ()
 sourceWithMaxId info mgr = loop
   where
     loop req = do
@@ -257,7 +261,7 @@ sourceWithMaxId' :: ( MonadIO m
                  => TWInfo -- ^ Twitter Setting
                  -> HTTP.Manager
                  -> APIRequest supports [responseType]
-                 -> C.Source m Value
+                 -> C.ConduitT () Value m ()
 sourceWithMaxId' info mgr = loop
   where
     loop req = do
@@ -279,7 +283,7 @@ sourceWithCursor :: ( MonadIO m
                  => TWInfo -- ^ Twitter Setting
                  -> HTTP.Manager
                  -> APIRequest supports (WithCursor Integer ck responseType)
-                 -> C.Source m responseType
+                 -> C.ConduitT () responseType m ()
 sourceWithCursor info mgr req = loop (Just (-1))
   where
     loop Nothing = CL.sourceNull
@@ -301,7 +305,7 @@ sourceWithCursor' :: ( MonadIO m
                   => TWInfo -- ^ Twitter Setting
                   -> HTTP.Manager
                   -> APIRequest supports (WithCursor Integer ck responseType)
-                  -> C.Source m Value
+                  -> C.ConduitT () Value m ()
 sourceWithCursor' info mgr req = loop (Just (-1))
   where
     relax :: APIRequest apiName (WithCursor Integer ck responseType)
@@ -321,7 +325,7 @@ sourceWithSearchResult :: ( MonadIO m
                        => TWInfo -- ^ Twitter Setting
                        -> HTTP.Manager
                        -> APIRequest supports (SearchResult [responseType])
-                       -> m (SearchResult (C.Source m responseType))
+                       -> m (SearchResult (C.ConduitT () responseType m ()))
 sourceWithSearchResult info mgr req = do
     res <- liftIO $ call info mgr req
     let body = CL.sourceList (res ^. searchResultStatuses) <>
@@ -343,7 +347,7 @@ sourceWithSearchResult' :: ( MonadIO m
                         => TWInfo -- ^ Twitter Setting
                         -> HTTP.Manager
                         -> APIRequest supports (SearchResult [responseType])
-                        -> m (SearchResult (C.Source m Value))
+                        -> m (SearchResult (C.ConduitT () Value m ()))
 sourceWithSearchResult' info mgr req = do
     res <- liftIO $ call info mgr $ relax req
     let body = CL.sourceList (res ^. searchResultStatuses) <>
@@ -363,12 +367,12 @@ sourceWithSearchResult' info mgr req = do
         loop $ res ^. searchResultSearchMetadata . searchMetadataNextResults
 
 sinkJSON :: ( MonadThrow m
-            ) => C.Consumer ByteString m Value
+            ) => C.ConduitT ByteString o m Value
 sinkJSON = CA.sinkParser json
 
 sinkFromJSON :: ( FromJSON a
                 , MonadThrow m
-                ) => C.Consumer ByteString m a
+                ) => C.ConduitT ByteString o m a
 sinkFromJSON = do
     v <- sinkJSON
     case fromJSON v of

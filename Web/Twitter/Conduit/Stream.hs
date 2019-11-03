@@ -66,7 +66,7 @@ stream' info mgr req = do
     rsrc <- getResponse info mgr =<< liftIO (makeRequest req)
     return $ responseBody rsrc C..| CL.sequence sinkFromJSONIgnoreSpaces
   where
-    sinkFromJSONIgnoreSpaces = CL.filter (not . S8.all isSpace) C.=$ sinkFromJSON
+    sinkFromJSONIgnoreSpaces = CL.filter (not . S8.all isSpace) C..| sinkFromJSON
 
 userstream :: APIRequest Userstream StreamingAPI
 userstream = APIRequest "GET" "https://userstream.twitter.com/1.1/user.json" []
