@@ -20,6 +20,8 @@
 
   NOTE: See `Web.Twitter.Conduit.ParametersDeprecated` module if you would like to use classic value lenses.
 
+* Drop supports conduit < 1.3 and http-conduit < 2.3 [#69](https://github.com/himura/twitter-conduit/pull/69).
+
 ## 0.4.0
 
 * Follow direct message API changes [#65](https://github.com/himura/twitter-conduit/pull/65) [#62](https://github.com/himura/twitter-conduit/pull/62)
