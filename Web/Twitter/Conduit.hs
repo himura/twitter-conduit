@@ -1,4 +1,3 @@
-{-# LANGUAGE CPP #-}
 {-# OPTIONS_GHC -fno-warn-unused-imports #-}
 
 -- |
@@ -74,9 +73,7 @@ import qualified Data.Text.IO as T
 import Control.Monad.IO.Class
 import Control.Lens
 
-#ifdef HLINT
 {-# ANN module "HLint: ignore Use import/export shortcut" #-}
-#endif
 
 -- $howto
 --

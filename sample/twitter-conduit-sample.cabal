@@ -28,7 +28,7 @@ library
     , containers
     , directory
     , filepath
-    , http-conduit
+    , http-conduit >= 2.3.0
     , lens
     , process
     , resourcet

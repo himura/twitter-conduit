@@ -1,4 +1,3 @@
-{-# LANGUAGE CPP #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE PatternGuards #-}
 
@@ -39,11 +38,7 @@ main = do
     mgr <- newManager tlsManagerSettings
     runResourceT $ do
         src <- stream twInfo mgr userstream
-#if MIN_VERSION_http_conduit(2,3,0)
         C.runConduit $ src C..| CL.mapM_ (liftIO . printTL)
-#else
-        src C.$$+- CL.mapM_ (liftIO . printTL)
-#endif
 
 showStatus :: AsStatus s => s -> T.Text
 showStatus s = T.concat [ s ^. user . userScreenName
@@ -89,9 +84,5 @@ fetchIcon sn url = do
         mgr <- newManager tlsManagerSettings
         runResourceT $ do
             body <- http req mgr
-#if MIN_VERSION_http_conduit(2,3,0)
             C.runConduit $ HTTP.responseBody body C..| CB.sinkFile fname
-#else
-            HTTP.responseBody body $$+- CB.sinkFile fname
-#endif
     return fname
