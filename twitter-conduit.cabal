@@ -68,7 +68,6 @@ library
     , lens >= 4.4
     , lens-aeson >= 1
     , resourcet >= 1.0
-    , template-haskell
     , text >= 0.11
     , time
     , transformers >= 0.2.2
@@ -142,7 +141,6 @@ test-suite spec_main
     , lens
     , lens-aeson
     , resourcet
-    , template-haskell
     , text
     , time
     , twitter-conduit
