@@ -61,10 +61,8 @@ import Web.Twitter.Conduit.Response
 import Web.Twitter.Conduit.Status
 import Web.Twitter.Conduit.Stream
 import Web.Twitter.Conduit.Types
-import Web.Twitter.Types
 
 import Data.Default (def)
-import Data.Time.Calendar (Day)
 import Network.HTTP.Conduit (Manager, newManager, tlsManagerSettings)
 import Web.Authenticate.OAuth
 
