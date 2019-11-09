@@ -21,6 +21,9 @@
   NOTE: See `Web.Twitter.Conduit.ParametersDeprecated` module if you would like to use classic value lenses.
 
 * Drop supports conduit < 1.3 and http-conduit < 2.3 [#69](https://github.com/himura/twitter-conduit/pull/69).
+* `Web.Twitter.Conduit.Status` is no longer re-exported by Web.Twitter.Conduit in order to avoid name conflictions (e.g. `update`, `lookup`) [71](https://github.com/himura/twitter-conduit/pull/71).
+* Add alias for functions in `Web.Twitter.Conduit.Status` with statuses- prefix [71](https://github.com/himura/twitter-conduit/pull/71).
+  (e.g. `Web.Twitter.Conduit.Api.statusesHomeTimeline` for `Web.Twitter.Conduit.Status.homeTimeline`)
 
 ## 0.4.0
 
