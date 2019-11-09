@@ -190,6 +190,7 @@ type SearchTweets = '[
 search :: T.Text -- ^ search string
        -> APIRequest SearchTweets (SearchResult [Status])
 search = searchTweets
+{-# DEPRECATED search "Please use Web.Twitter.Conduit.searchTweets" #-}
 
 -- | Returns query data which asks recent direct messages sent to the authenticating user.
 --
