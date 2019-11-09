@@ -20,7 +20,6 @@ module Web.Twitter.Conduit
        , module Web.Twitter.Conduit.Cursor
        , module Web.Twitter.Conduit.Request
        , module Web.Twitter.Conduit.Response
-       , module Web.Twitter.Conduit.Status
        , module Web.Twitter.Conduit.Stream
        , module Web.Twitter.Conduit.Types
 
@@ -57,7 +56,6 @@ import Web.Twitter.Conduit.Cursor
 import Web.Twitter.Conduit.Parameters
 import Web.Twitter.Conduit.Request
 import Web.Twitter.Conduit.Response
-import Web.Twitter.Conduit.Status
 import Web.Twitter.Conduit.Stream
 import Web.Twitter.Conduit.Types
 

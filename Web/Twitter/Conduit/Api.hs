@@ -6,8 +6,21 @@
 
 module Web.Twitter.Conduit.Api
        (
+       -- * Status
+         statusesMentionsTimeline
+       , statusesUserTimeline
+       , statusesHomeTimeline
+       , statusesRetweetsOfMe
+       , statusesRetweetsId
+       , statusesShowId
+       , statusesDestroyId
+       , statusesUpdate
+       , statusesRetweetId
+       , statusesUpdateWithMedia
+       , statusesLookup
+
        -- * Search
-         SearchTweets
+       , SearchTweets
        , searchTweets
        , search
 
@@ -143,12 +156,13 @@ module Web.Twitter.Conduit.Api
        , mediaUpload
        ) where
 
-import Web.Twitter.Types
-import Web.Twitter.Conduit.Parameters
 import Web.Twitter.Conduit.Base
+import Web.Twitter.Conduit.Cursor
+import Web.Twitter.Conduit.Parameters
 import Web.Twitter.Conduit.Request
 import Web.Twitter.Conduit.Request.Internal
-import Web.Twitter.Conduit.Cursor
+import qualified Web.Twitter.Conduit.Status as Status
+import Web.Twitter.Types
 
 import Network.HTTP.Client.MultipartFormData
 import qualified Data.Text as T
@@ -190,6 +204,7 @@ type SearchTweets = '[
 search :: T.Text -- ^ search string
        -> APIRequest SearchTweets (SearchResult [Status])
 search = searchTweets
+{-# DEPRECATED search "Please use Web.Twitter.Conduit.searchTweets" #-}
 
 -- | Returns query data which asks recent direct messages sent to the authenticating user.
 --
@@ -936,3 +951,26 @@ mediaUpload mediaData =
     mediaBody (MediaFromFile fp) = partFileSource "media" fp
     mediaBody (MediaRequestBody filename filebody) = partFileRequestBody "media" filename filebody
 type MediaUpload = EmptyParams
+
+statusesMentionsTimeline :: APIRequest Status.StatusesMentionsTimeline [Status]
+statusesMentionsTimeline = Status.mentionsTimeline
+statusesUserTimeline :: UserParam -> APIRequest Status.StatusesUserTimeline [Status]
+statusesUserTimeline = Status.userTimeline
+statusesHomeTimeline :: APIRequest Status.StatusesHomeTimeline [Status]
+statusesHomeTimeline = Status.homeTimeline
+statusesRetweetsOfMe :: APIRequest Status.StatusesRetweetsOfMe [Status]
+statusesRetweetsOfMe = Status.retweetsOfMe
+statusesRetweetsId :: StatusId -> APIRequest Status.StatusesRetweetsId [RetweetedStatus]
+statusesRetweetsId = Status.retweetsId
+statusesShowId :: StatusId -> APIRequest Status.StatusesShowId Status
+statusesShowId = Status.showId
+statusesDestroyId :: StatusId -> APIRequest Status.StatusesDestroyId Status
+statusesDestroyId = Status.destroyId
+statusesUpdate :: T.Text -> APIRequest Status.StatusesUpdate Status
+statusesUpdate = Status.update
+statusesRetweetId :: StatusId -> APIRequest Status.StatusesRetweetId RetweetedStatus
+statusesRetweetId = Status.retweetId
+statusesUpdateWithMedia :: T.Text -> MediaData -> APIRequest Status.StatusesUpdateWithMedia Status
+statusesUpdateWithMedia = Status.updateWithMedia
+statusesLookup :: [StatusId] -> APIRequest Status.StatusesLookup [Status]
+statusesLookup = Status.lookup

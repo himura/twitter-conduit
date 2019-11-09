@@ -15,7 +15,7 @@ main = do
     mgr <- newManager tlsManagerSettings
     let sId = read statusIdStr
 
-    targetStatus <- call twInfo mgr $ showId sId
+    targetStatus <- call twInfo mgr $ statusesShowId sId
     putStrLn $ "Favorite Tweet: " ++ targetStatus ^. to show
     res <- call twInfo mgr $ favoritesCreate sId
     print res

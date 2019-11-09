@@ -49,7 +49,7 @@ main = do
     mgr <- newManager tlsManagerSettings
     twInfo <- getTWInfo mgr
     putStrLn $ "# your home timeline (up to 800 tweets):"
-    runConduit $ sourceWithMaxId twInfo mgr (homeTimeline & #count ?~ 200)
+    runConduit $ sourceWithMaxId twInfo mgr (statusesHomeTimeline & #count ?~ 200)
         .| CL.isolate 800
         .| CL.mapM_
             (\status -> do
