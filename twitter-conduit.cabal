@@ -67,7 +67,6 @@ library
     , text >= 0.11
     , time
     , transformers >= 0.2.2
-    , transformers-base
     , twitter-types >= 0.9
     , twitter-types-lens >= 0.9
 
