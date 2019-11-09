@@ -14,5 +14,5 @@ main = do
     T.putStrLn $ "Post message: " <> status
     twInfo <- getTWInfoFromEnv
     mgr <- newManager tlsManagerSettings
-    res <- call twInfo mgr $ update status
+    res <- call twInfo mgr $ statusesUpdate status
     print res
