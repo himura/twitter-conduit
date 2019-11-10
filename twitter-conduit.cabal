@@ -124,7 +124,6 @@ test-suite spec_main
     , attoparsec
     , authenticate-oauth
     , bytestring
-    , case-insensitive
     , conduit
     , conduit-extra
     , containers
@@ -135,7 +134,6 @@ test-suite spec_main
     , http-types
     , lens
     , lens-aeson
-    , network-uri >= 2.6
     , resourcet
     , text
     , time
