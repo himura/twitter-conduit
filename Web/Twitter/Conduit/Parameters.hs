@@ -10,6 +10,7 @@ module Web.Twitter.Conduit.Parameters
        , mkListParam
        ) where
 
+import Data.Maybe (catMaybes)
 import qualified Data.Text as T
 import Network.HTTP.Client (RequestBody)
 import Web.Twitter.Conduit.Request.Internal (APIQuery, PV(..))
@@ -18,8 +19,11 @@ import Web.Twitter.Types
 -- $setup
 -- >>> import Web.Twitter.Conduit.Request.Internal
 
-data UserParam = UserIdParam UserId | ScreenNameParam String
-               deriving (Show, Eq)
+data UserParam = UserParam
+  { userId :: Maybe UserId
+  , userScreenName :: Maybe String
+  , userCount :: Maybe Integer
+  } deriving (Show, Eq)
 data UserListParam = UserIdListParam [UserId] | ScreenNameListParam [String]
                    deriving (Show, Eq)
 data ListParam = ListIdParam Integer | ListNameParam String
@@ -34,8 +38,11 @@ data MediaData = MediaFromFile FilePath
 -- >>> makeSimpleQuery . mkUserParam $ ScreenNameParam "thimura"
 -- [("screen_name","thimura")]
 mkUserParam :: UserParam -> APIQuery
-mkUserParam (UserIdParam uid) =  [("user_id", PVInteger uid)]
-mkUserParam (ScreenNameParam sn) = [("screen_name", PVString . T.pack $ sn)]
+mkUserParam (UserParam uid usn uc) = catMaybes
+  [ (,) "user_id" . PVInteger <$> uid
+  , (,) "screen_name" . PVString . T.pack <$> usn
+  , (,) "count" . PVInteger <$> uc
+  ]
 
 -- | converts 'UserListParam' to 'HT.SimpleQuery'.
 --
