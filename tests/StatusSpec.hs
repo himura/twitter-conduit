@@ -7,6 +7,7 @@ module StatusSpec where
 import Control.Lens
 import Data.Conduit
 import qualified Data.Conduit.List as CL
+import Data.Default (def)
 import Data.Time
 import Network.HTTP.Conduit
 import System.IO.Unsafe
