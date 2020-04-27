@@ -38,11 +38,11 @@ integrated :: Spec
 integrated = do
     describe "friendsIds" $ do
         it "returns a cursored collection of users IDs" $ do
-            res <- call twInfo mgr $ friendsIds (Param.ScreenNameParam "thimura")
+            res <- call twInfo mgr $ friendsIds def { Param.upScreenName = Just "thimura" }
             res ^. contents . to length `shouldSatisfy` (> 0)
 
         it "iterate with sourceWithCursor" $ do
-            let src = sourceWithCursor twInfo mgr $ friendsIds (Param.ScreenNameParam "thimura")
+            let src = sourceWithCursor twInfo mgr $ friendsIds def { Param.upScreenName = Just "thimura" }
             friends <- src $$ CL.consume
             length friends `shouldSatisfy` (>= 0)
 
