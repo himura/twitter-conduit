@@ -10,6 +10,7 @@ module Web.Twitter.Conduit.Parameters
        , mkListParam
        ) where
 
+import Data.Default (Default (..))
 import Data.Maybe (catMaybes)
 import qualified Data.Text as T
 import Network.HTTP.Client (RequestBody)
@@ -20,9 +21,9 @@ import Web.Twitter.Types
 -- >>> import Web.Twitter.Conduit.Request.Internal
 
 data UserParam = UserParam
-  { userId :: Maybe UserId
-  , userScreenName :: Maybe String
-  , userCount :: Maybe Integer
+  { upId :: Maybe UserId
+  , upScreenName :: Maybe String
+  , upCount :: Maybe Integer
   } deriving (Show, Eq)
 data UserListParam = UserIdListParam [UserId] | ScreenNameListParam [String]
                    deriving (Show, Eq)
@@ -30,6 +31,13 @@ data ListParam = ListIdParam Integer | ListNameParam String
                deriving (Show, Eq)
 data MediaData = MediaFromFile FilePath
                | MediaRequestBody FilePath RequestBody
+
+instance Default UserParam where
+  def = UserParam
+    { upId = Nothing
+    , upScreenName = Nothing
+    , upCount = Nothing
+    }
 
 -- | converts 'UserParam' to 'HT.SimpleQuery'.
 --
