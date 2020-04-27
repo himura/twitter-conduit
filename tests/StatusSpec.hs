@@ -52,17 +52,17 @@ integrated = do
 
     describe "userTimeline" $ do
         it "returns the 20 most recent tweets posted by the user indicated by ScreenNameParam" $ do
-            res <- call twInfo mgr $ userTimeline (def { Param.upScreenName = "thimura" })
+            res <- call twInfo mgr $ userTimeline (def { Param.upScreenName = Just "thimura" })
             length res `shouldSatisfy` (== 20)
             res `shouldSatisfy` (allOf folded (^. statusUser . userScreenName . to (== "thimura")))
         it "returns the recent tweets which include RTs when specified include_rts option" $ do
             res <- call twInfo mgr
-                   $ userTimeline (def { Param.upScreenName = "thimura" })
+                   $ userTimeline (def { Param.upScreenName = Just "thimura" })
                    & #count ?~ 100 & #include_rts ?~ True
             res `shouldSatisfy` (anyOf (folded . statusRetweetedStatus . _Just . statusUser . userScreenName) (/= "thimura"))
         it "iterate with sourceWithMaxId" $ do
             let src = sourceWithMaxId twInfo mgr $
-                      userTimeline (def { Param.upScreenName = "thimura" }) & #count ?~ 200
+                      userTimeline (def { Param.upScreenName = Just "thimura" }) & #count ?~ 200
             tl <- src $$ CL.isolate 600 =$ CL.consume
             length tl `shouldSatisfy` (== 600)
 
