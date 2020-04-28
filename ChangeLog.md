@@ -1,4 +1,4 @@
-## 0.5.0 (wip)
+## 0.5.0
 
 * Support for OverloadedLabels
 
@@ -24,6 +24,8 @@
 * `Web.Twitter.Conduit.Status` is no longer re-exported by Web.Twitter.Conduit in order to avoid name conflictions (e.g. `update`, `lookup`) [#71](https://github.com/himura/twitter-conduit/pull/71).
 * Add alias for functions in `Web.Twitter.Conduit.Status` with statuses- prefix [#71](https://github.com/himura/twitter-conduit/pull/71).
   (e.g. `Web.Twitter.Conduit.Api.statusesHomeTimeline` for `Web.Twitter.Conduit.Status.homeTimeline`)
+* Drop supports network < 2.6 [#74](https://github.com/himura/twitter-conduit/pull/74).
+* Support `tweet_mode` parameter [#72](https://github.com/himura/twitter-conduit/pull/72).
 
 ## 0.4.0
 
