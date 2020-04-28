@@ -39,10 +39,6 @@ source-repository head
   type: git
   location: git://github.com/himura/twitter-conduit.git
 
-flag network-uri
-  description: Get Network.URI from the network-uri package
-  default: True
-
 flag run-integrated-test
   description: use debug output when running testsuites
   default: False
@@ -71,7 +67,6 @@ library
     , text >= 0.11
     , time
     , transformers >= 0.2.2
-    , transformers-base
     , twitter-types >= 0.9
     , twitter-types-lens >= 0.9
 
@@ -129,7 +124,6 @@ test-suite spec_main
     , attoparsec
     , authenticate-oauth
     , bytestring
-    , case-insensitive
     , conduit
     , conduit-extra
     , containers
@@ -146,12 +140,6 @@ test-suite spec_main
     , twitter-conduit
     , twitter-types
     , twitter-types-lens
-
-  if flag(network-uri)
-    build-depends: network-uri >= 2.6
-  else
-    build-depends: network < 2.6
-
 
   other-modules:
     Spec
