@@ -1,0 +1,47 @@
+name: Haskell CI
+
+on:
+  push:
+    branches:
+      - master
+    paths-ignore:
+      - '**.md'
+  pull_request:
+    paths-ignore:
+      - '**.md'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        ghc: [ '8.4.4', '8.6.5', '8.8.3' ]
+        cabal: [ '3.0' ]
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/setup-haskell@v1
+      with:
+        ghc-version: ${{ matrix.ghc }}
+        cabal-version: ${{ matrix.cabal }}
+
+    - name: Cache ~/.cabal/packages
+      uses: actions/cache@v1
+      with:
+        path: ~/.cabal/packages
+        key: ${{ runner.os }}-cabal-packages-cabal${{ matrix.cabal }}-ghc${{ matrix.ghc }}
+        restore-keys: |
+          ${{ runner.os }}-cabal-packages-cabal${{ matrix.cabal }}-
+    - name: Cache ~/.cabal/store
+      uses: actions/cache@v1
+      with:
+        path: ~/.cabal/store
+        key: ${{ runner.os }}-cabal-store-cabal${{ matrix.cabal }}-ghc${{ matrix.ghc }}
+
+    - name: Install dependencies
+      run: |
+        cabal v2-update
+        cabal v2-build all --only-dependencies
+    - name: Build
+      run: cabal v2-build all
+    - name: Run tests
+      run: cabal v2-test all
