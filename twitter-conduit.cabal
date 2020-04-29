@@ -25,7 +25,6 @@ description:
 
 extra-source-files:
   .gitignore
-  .travis.yml
   README.md
   ChangeLog.md
   Warning.hs
