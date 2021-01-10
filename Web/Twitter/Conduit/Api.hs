@@ -193,6 +193,7 @@ searchTweets q = APIRequest "GET" (endpoint ++ "search/tweets.json") [("q", PVSt
 type SearchTweets = '[
       "lang" ':= T.Text
     , "locale" ':= T.Text
+    , "result_type" ':= T.Text
     , "count" ':= Integer
     , "until" ':= Day
     , "since_id" ':= Integer
