@@ -1,3 +1,7 @@
+## 0.5.1
+
+* Add result_type to searchTweets [#78](https://github.com/himura/twitter-conduit/pull/78).
+
 ## 0.5.0
 
 * Support for OverloadedLabels
