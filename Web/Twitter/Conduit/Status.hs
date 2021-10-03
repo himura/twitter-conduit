@@ -37,6 +37,7 @@ import Prelude hiding ( lookup )
 import Web.Twitter.Conduit.Base
 import Web.Twitter.Conduit.Request
 import Web.Twitter.Conduit.Request.Internal
+import Web.Twitter.Conduit.CommonParameters
 import Web.Twitter.Conduit.Parameters
 import Web.Twitter.Types
 
@@ -69,7 +70,7 @@ type StatusesMentionsTimeline = '[
     , "trim_user" ':= Bool
     , "contributor_details" ':= Bool
     , "include_entities" ':= Bool
-    , "tweet_mode" ':= T.Text
+    , "tweet_mode" ':= TweetMode
     ]
 
 -- | Returns query data asks a collection of the most recent Tweets posted by the user indicated by the screen_name or user_id parameters.
@@ -94,7 +95,7 @@ type StatusesUserTimeline = '[
     , "exclude_replies" ':= Bool
     , "contributor_details" ':= Bool
     , "include_rts" ':= Bool
-    , "tweet_mode" ':= T.Text
+    , "tweet_mode" ':= TweetMode
     ]
 
 -- | Returns query data asks a collection of the most recentTweets and retweets posted by the authenticating user and the users they follow.
@@ -119,7 +120,7 @@ type StatusesHomeTimeline = '[
     , "exclude_replies" ':= Bool
     , "contributor_details" ':= Bool
     , "include_entities" ':= Bool
-    , "tweet_mode" ':= T.Text
+    , "tweet_mode" ':= TweetMode
     ]
 
 -- | Returns query data asks the most recent tweets authored by the authenticating user that have been retweeted by others.
@@ -143,7 +144,7 @@ type StatusesRetweetsOfMe = '[
     , "trim_user" ':= Bool
     , "include_entities" ':= Bool
     , "include_user_entities" ':= Bool
-    , "tweet_mode" ':= T.Text
+    , "tweet_mode" ':= TweetMode
     ]
 
 -- * Tweets
@@ -166,6 +167,7 @@ retweetsId status_id = APIRequest "GET" uri def
 type StatusesRetweetsId = '[
       "count" ':= Integer
     , "trim_user" ':= Bool
+    , "tweet_mode" ':= TweetMode
     ]
 
 -- | Returns query data asks a single Tweet, specified by the id parameter.
@@ -188,7 +190,7 @@ type StatusesShowId = '[
     , "include_my_retweet" ':= Bool
     , "include_entities" ':= Bool
     , "include_ext_alt_text" ':= Bool
-    , "tweet_mode" ':= T.Text
+    , "tweet_mode" ':= TweetMode
     ]
 
 -- | Returns post data which destroys the status specified by the require ID parameter.
@@ -206,7 +208,7 @@ destroyId status_id = APIRequest "POST" uri def
   where uri = endpoint ++ "statuses/destroy/" ++ show status_id ++ ".json"
 type StatusesDestroyId = '[
       "trim_user" ':= Bool
-    , "tweet_mode" ':= T.Text
+    , "tweet_mode" ':= TweetMode
     ]
 
 -- | Returns post data which updates the authenticating user's current status.
@@ -232,7 +234,7 @@ type StatusesUpdate = '[
     , "display_coordinates" ':= Bool
     , "trim_user" ':= Bool
     , "media_ids" ':= [Integer]
-    , "tweet_mode" ':= T.Text
+    , "tweet_mode" ':= TweetMode
     ]
 
 -- | Returns post data which retweets a tweet, specified by ID.
@@ -250,6 +252,7 @@ retweetId status_id = APIRequest "POST" uri def
   where uri = endpoint ++ "statuses/retweet/" ++ show status_id ++ ".json"
 type StatusesRetweetId = '[
       "trim_user" ':= Bool
+    , "tweet_mode" ':= TweetMode
     ]
 
 -- | Returns post data which updates the authenticating user's current status and attaches media for upload.
@@ -277,7 +280,7 @@ type StatusesUpdateWithMedia = '[
     -- , "lat_long"
     -- , "place_id"
     , "display_coordinates" ':= Bool
-    , "tweet_mode" ':= T.Text
+    , "tweet_mode" ':= TweetMode
     ]
 
 -- | Returns fully-hydrated tweet objects for up to 100 tweets per request, as specified by comma-separated values passed to the id parameter.
@@ -300,5 +303,5 @@ type StatusesLookup = '[
       "include_entities" ':= Bool
     , "trim_user" ':= Bool
     , "map" ':= Bool
-    , "tweet_mode" ':= T.Text
+    , "tweet_mode" ':= TweetMode
     ]

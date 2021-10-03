@@ -82,6 +82,7 @@ library
     Web.Twitter.Conduit.Response
     Web.Twitter.Conduit.Cursor
     Web.Twitter.Conduit.Parameters
+    Web.Twitter.Conduit.CommonParameters
 
   default-language: Haskell2010
 

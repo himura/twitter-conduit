@@ -158,6 +158,7 @@ module Web.Twitter.Conduit.Api
 
 import Web.Twitter.Conduit.Base
 import Web.Twitter.Conduit.Cursor
+import Web.Twitter.Conduit.CommonParameters
 import Web.Twitter.Conduit.Parameters
 import Web.Twitter.Conduit.Request
 import Web.Twitter.Conduit.Request.Internal
@@ -199,6 +200,7 @@ type SearchTweets = '[
     , "since_id" ':= Integer
     , "max_id" ':= Integer
     , "include_entities" ':= Bool
+    , "tweet_mode" ':= TweetMode
     ]
 
 -- | Alias of 'searchTweets', for backward compatibility
@@ -613,6 +615,7 @@ type FavoritesList = '[
     , "since_id" ':= Integer
     , "max_id" ':= Integer
     , "include_entities" ':= Bool
+    , "tweet_mode" ':= TweetMode
     ]
 
 -- | Returns post data which favorites the status specified in the ID parameter as the authenticating user.
@@ -629,9 +632,10 @@ favoritesCreate :: StatusId -> APIRequest FavoritesCreate Status
 favoritesCreate sid = APIRequest "POST" (endpoint ++ "favorites/create.json") [("id", PVInteger sid)]
 type FavoritesCreate = '[
       "include_entities" ':= Bool
+    , "tweet_mode" ':= TweetMode
     ]
 
--- | Returns post data unfavorites the status specified in the ID paramter as the authenticating user.
+-- | Returns post data unfavorites the status specified in the ID parameter as the authenticating user.
 --
 -- You can perform request by using 'call':
 --
@@ -645,6 +649,7 @@ favoritesDestroy :: StatusId -> APIRequest FavoritesDestroy Status
 favoritesDestroy sid = APIRequest "POST" (endpoint ++ "favorites/destroy.json") [("id", PVInteger sid)]
 type FavoritesDestroy = '[
       "include_entities" ':= Bool
+    , "tweet_mode" ':= TweetMode
     ]
 
 -- | Returns the query parameter which fetches a timeline of tweets authored by members of the specified list.
@@ -672,6 +677,7 @@ type ListsStatuses = '[
     , "count" ':= Integer
     , "include_entities" ':= Bool
     , "include_rts" ':= Bool
+    , "tweet_mode" ':= TweetMode
     ]
 
 -- | Returns the post parameter which removes the specified member from the list.
