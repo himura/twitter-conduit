@@ -13,8 +13,6 @@
 
 module Web.Twitter.Conduit.Request.Internal where
 
-import Web.Twitter.Conduit.CommonParameters
-
 import Control.Lens
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as S8
@@ -72,9 +70,6 @@ instance ParameterValue [Text] where
 instance ParameterValue Day where
     wrap = PVDay
     unwrap = unPVDay
-instance ParameterValue TweetMode where
-    wrap Extended = PVString "extended"
-    unwrap = const Extended
 
 makeSimpleQuery :: APIQuery -> HT.SimpleQuery
 makeSimpleQuery = traversed . _2 %~ paramValueBS

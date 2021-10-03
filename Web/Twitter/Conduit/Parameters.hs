@@ -5,6 +5,7 @@ module Web.Twitter.Conduit.Parameters
        , UserListParam(..)
        , ListParam(..)
        , MediaData(..)
+       , TweetMode(..)
        , mkUserParam
        , mkUserListParam
        , mkListParam
@@ -12,11 +13,13 @@ module Web.Twitter.Conduit.Parameters
 
 import qualified Data.Text as T
 import Network.HTTP.Client (RequestBody)
-import Web.Twitter.Conduit.Request.Internal (APIQuery, PV(..))
+import Web.Twitter.Conduit.Request.Internal (APIQuery, PV(..), ParameterValue(..))
 import Web.Twitter.Types
 
 -- $setup
 -- >>> import Web.Twitter.Conduit.Request.Internal
+
+-- Required parameters
 
 data UserParam = UserIdParam UserId | ScreenNameParam String
                deriving (Show, Eq)
@@ -63,3 +66,11 @@ mkListParam (ListNameParam listname) =
   where
     (screenName, ln) = span (/= '/') listname
     lstName = drop 1 ln
+
+-- Optional parameters
+
+data TweetMode = Extended deriving (Show, Eq)
+
+instance ParameterValue TweetMode where
+    wrap Extended = PVString "extended"
+    unwrap = const Extended

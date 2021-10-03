@@ -12,7 +12,6 @@ import Network.HTTP.Conduit
 import System.IO.Unsafe
 import Web.Twitter.Conduit (call, accountVerifyCredentials, sourceWithMaxId, TWInfo)
 import qualified Web.Twitter.Conduit.Parameters as Param
-import qualified Web.Twitter.Conduit.CommonParameters as CParam
 import Web.Twitter.Conduit.Status as Status
 import Web.Twitter.Types.Lens
 
@@ -100,5 +99,5 @@ integrated = do
         it "handles extended tweets" $ do
             res <- call twInfo mgr $ Status.lookup [1128358947772145672]
             (res !! 0) ^. statusText `shouldBe` "Through the Twitter Developer Labs program, we'll soon preview new versions of GET /tweets and GET /users, followed\8230 https://t.co/9i4c5bUUCu"
-            res <- call twInfo mgr $ Status.lookup [1128358947772145672] & #tweet_mode ?~ CParam.Extended
+            res <- call twInfo mgr $ Status.lookup [1128358947772145672] & #tweet_mode ?~ Param.Extended
             (res !! 0) ^. statusText `shouldBe` "Through the Twitter Developer Labs program, we'll soon preview new versions of GET /tweets and GET /users, followed by Tweet streaming, search &amp; metrics. More to come! \128073 https://t.co/rDE48yNiSw https://t.co/oFsvkpnDhS"
