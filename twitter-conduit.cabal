@@ -7,7 +7,7 @@ maintainer:        Takahiro HIMURA <taka@himura.jp>
 synopsis:          Twitter API package with conduit interface and Streaming API support.
 category:          Web, Conduit
 stability:         Experimental
-cabal-version:     >= 1.10
+cabal-version:     >= 1.24
 build-type:        Custom
 homepage:          https://github.com/himura/twitter-conduit
 
