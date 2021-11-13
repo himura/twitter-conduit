@@ -16,3 +16,24 @@ jobs:
           cabal-version: 'latest'
       - run: cabal format
       - run: git diff --exit-code
+
+  hs-format:
+    name: check .hs style
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@master
+      - uses: haskell/actions/setup@v1
+        with:
+          enable-stack: true
+          stack-version: 'latest'
+
+      - name: Cache ~/.stack
+        uses: actions/cache@v1
+        with:
+          path: ~/.stack
+          key: ${{ runner.os }}-stack-fourmolu
+
+      - run: stack install fourmolu
+      - run: stack exec fourmolu -- --mode inplace $(git ls-files '*.hs')
+      - run: git diff --exit-code
