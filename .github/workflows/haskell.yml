@@ -4,11 +4,7 @@ on:
   push:
     branches:
       - master
-    paths-ignore:
-      - '**.md'
   pull_request:
-    paths-ignore:
-      - '**.md'
 
 jobs:
   build:
@@ -38,3 +34,25 @@ jobs:
       run: cabal v2-build all
     - name: Run tests
       run: cabal v2-test all
+
+  hlint:
+    name: lint *.hs
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@master
+      - name: Install hlint
+        run: sudo apt-get install hlint
+
+      - run: hlint $(git ls-tree -r HEAD | awk '$4 ~ /\.hs/{ print $4}' | grep -vE '^Warning.hs$|^(tests|sample)/.*')
+
+  cabal-format:
+    name: check .cabal style
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@master
+      - uses: actions/setup-haskell@v1
+        with:
+          cabal-version: '3.2'
+      - run: cabal format
+      - run: git diff --exit-code
