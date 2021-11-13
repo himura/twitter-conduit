@@ -34,3 +34,15 @@ jobs:
       run: cabal v2-build all
     - name: Run tests
       run: cabal v2-test all
+
+  cabal-format:
+    name: check .cabal style
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@master
+      - uses: actions/setup-haskell@v1
+        with:
+          cabal-version: '3.2'
+      - run: cabal format
+      - run: git diff --exit-code
