@@ -2,23 +2,24 @@
 {-# LANGUAGE DeriveTraversable #-}
 {-# LANGUAGE OverloadedStrings #-}
 
-module Web.Twitter.Conduit.Response
-       ( Response (..)
-       , TwitterError (..)
-       , TwitterErrorMessage (..)
-       ) where
+module Web.Twitter.Conduit.Response (
+    Response (..),
+    TwitterError (..),
+    TwitterErrorMessage (..),
+) where
 
 import Control.Exception
 import Data.Aeson
 import Data.Data
 import qualified Data.Text as T
-import Network.HTTP.Types (Status, ResponseHeaders, Status, ResponseHeaders)
+import Network.HTTP.Types (ResponseHeaders, Status)
 
 data Response responseType = Response
     { responseStatus :: Status
     , responseHeaders :: ResponseHeaders
     , responseBody :: responseType
-    } deriving (Show, Eq, Typeable, Functor, Foldable, Traversable)
+    }
+    deriving (Show, Eq, Typeable, Functor, Foldable, Traversable)
 
 data TwitterError
     = FromJSONError String
@@ -35,15 +36,16 @@ instance Exception TwitterError
 data TwitterErrorMessage = TwitterErrorMessage
     { twitterErrorCode :: Int
     , twitterErrorMessage :: T.Text
-    } deriving (Show, Data, Typeable)
+    }
+    deriving (Show, Data, Typeable)
 
 instance Eq TwitterErrorMessage where
-    TwitterErrorMessage { twitterErrorCode = a } == TwitterErrorMessage { twitterErrorCode = b }
-        = a == b
+    TwitterErrorMessage {twitterErrorCode = a} == TwitterErrorMessage {twitterErrorCode = b} =
+        a == b
 
 instance Ord TwitterErrorMessage where
-    compare TwitterErrorMessage { twitterErrorCode = a } TwitterErrorMessage { twitterErrorCode = b }
-        = a `compare` b
+    compare TwitterErrorMessage {twitterErrorCode = a} TwitterErrorMessage {twitterErrorCode = b} =
+        a `compare` b
 
 instance Enum TwitterErrorMessage where
     fromEnum = twitterErrorCode
@@ -52,6 +54,6 @@ instance Enum TwitterErrorMessage where
 instance FromJSON TwitterErrorMessage where
     parseJSON (Object o) =
         TwitterErrorMessage
-        <$> o .:  "code"
-        <*> o .:  "message"
+            <$> o .: "code"
+            <*> o .: "message"
     parseJSON v = fail $ "unexpected: " ++ show v

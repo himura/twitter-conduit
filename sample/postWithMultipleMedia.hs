@@ -1,11 +1,11 @@
-{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE OverloadedLabels #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module Main where
 
+import Common
 import Web.Twitter.Conduit
 import Web.Twitter.Types.Lens
-import Common
 
 import Control.Lens
 import Control.Monad
@@ -16,7 +16,7 @@ import System.IO
 
 main :: IO ()
 main = do
-    (status:filepathList) <- getArgs
+    (status : filepathList) <- getArgs
     when (length filepathList > 4) $ do
         hPutStrLn stderr $ "You can upload upto 4 images in a single tweet, but we got " ++ show (length filepathList) ++ " images. abort."
         exitFailure
@@ -28,5 +28,5 @@ main = do
         putStrLn $ "Upload completed: media_id: " ++ ret ^. uploadedMediaId . to show ++ ", filepath: " ++ filepath
         return ret
     putStrLn $ "Post message: " ++ status
-    res <- call twInfo mgr $ statusesUpdate (T.pack status) & #media_ids ?~ (uploadedMediaList ^.. traversed .  uploadedMediaId)
+    res <- call twInfo mgr $ statusesUpdate (T.pack status) & #media_ids ?~ (uploadedMediaList ^.. traversed . uploadedMediaId)
     print res

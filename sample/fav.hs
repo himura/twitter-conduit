@@ -2,8 +2,8 @@
 
 module Main where
 
-import Web.Twitter.Conduit
 import Common
+import Web.Twitter.Conduit
 
 import Control.Lens
 import System.Environment

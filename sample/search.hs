@@ -1,9 +1,10 @@
 {-# LANGUAGE OverloadedStrings #-}
+
 module Main where
 
+import Common
 import Web.Twitter.Conduit
 import Web.Twitter.Types.Lens
-import Common
 
 import Control.Lens
 import qualified Data.Text as T

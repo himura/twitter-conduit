@@ -1,19 +1,19 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Web.Twitter.Conduit.Parameters
-       ( UserParam(..)
-       , UserListParam(..)
-       , ListParam(..)
-       , MediaData(..)
-       , TweetMode(..)
-       , mkUserParam
-       , mkUserListParam
-       , mkListParam
-       ) where
+module Web.Twitter.Conduit.Parameters (
+    UserParam (..),
+    UserListParam (..),
+    ListParam (..),
+    MediaData (..),
+    TweetMode (..),
+    mkUserParam,
+    mkUserListParam,
+    mkListParam,
+) where
 
 import qualified Data.Text as T
 import Network.HTTP.Client (RequestBody)
-import Web.Twitter.Conduit.Request.Internal (APIQuery, PV(..), ParameterValue(..))
+import Web.Twitter.Conduit.Request.Internal (APIQuery, PV (..), ParameterValue (..))
 import Web.Twitter.Types
 
 -- $setup
@@ -22,13 +22,14 @@ import Web.Twitter.Types
 -- Required parameters
 
 data UserParam = UserIdParam UserId | ScreenNameParam String
-               deriving (Show, Eq)
+    deriving (Show, Eq)
 data UserListParam = UserIdListParam [UserId] | ScreenNameListParam [String]
-                   deriving (Show, Eq)
+    deriving (Show, Eq)
 data ListParam = ListIdParam Integer | ListNameParam String
-               deriving (Show, Eq)
-data MediaData = MediaFromFile FilePath
-               | MediaRequestBody FilePath RequestBody
+    deriving (Show, Eq)
+data MediaData
+    = MediaFromFile FilePath
+    | MediaRequestBody FilePath RequestBody
 
 -- | converts 'UserParam' to 'HT.SimpleQuery'.
 --
@@ -37,7 +38,7 @@ data MediaData = MediaFromFile FilePath
 -- >>> makeSimpleQuery . mkUserParam $ ScreenNameParam "thimura"
 -- [("screen_name","thimura")]
 mkUserParam :: UserParam -> APIQuery
-mkUserParam (UserIdParam uid) =  [("user_id", PVInteger uid)]
+mkUserParam (UserIdParam uid) = [("user_id", PVInteger uid)]
 mkUserParam (ScreenNameParam sn) = [("screen_name", PVString . T.pack $ sn)]
 
 -- | converts 'UserListParam' to 'HT.SimpleQuery'.
@@ -49,7 +50,7 @@ mkUserParam (ScreenNameParam sn) = [("screen_name", PVString . T.pack $ sn)]
 -- >>> makeSimpleQuery . mkUserListParam $ ScreenNameListParam ["thimura", "NikaidouShinku"]
 -- [("screen_name","thimura,NikaidouShinku")]
 mkUserListParam :: UserListParam -> APIQuery
-mkUserListParam (UserIdListParam uids) =  [("user_id", PVIntegerArray uids)]
+mkUserListParam (UserIdListParam uids) = [("user_id", PVIntegerArray uids)]
 mkUserListParam (ScreenNameListParam sns) = [("screen_name", PVStringArray (map T.pack sns))]
 
 -- | converts 'ListParam' to 'HT.SimpleQuery'.
@@ -59,10 +60,11 @@ mkUserListParam (ScreenNameListParam sns) = [("screen_name", PVStringArray (map 
 -- >>> makeSimpleQuery . mkListParam $ ListNameParam "thimura/haskell"
 -- [("slug","haskell"),("owner_screen_name","thimura")]
 mkListParam :: ListParam -> APIQuery
-mkListParam (ListIdParam lid) =  [("list_id", PVInteger lid)]
+mkListParam (ListIdParam lid) = [("list_id", PVInteger lid)]
 mkListParam (ListNameParam listname) =
-    [("slug", PVString (T.pack lstName)),
-     ("owner_screen_name", PVString (T.pack screenName))]
+    [ ("slug", PVString (T.pack lstName))
+    , ("owner_screen_name", PVString (T.pack screenName))
+    ]
   where
     (screenName, ln) = span (/= '/') listname
     lstName = drop 1 ln

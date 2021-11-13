@@ -1,6 +1,6 @@
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE OverloadedLabels #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE OverloadedLabels #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module Main where
 
@@ -17,15 +17,19 @@ import System.IO (hFlush, stdout)
 import qualified Web.Authenticate.OAuth as OA
 
 tokens :: OAuth
-tokens = twitterOAuth
-    { oauthConsumerKey = error "You MUST specify oauthConsumerKey parameter."
-    , oauthConsumerSecret = error "You MUST specify oauthConsumerSecret parameter."
-    }
+tokens =
+    twitterOAuth
+        { oauthConsumerKey = error "You MUST specify oauthConsumerKey parameter."
+        , oauthConsumerSecret = error "You MUST specify oauthConsumerSecret parameter."
+        }
 
-authorize :: OAuth -- ^ OAuth Consumer key and secret
-          -> (String -> IO String) -- ^ PIN prompt
-          -> Manager
-          -> IO Credential
+authorize ::
+    -- | OAuth Consumer key and secret
+    OAuth ->
+    -- | PIN prompt
+    (String -> IO String) ->
+    Manager ->
+    IO Credential
 authorize oauth getPIN mgr = do
     cred <- OA.getTemporaryCredential oauth mgr
     let url = OA.authorizeUrl oauth cred
@@ -49,15 +53,17 @@ main = do
     mgr <- newManager tlsManagerSettings
     twInfo <- getTWInfo mgr
     putStrLn $ "# your home timeline (up to 800 tweets):"
-    runConduit $ sourceWithMaxId twInfo mgr (statusesHomeTimeline & #count ?~ 200)
-        .| CL.isolate 800
-        .| CL.mapM_
-            (\status -> do
-                 T.putStrLn $
-                     T.concat
-                         [ T.pack . show $ status ^. statusId
-                         , ": "
-                         , status ^. statusUser . userScreenName
-                         , ": "
-                         , status ^. statusText
-                         ])
+    runConduit $
+        sourceWithMaxId twInfo mgr (statusesHomeTimeline & #count ?~ 200)
+            .| CL.isolate 800
+            .| CL.mapM_
+                ( \status -> do
+                    T.putStrLn $
+                        T.concat
+                            [ T.pack . show $ status ^. statusId
+                            , ": "
+                            , status ^. statusUser . userScreenName
+                            , ": "
+                            , status ^. statusText
+                            ]
+                )

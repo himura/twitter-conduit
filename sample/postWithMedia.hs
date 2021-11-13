@@ -1,8 +1,9 @@
 {-# LANGUAGE OverloadedStrings #-}
+
 module Main where
 
-import Web.Twitter.Conduit
 import Common
+import Web.Twitter.Conduit
 
 import qualified Data.Text as T
 import System.Environment

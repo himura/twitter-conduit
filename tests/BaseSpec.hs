@@ -2,8 +2,8 @@
 
 module BaseSpec where
 
-import Web.Twitter.Conduit.Response
 import Web.Twitter.Conduit.Base
+import Web.Twitter.Conduit.Response
 
 import Control.Applicative
 import Control.Lens
@@ -80,9 +80,10 @@ unit = do
 data TestJSON = TestJSON
     { testField :: T.Text
     , testStatus :: Int
-    } deriving (Show, Eq)
+    }
+    deriving (Show, Eq)
 instance FromJSON TestJSON where
     parseJSON (Object o) =
         TestJSON <$> o .: "test"
-                 <*> o .: "status"
+            <*> o .: "status"
     parseJSON v = fail $ "Unexpected: " ++ show v

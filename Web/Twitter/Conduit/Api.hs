@@ -4,157 +4,161 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeOperators #-}
 
-module Web.Twitter.Conduit.Api
-       (
-       -- * Status
-         statusesMentionsTimeline
-       , statusesUserTimeline
-       , statusesHomeTimeline
-       , statusesRetweetsOfMe
-       , statusesRetweetsId
-       , statusesShowId
-       , statusesDestroyId
-       , statusesUpdate
-       , statusesRetweetId
-       , statusesUpdateWithMedia
-       , statusesLookup
+module Web.Twitter.Conduit.Api (
+    -- * Status
+    statusesMentionsTimeline,
+    statusesUserTimeline,
+    statusesHomeTimeline,
+    statusesRetweetsOfMe,
+    statusesRetweetsId,
+    statusesShowId,
+    statusesDestroyId,
+    statusesUpdate,
+    statusesRetweetId,
+    statusesUpdateWithMedia,
+    statusesLookup,
 
-       -- * Search
-       , SearchTweets
-       , searchTweets
-       , search
+    -- * Search
+    SearchTweets,
+    searchTweets,
+    search,
 
-       -- * Direct Messages
-       , DirectMessages
-       , directMessages
-       , DirectMessagesSent
-       , directMessagesSent
-       , DirectMessagesShow
-       , directMessagesShow
-       , DirectMessagesDestroy
-       , directMessagesDestroy
-       , DirectMessagesNew
-       , directMessagesNew
+    -- * Direct Messages
+    DirectMessages,
+    directMessages,
+    DirectMessagesSent,
+    directMessagesSent,
+    DirectMessagesShow,
+    directMessagesShow,
+    DirectMessagesDestroy,
+    directMessagesDestroy,
+    DirectMessagesNew,
+    directMessagesNew,
 
-       -- * Friends & Followers
-       , FriendshipsNoRetweetsIds
-       , friendshipsNoRetweetsIds
-       , FriendsIds
-       , friendsIds
-       , FollowersIds
-       , followersIds
-       , FriendshipsIncoming
-       , friendshipsIncoming
-       , FriendshipsOutgoing
-       , friendshipsOutgoing
-       , FriendshipsCreate
-       , friendshipsCreate
-       , FriendshipsDestroy
-       , friendshipsDestroy
-       -- , friendshipsUpdate
-       -- , friendshipsShow
-       , FriendsList
-       , friendsList
-       , FollowersList
-       , followersList
-       -- , friendshipsLookup
+    -- * Friends & Followers
+    FriendshipsNoRetweetsIds,
+    friendshipsNoRetweetsIds,
+    FriendsIds,
+    friendsIds,
+    FollowersIds,
+    followersIds,
+    FriendshipsIncoming,
+    friendshipsIncoming,
+    FriendshipsOutgoing,
+    friendshipsOutgoing,
+    FriendshipsCreate,
+    friendshipsCreate,
+    FriendshipsDestroy,
+    friendshipsDestroy,
+    -- , friendshipsUpdate
+    -- , friendshipsShow
+    FriendsList,
+    friendsList,
+    FollowersList,
+    followersList,
+    -- , friendshipsLookup
 
-       -- * Users
-       -- , accountSettings
-       , AccountVerifyCredentials
-       , accountVerifyCredentials
-       -- , accountSettingsUpdate
-       -- , accountUpdateDeliveryDevice
-       , AccountUpdateProfile
-       , accountUpdateProfile
-       -- , accountUpdateProfileBackgroundImage
-       -- , accountUpdateProfileColors
-       -- , accoutUpdateProfileImage
-       -- , blocksList
-       -- , blocksIds
-       -- , blocksCreate
-       -- , blocksDestroy
+    -- * Users
 
-       , UsersLookup
-       , usersLookup
-       , UsersShow
-       , usersShow
-       -- , usersSearch
-       -- , usersContributees
-       -- , usersContributors
-       -- , accuntRemoveProfileBanner
-       -- , accuntUpdateProfileBanner
-       -- , usersProfileBanner
-       -- , mutesUsersCreate
-       -- , mutesUsersDestroy
-       -- , mutesUsersIds
-       -- , mutesUsersList
+    -- , accountSettings
+    AccountVerifyCredentials,
+    accountVerifyCredentials,
+    -- , accountSettingsUpdate
+    -- , accountUpdateDeliveryDevice
+    AccountUpdateProfile,
+    accountUpdateProfile,
+    -- , accountUpdateProfileBackgroundImage
+    -- , accountUpdateProfileColors
+    -- , accoutUpdateProfileImage
+    -- , blocksList
+    -- , blocksIds
+    -- , blocksCreate
+    -- , blocksDestroy
 
-       -- * Suggested Users
-       -- , usersSuggestionsSlug
-       -- , usersSuggestions
-       -- , usersSuggestionsSlugMembers
+    UsersLookup,
+    usersLookup,
+    UsersShow,
+    usersShow,
+    -- , usersSearch
+    -- , usersContributees
+    -- , usersContributors
+    -- , accuntRemoveProfileBanner
+    -- , accuntUpdateProfileBanner
+    -- , usersProfileBanner
+    -- , mutesUsersCreate
+    -- , mutesUsersDestroy
+    -- , mutesUsersIds
+    -- , mutesUsersList
 
-       -- * Favorites
-       , FavoritesList
-       , favoritesList
-       , FavoritesDestroy
-       , favoritesDestroy
-       , FavoritesCreate
-       , favoritesCreate
+    -- * Suggested Users
 
-       -- * Lists
-       -- , listsList
-       , ListsStatuses
-       , listsStatuses
-       , ListsMembersDestroy
-       , listsMembersDestroy
-       , ListsMemberships
-       , listsMemberships
-       , ListsSubscribers
-       , listsSubscribers
-       -- , listsSubscribersCreate
-       -- , listsSubscribersShow
-       -- , listsSubscribersDestroy
-       , ListsMembersCreateAll
-       , listsMembersCreateAll
-       -- , listsMembersShow
-       , ListsMembers
-       , listsMembers
-       , ListsMembersCreate
-       , listsMembersCreate
-       , ListsDestroy
-       , listsDestroy
-       , ListsUpdate
-       , listsUpdate
-       , ListsCreate
-       , listsCreate
-       , ListsShow
-       , listsShow
-       , ListsSubscriptions
-       , listsSubscriptions
-       , ListsMembersDestroyAll
-       , listsMembersDestroyAll
-       , ListsOwnerships
-       , listsOwnerships
+    -- , usersSuggestionsSlug
+    -- , usersSuggestions
+    -- , usersSuggestionsSlugMembers
 
-       -- * Saved Searches
-       -- savedSearchesList
-       -- savedSearchesShowId
-       -- savedSearchesCreate
-       -- savedSearchesDestroyId
+    -- * Favorites
+    FavoritesList,
+    favoritesList,
+    FavoritesDestroy,
+    favoritesDestroy,
+    FavoritesCreate,
+    favoritesCreate,
 
-       -- * Places & Geo
-       -- geoIdPlaceId
-       -- geoReverseGeocode
-       -- geoSearch
-       -- geoSimilarPlaces
-       -- geoPlace
+    -- * Lists
 
-       -- * media
-       , MediaUpload
-       , mediaUpload
-       ) where
+    -- , listsList
+    ListsStatuses,
+    listsStatuses,
+    ListsMembersDestroy,
+    listsMembersDestroy,
+    ListsMemberships,
+    listsMemberships,
+    ListsSubscribers,
+    listsSubscribers,
+    -- , listsSubscribersCreate
+    -- , listsSubscribersShow
+    -- , listsSubscribersDestroy
+    ListsMembersCreateAll,
+    listsMembersCreateAll,
+    -- , listsMembersShow
+    ListsMembers,
+    listsMembers,
+    ListsMembersCreate,
+    listsMembersCreate,
+    ListsDestroy,
+    listsDestroy,
+    ListsUpdate,
+    listsUpdate,
+    ListsCreate,
+    listsCreate,
+    ListsShow,
+    listsShow,
+    ListsSubscriptions,
+    listsSubscriptions,
+    ListsMembersDestroyAll,
+    listsMembersDestroyAll,
+    ListsOwnerships,
+    listsOwnerships,
+
+    -- * Saved Searches
+
+    -- savedSearchesList
+    -- savedSearchesShowId
+    -- savedSearchesCreate
+    -- savedSearchesDestroyId
+
+    -- * Places & Geo
+
+    -- geoIdPlaceId
+    -- geoReverseGeocode
+    -- geoSearch
+    -- geoSimilarPlaces
+    -- geoPlace
+
+    -- * media
+    MediaUpload,
+    mediaUpload,
+) where
 
 import Web.Twitter.Conduit.Base
 import Web.Twitter.Conduit.Cursor
@@ -164,11 +168,11 @@ import Web.Twitter.Conduit.Request.Internal
 import qualified Web.Twitter.Conduit.Status as Status
 import Web.Twitter.Types
 
-import Network.HTTP.Client.MultipartFormData
-import qualified Data.Text as T
-import Data.Default
-import Data.Time.Calendar (Day)
 import Data.Aeson
+import Data.Default
+import qualified Data.Text as T
+import Data.Time.Calendar (Day)
+import Network.HTTP.Client.MultipartFormData
 
 -- $setup
 -- >>> :set -XOverloadedStrings -XOverloadedLabels
@@ -187,24 +191,29 @@ import Data.Aeson
 -- APIRequest "GET" "https://api.twitter.com/1.1/search/tweets.json" [("q","search text")]
 -- >>> searchTweets "search text" & #lang ?~ "ja" & #count ?~ 100
 -- APIRequest "GET" "https://api.twitter.com/1.1/search/tweets.json" [("count","100"),("lang","ja"),("q","search text")]
-searchTweets :: T.Text -- ^ search string
-             -> APIRequest SearchTweets (SearchResult [Status])
+searchTweets ::
+    -- | search string
+    T.Text ->
+    APIRequest SearchTweets (SearchResult [Status])
 searchTweets q = APIRequest "GET" (endpoint ++ "search/tweets.json") [("q", PVString q)]
-type SearchTweets = '[
-      "lang" ':= T.Text
-    , "locale" ':= T.Text
-    , "result_type" ':= T.Text
-    , "count" ':= Integer
-    , "until" ':= Day
-    , "since_id" ':= Integer
-    , "max_id" ':= Integer
-    , "include_entities" ':= Bool
-    , "tweet_mode" ':= TweetMode
-    ]
+
+type SearchTweets =
+    '[ "lang" ':= T.Text
+     , "locale" ':= T.Text
+     , "result_type" ':= T.Text
+     , "count" ':= Integer
+     , "until" ':= Day
+     , "since_id" ':= Integer
+     , "max_id" ':= Integer
+     , "include_entities" ':= Bool
+     , "tweet_mode" ':= TweetMode
+     ]
 
 -- | Alias of 'searchTweets', for backward compatibility
-search :: T.Text -- ^ search string
-       -> APIRequest SearchTweets (SearchResult [Status])
+search ::
+    -- | search string
+    T.Text ->
+    APIRequest SearchTweets (SearchResult [Status])
 search = searchTweets
 {-# DEPRECATED search "Please use Web.Twitter.Conduit.searchTweets" #-}
 
@@ -222,13 +231,14 @@ search = searchTweets
 -- APIRequest "GET" "https://api.twitter.com/1.1/direct_messages/events/list.json" [("count","50")]
 directMessages :: APIRequest DirectMessages (WithCursor T.Text EventsCursorKey DirectMessage)
 directMessages = APIRequest "GET" (endpoint ++ "direct_messages/events/list.json") def
-type DirectMessages = '[
-      "count" ':= Integer
-    , "include_entities" ':= Bool
-    , "skip_status" ':= Bool
-    , "full_text" ':= Bool
-    , "cursor" ':= T.Text
-    ]
+
+type DirectMessages =
+    '[ "count" ':= Integer
+     , "include_entities" ':= Bool
+     , "skip_status" ':= Bool
+     , "full_text" ':= Bool
+     , "cursor" ':= T.Text
+     ]
 
 -- | Returns query data which asks recent direct messages sent by the authenticating user.
 --
@@ -244,15 +254,16 @@ type DirectMessages = '[
 -- APIRequest "GET" "https://api.twitter.com/1.1/direct_messages/sent.json" [("count","100")]
 directMessagesSent :: APIRequest DirectMessagesSent [DirectMessage]
 directMessagesSent = APIRequest "GET" (endpoint ++ "direct_messages/sent.json") def
-type DirectMessagesSent = '[
-      "since_id" ':= Integer
-    , "max_id" ':= Integer
-    , "count" ':= Integer
-    , "include_entities" ':= Bool
-    , "page" ':= Integer
-    , "skip_status" ':= Bool
-    , "full_text" ':= Bool
-    ]
+
+type DirectMessagesSent =
+    '[ "since_id" ':= Integer
+     , "max_id" ':= Integer
+     , "count" ':= Integer
+     , "include_entities" ':= Bool
+     , "page" ':= Integer
+     , "skip_status" ':= Bool
+     , "full_text" ':= Bool
+     ]
 
 -- | Returns query data which asks a single direct message, specified by an id parameter.
 --
@@ -266,9 +277,10 @@ type DirectMessagesSent = '[
 -- APIRequest "GET" "https://api.twitter.com/1.1/direct_messages/show.json" [("id","1234567890")]
 directMessagesShow :: StatusId -> APIRequest DirectMessagesShow DirectMessage
 directMessagesShow sId = APIRequest "GET" (endpoint ++ "direct_messages/show.json") [("id", PVInteger sId)]
-type DirectMessagesShow = '[
-      "full_text" ':= Bool
-    ]
+
+type DirectMessagesShow =
+    '[ "full_text" ':= Bool
+     ]
 
 -- | Returns post data which destroys the direct message specified in the required ID parameter.
 --
@@ -282,11 +294,13 @@ type DirectMessagesShow = '[
 -- APIRequest "DELETE" "https://api.twitter.com/1.1/direct_messages/events/destroy.json" [("id","1234567890")]
 directMessagesDestroy :: StatusId -> APIRequest DirectMessagesDestroy NoContent
 directMessagesDestroy sId = APIRequest "DELETE" (endpoint ++ "direct_messages/events/destroy.json") [("id", PVInteger sId)]
+
 type DirectMessagesDestroy = EmptyParams
 
 newtype DirectMessagesNewResponse = DirectMessagesNewResponse
     { directMessageBody :: DirectMessage
-    } deriving (Show, Eq)
+    }
+    deriving (Show, Eq)
 
 instance FromJSON DirectMessagesNewResponse where
     parseJSON = withObject "DirectMessagesNewResponse" $ \o -> DirectMessagesNewResponse <$> o .: "event"
@@ -307,16 +321,17 @@ directMessagesNew up msg =
   where
     body =
         object
-            [ "event" .=
-              object
-                  [ "type" .= ("message_create" :: String)
-                  , "message_create" .=
-                    object
-                        [ "target" .= object ["recipient_id" .= up]
-                        , "message_data" .= object ["text" .= msg]
-                        ]
-                  ]
+            [ "event"
+                .= object
+                    [ "type" .= ("message_create" :: String)
+                    , "message_create"
+                        .= object
+                            [ "target" .= object ["recipient_id" .= up]
+                            , "message_data" .= object ["text" .= msg]
+                            ]
+                    ]
             ]
+
 type DirectMessagesNew = EmptyParams
 
 type RecipientId = Integer
@@ -333,6 +348,7 @@ type RecipientId = Integer
 -- APIRequest "GET" "https://api.twitter.com/1.1/friendships/no_retweets/ids.json" []
 friendshipsNoRetweetsIds :: APIRequest FriendshipsNoRetweetsIds [UserId]
 friendshipsNoRetweetsIds = APIRequest "GET" (endpoint ++ "friendships/no_retweets/ids.json") []
+
 type FriendshipsNoRetweetsIds = EmptyParams
 
 -- | Returns query data which asks a collection of user IDs for every user the specified user is following.
@@ -355,10 +371,11 @@ type FriendshipsNoRetweetsIds = EmptyParams
 -- APIRequest "GET" "https://api.twitter.com/1.1/friends/ids.json" [("count","5000"),("screen_name","thimura")]
 friendsIds :: UserParam -> APIRequest FriendsIds (WithCursor Integer IdsCursorKey UserId)
 friendsIds q = APIRequest "GET" (endpoint ++ "friends/ids.json") (mkUserParam q)
-type FriendsIds = '[
-      "count" ':= Integer
-    , "cursor" ':= Integer
-    ]
+
+type FriendsIds =
+    '[ "count" ':= Integer
+     , "cursor" ':= Integer
+     ]
 
 -- | Returns query data which asks a collection of user IDs for every user following the specified user.
 --
@@ -380,10 +397,11 @@ type FriendsIds = '[
 -- APIRequest "GET" "https://api.twitter.com/1.1/followers/ids.json" [("count","5000"),("screen_name","thimura")]
 followersIds :: UserParam -> APIRequest FollowersIds (WithCursor Integer IdsCursorKey UserId)
 followersIds q = APIRequest "GET" (endpoint ++ "followers/ids.json") (mkUserParam q)
-type FollowersIds = '[
-      "count" ':= Integer
-    , "cursor" ':= Integer
-    ]
+
+type FollowersIds =
+    '[ "count" ':= Integer
+     , "cursor" ':= Integer
+     ]
 
 -- | Returns a collection of numeric IDs for every user who has a pending request to follow the authenticating user.
 --
@@ -403,9 +421,10 @@ type FollowersIds = '[
 -- APIRequest "GET" "https://api.twitter.com/1.1/friendships/incoming.json" []
 friendshipsIncoming :: APIRequest FriendshipsIncoming (WithCursor Integer IdsCursorKey UserId)
 friendshipsIncoming = APIRequest "GET" (endpoint ++ "friendships/incoming.json") def
-type FriendshipsIncoming = '[
-      "cursor" ':= Integer
-    ]
+
+type FriendshipsIncoming =
+    '[ "cursor" ':= Integer
+     ]
 
 -- | Returns a collection of numeric IDs for every protected user for whom the authenticating user has a pending follow request.
 --
@@ -425,9 +444,10 @@ type FriendshipsIncoming = '[
 -- APIRequest "GET" "https://api.twitter.com/1.1/friendships/outgoing.json" []
 friendshipsOutgoing :: APIRequest FriendshipsOutgoing (WithCursor Integer IdsCursorKey UserId)
 friendshipsOutgoing = APIRequest "GET" (endpoint ++ "friendships/outgoing.json") def
-type FriendshipsOutgoing = '[
-      "cursor" ':= Integer
-    ]
+
+type FriendshipsOutgoing =
+    '[ "cursor" ':= Integer
+     ]
 
 -- | Returns post data which follows the user specified in the ID parameter.
 --
@@ -443,9 +463,10 @@ type FriendshipsOutgoing = '[
 -- APIRequest "POST" "https://api.twitter.com/1.1/friendships/create.json" [("user_id","69179963")]
 friendshipsCreate :: UserParam -> APIRequest FriendshipsCreate User
 friendshipsCreate user = APIRequest "POST" (endpoint ++ "friendships/create.json") (mkUserParam user)
-type FriendshipsCreate = '[
-      "follow" ':= Bool
-    ]
+
+type FriendshipsCreate =
+    '[ "follow" ':= Bool
+     ]
 
 -- | Returns post data which unfollows the user specified in the ID parameter.
 --
@@ -461,6 +482,7 @@ type FriendshipsCreate = '[
 -- APIRequest "POST" "https://api.twitter.com/1.1/friendships/destroy.json" [("user_id","69179963")]
 friendshipsDestroy :: UserParam -> APIRequest FriendshipsDestroy User
 friendshipsDestroy user = APIRequest "POST" (endpoint ++ "friendships/destroy.json") (mkUserParam user)
+
 type FriendshipsDestroy = EmptyParams
 
 -- | Returns query data which asks a cursored collection of user objects for every user the specified users is following.
@@ -483,12 +505,13 @@ type FriendshipsDestroy = EmptyParams
 -- APIRequest "GET" "https://api.twitter.com/1.1/friends/list.json" [("user_id","69179963")]
 friendsList :: UserParam -> APIRequest FriendsList (WithCursor Integer UsersCursorKey User)
 friendsList q = APIRequest "GET" (endpoint ++ "friends/list.json") (mkUserParam q)
-type FriendsList = '[
-      "count" ':= Integer
-    , "cursor" ':= Integer
-    , "skip_status" ':= Bool
-    , "include_user_entities" ':= Bool
-    ]
+
+type FriendsList =
+    '[ "count" ':= Integer
+     , "cursor" ':= Integer
+     , "skip_status" ':= Bool
+     , "include_user_entities" ':= Bool
+     ]
 
 -- | Returns query data which asks a cursored collection of user objects for users following the specified user.
 --
@@ -510,12 +533,13 @@ type FriendsList = '[
 -- APIRequest "GET" "https://api.twitter.com/1.1/followers/list.json" [("user_id","69179963")]
 followersList :: UserParam -> APIRequest FollowersList (WithCursor Integer UsersCursorKey User)
 followersList q = APIRequest "GET" (endpoint ++ "followers/list.json") (mkUserParam q)
-type FollowersList = '[
-      "count" ':= Integer
-    , "cursor" ':= Integer
-    , "skip_status" ':= Bool
-    , "include_user_entities" ':= Bool
-    ]
+
+type FollowersList =
+    '[ "count" ':= Integer
+     , "cursor" ':= Integer
+     , "skip_status" ':= Bool
+     , "include_user_entities" ':= Bool
+     ]
 
 -- | Returns query data asks that the credential is valid.
 --
@@ -529,11 +553,12 @@ type FollowersList = '[
 -- APIRequest "GET" "https://api.twitter.com/1.1/account/verify_credentials.json" []
 accountVerifyCredentials :: APIRequest AccountVerifyCredentials User
 accountVerifyCredentials = APIRequest "GET" (endpoint ++ "account/verify_credentials.json") []
-type AccountVerifyCredentials = '[
-      "include_entities" ':= Bool
-    , "skip_status" ':= Bool
-    , "include_email" ':= Bool
-    ]
+
+type AccountVerifyCredentials =
+    '[ "include_entities" ':= Bool
+     , "skip_status" ':= Bool
+     , "include_email" ':= Bool
+     ]
 
 -- | Returns user object with updated fields.
 -- Note that while no specific parameter is required, you need to provide at least one parameter before executing the query.
@@ -548,15 +573,16 @@ type AccountVerifyCredentials = '[
 -- APIRequest "POST" "https://api.twitter.com/1.1/account/update_profile.json" [("url","http://www.example.com")]
 accountUpdateProfile :: APIRequest AccountUpdateProfile User
 accountUpdateProfile = APIRequest "POST" (endpoint ++ "account/update_profile.json") []
-type AccountUpdateProfile = '[
-      "include_entities" ':= Bool
-    , "skip_status" ':= Bool
-    , "name" ':= T.Text
-    , "url" ':= URIString
-    , "location" ':= T.Text
-    , "description" ':= T.Text
-    , "profile_link_color" ':= T.Text
-    ]
+
+type AccountUpdateProfile =
+    '[ "include_entities" ':= Bool
+     , "skip_status" ':= Bool
+     , "name" ':= T.Text
+     , "url" ':= URIString
+     , "location" ':= T.Text
+     , "description" ':= T.Text
+     , "profile_link_color" ':= T.Text
+     ]
 
 -- | Returns query data asks user objects.
 --
@@ -570,9 +596,10 @@ type AccountUpdateProfile = '[
 -- APIRequest "GET" "https://api.twitter.com/1.1/users/lookup.json" [("screen_name","thimura,twitterapi")]
 usersLookup :: UserListParam -> APIRequest UsersLookup [User]
 usersLookup q = APIRequest "GET" (endpoint ++ "users/lookup.json") (mkUserListParam q)
-type UsersLookup = '[
-      "include_entities" ':= Bool
-    ]
+
+type UsersLookup =
+    '[ "include_entities" ':= Bool
+     ]
 
 -- | Returns query data asks the user specified by user id or screen name parameter.
 --
@@ -586,9 +613,10 @@ type UsersLookup = '[
 -- APIRequest "GET" "https://api.twitter.com/1.1/users/show.json" [("screen_name","thimura")]
 usersShow :: UserParam -> APIRequest UsersShow User
 usersShow q = APIRequest "GET" (endpoint ++ "users/show.json") (mkUserParam q)
-type UsersShow = '[
-      "include_entities" ':= Bool
-    ]
+
+type UsersShow =
+    '[ "include_entities" ':= Bool
+     ]
 
 -- | Returns the 20 most recent Tweets favorited by the specified user.
 --
@@ -609,13 +637,14 @@ favoritesList mbuser = APIRequest "GET" (endpoint ++ "favorites/list.json") (mkP
   where
     mkParam Nothing = []
     mkParam (Just usr) = mkUserParam usr
-type FavoritesList = '[
-      "count" ':= Integer
-    , "since_id" ':= Integer
-    , "max_id" ':= Integer
-    , "include_entities" ':= Bool
-    , "tweet_mode" ':= TweetMode
-    ]
+
+type FavoritesList =
+    '[ "count" ':= Integer
+     , "since_id" ':= Integer
+     , "max_id" ':= Integer
+     , "include_entities" ':= Bool
+     , "tweet_mode" ':= TweetMode
+     ]
 
 -- | Returns post data which favorites the status specified in the ID parameter as the authenticating user.
 --
@@ -629,10 +658,11 @@ type FavoritesList = '[
 -- APIRequest "POST" "https://api.twitter.com/1.1/favorites/create.json" [("id","1234567890")]
 favoritesCreate :: StatusId -> APIRequest FavoritesCreate Status
 favoritesCreate sid = APIRequest "POST" (endpoint ++ "favorites/create.json") [("id", PVInteger sid)]
-type FavoritesCreate = '[
-      "include_entities" ':= Bool
-    , "tweet_mode" ':= TweetMode
-    ]
+
+type FavoritesCreate =
+    '[ "include_entities" ':= Bool
+     , "tweet_mode" ':= TweetMode
+     ]
 
 -- | Returns post data unfavorites the status specified in the ID parameter as the authenticating user.
 --
@@ -646,10 +676,11 @@ type FavoritesCreate = '[
 -- APIRequest "POST" "https://api.twitter.com/1.1/favorites/destroy.json" [("id","1234567890")]
 favoritesDestroy :: StatusId -> APIRequest FavoritesDestroy Status
 favoritesDestroy sid = APIRequest "POST" (endpoint ++ "favorites/destroy.json") [("id", PVInteger sid)]
-type FavoritesDestroy = '[
-      "include_entities" ':= Bool
-    , "tweet_mode" ':= TweetMode
-    ]
+
+type FavoritesDestroy =
+    '[ "include_entities" ':= Bool
+     , "tweet_mode" ':= TweetMode
+     ]
 
 -- | Returns the query parameter which fetches a timeline of tweets authored by members of the specified list.
 --
@@ -670,14 +701,15 @@ type FavoritesDestroy = '[
 -- APIRequest "GET" "https://api.twitter.com/1.1/lists/statuses.json" [("list_id","20849097")]
 listsStatuses :: ListParam -> APIRequest ListsStatuses [Status]
 listsStatuses q = APIRequest "GET" (endpoint ++ "lists/statuses.json") (mkListParam q)
-type ListsStatuses = '[
-      "since_id" ':= Integer
-    , "max_id" ':= Integer
-    , "count" ':= Integer
-    , "include_entities" ':= Bool
-    , "include_rts" ':= Bool
-    , "tweet_mode" ':= TweetMode
-    ]
+
+type ListsStatuses =
+    '[ "since_id" ':= Integer
+     , "max_id" ':= Integer
+     , "count" ':= Integer
+     , "include_entities" ':= Bool
+     , "include_rts" ':= Bool
+     , "tweet_mode" ':= TweetMode
+     ]
 
 -- | Returns the post parameter which removes the specified member from the list.
 --
@@ -693,6 +725,7 @@ type ListsStatuses = '[
 -- APIRequest "POST" "https://api.twitter.com/1.1/lists/members/destroy.json" [("list_id","20849097"),("user_id","69179963")]
 listsMembersDestroy :: ListParam -> UserParam -> APIRequest ListsMembersDestroy List
 listsMembersDestroy list user = APIRequest "POST" (endpoint ++ "lists/members/destroy.json") (mkListParam list ++ mkUserParam user)
+
 type ListsMembersDestroy = EmptyParams
 
 -- | Returns the request parameters which asks the lists the specified user has been added to.
@@ -712,10 +745,11 @@ type ListsMembersDestroy = EmptyParams
 -- APIRequest "GET" "https://api.twitter.com/1.1/lists/memberships.json" [("user_id","69179963")]
 listsMemberships :: Maybe UserParam -> APIRequest ListsMemberships (WithCursor Integer ListsCursorKey List)
 listsMemberships q = APIRequest "GET" (endpoint ++ "lists/memberships.json") $ maybe [] mkUserParam q
-type ListsMemberships = '[
-      "count" ':= Integer
-    , "cursor" ':= Integer
-    ]
+
+type ListsMemberships =
+    '[ "count" ':= Integer
+     , "cursor" ':= Integer
+     ]
 
 -- | Returns the request parameter which asks the subscribers of the specified list.
 --
@@ -731,11 +765,12 @@ type ListsMemberships = '[
 -- APIRequest "GET" "https://api.twitter.com/1.1/lists/subscribers.json" [("list_id","20849097")]
 listsSubscribers :: ListParam -> APIRequest ListsSubscribers (WithCursor Integer UsersCursorKey User)
 listsSubscribers q = APIRequest "GET" (endpoint ++ "lists/subscribers.json") (mkListParam q)
-type ListsSubscribers = '[
-      "count" ':= Integer
-    , "cursor" ':= Integer
-    , "skip_status" ':= Bool
-    ]
+
+type ListsSubscribers =
+    '[ "count" ':= Integer
+     , "cursor" ':= Integer
+     , "skip_status" ':= Bool
+     ]
 
 -- | Returns the request parameter which obtains a collection of the lists the specified user is subscribed to.
 --
@@ -753,10 +788,11 @@ type ListsSubscribers = '[
 -- APIRequest "GET" "https://api.twitter.com/1.1/lists/subscriptions.json" [("user_id","69179963")]
 listsSubscriptions :: Maybe UserParam -> APIRequest ListsSubscriptions (WithCursor Integer ListsCursorKey List)
 listsSubscriptions q = APIRequest "GET" (endpoint ++ "lists/subscriptions.json") $ maybe [] mkUserParam q
-type ListsSubscriptions = '[
-      "count" ':= Integer
-    , "cursor" ':= Integer
-    ]
+
+type ListsSubscriptions =
+    '[ "count" ':= Integer
+     , "cursor" ':= Integer
+     ]
 
 -- | Returns the request parameter which asks the lists owned by the specified Twitter user.
 --
@@ -774,10 +810,11 @@ type ListsSubscriptions = '[
 -- APIRequest "GET" "https://api.twitter.com/1.1/lists/ownerships.json" [("user_id","69179963")]
 listsOwnerships :: Maybe UserParam -> APIRequest ListsOwnerships (WithCursor Integer ListsCursorKey List)
 listsOwnerships q = APIRequest "GET" (endpoint ++ "lists/ownerships.json") $ maybe [] mkUserParam q
-type ListsOwnerships = '[
-      "count" ':= Integer
-    , "cursor" ':= Integer
-    ]
+
+type ListsOwnerships =
+    '[ "count" ':= Integer
+     , "cursor" ':= Integer
+     ]
 
 -- | Adds multiple members to a list.
 --
@@ -793,6 +830,7 @@ type ListsOwnerships = '[
 -- APIRequest "POST" "https://api.twitter.com/1.1/lists/members/create_all.json" [("list_id","20849097"),("user_id","69179963,6253282")]
 listsMembersCreateAll :: ListParam -> UserListParam -> APIRequest ListsMembersCreateAll List
 listsMembersCreateAll list users = APIRequest "POST" (endpoint ++ "lists/members/create_all.json") (mkListParam list ++ mkUserListParam users)
+
 type ListsMembersCreateAll = EmptyParams
 
 -- | Adds multiple members to a list.
@@ -809,6 +847,7 @@ type ListsMembersCreateAll = EmptyParams
 -- APIRequest "POST" "https://api.twitter.com/1.1/lists/members/destroy_all.json" [("list_id","20849097"),("user_id","69179963,6253282")]
 listsMembersDestroyAll :: ListParam -> UserListParam -> APIRequest ListsMembersDestroyAll List
 listsMembersDestroyAll list users = APIRequest "POST" (endpoint ++ "lists/members/destroy_all.json") (mkListParam list ++ mkUserListParam users)
+
 type ListsMembersDestroyAll = EmptyParams
 
 -- | Returns query data asks the members of the specified list.
@@ -825,11 +864,12 @@ type ListsMembersDestroyAll = EmptyParams
 -- APIRequest "GET" "https://api.twitter.com/1.1/lists/members.json" [("list_id","20849097")]
 listsMembers :: ListParam -> APIRequest ListsMembers (WithCursor Integer UsersCursorKey User)
 listsMembers q = APIRequest "GET" (endpoint ++ "lists/members.json") (mkListParam q)
-type ListsMembers = '[
-      "count" ':= Integer
-    , "cursor" ':= Integer
-    , "skip_status" ':= Bool
-    ]
+
+type ListsMembers =
+    '[ "count" ':= Integer
+     , "cursor" ':= Integer
+     , "skip_status" ':= Bool
+     ]
 
 -- | Returns the post parameter which adds a member to a list.
 --
@@ -845,6 +885,7 @@ type ListsMembers = '[
 -- APIRequest "POST" "https://api.twitter.com/1.1/lists/members/create.json" [("list_id","20849097"),("user_id","69179963")]
 listsMembersCreate :: ListParam -> UserParam -> APIRequest ListsMembersCreate List
 listsMembersCreate list user = APIRequest "POST" (endpoint ++ "lists/members/create.json") (mkListParam list ++ mkUserParam user)
+
 type ListsMembersCreate = EmptyParams
 
 -- | Returns the post parameter which deletes the specified list.
@@ -861,6 +902,7 @@ type ListsMembersCreate = EmptyParams
 -- APIRequest "POST" "https://api.twitter.com/1.1/lists/destroy.json" [("list_id","20849097")]
 listsDestroy :: ListParam -> APIRequest ListsDestroy List
 listsDestroy list = APIRequest "POST" (endpoint ++ "lists/destroy.json") (mkListParam list)
+
 type ListsDestroy = EmptyParams
 
 -- | Returns the post parameter which updates the specified list.
@@ -873,16 +915,20 @@ type ListsDestroy = EmptyParams
 --
 -- >>> listsUpdate (ListNameParam "thimura/haskell") True (Just "Haskellers")
 -- APIRequest "POST" "https://api.twitter.com/1.1/lists/update.json" [("slug","haskell"),("owner_screen_name","thimura"),("description","Haskellers"),("mode","public")]
-listsUpdate :: ListParam
-            -> Bool -- ^ is public
-            -> Maybe T.Text -- ^ description
-            -> APIRequest ListsUpdate List
+listsUpdate ::
+    ListParam ->
+    -- | is public
+    Bool ->
+    -- | description
+    Maybe T.Text ->
+    APIRequest ListsUpdate List
 listsUpdate list isPublic description = APIRequest "POST" (endpoint ++ "lists/update.json") (mkListParam list ++ p')
   where
     p = [("mode", PVString . mode $ isPublic)]
-    p' = maybe id (\d -> (("description", PVString d):)) description p
+    p' = maybe id (\d -> (("description", PVString d) :)) description p
     mode True = "public"
     mode False = "private"
+
 type ListsUpdate = EmptyParams
 
 -- | Returns the post parameter which creates a new list for the authenticated user.
@@ -899,16 +945,21 @@ type ListsUpdate = EmptyParams
 -- APIRequest "POST" "https://api.twitter.com/1.1/lists/create.json" [("name","haskell"),("mode","private")]
 -- >>> listsCreate "haskell" True (Just "Haskellers")
 -- APIRequest "POST" "https://api.twitter.com/1.1/lists/create.json" [("description","Haskellers"),("name","haskell"),("mode","public")]
-listsCreate :: T.Text -- ^ list name
-            -> Bool -- ^ whether public(True) or private(False)
-            -> Maybe T.Text -- ^ the description to give the list
-            -> APIRequest ListsCreate List
+listsCreate ::
+    -- | list name
+    T.Text ->
+    -- | whether public(True) or private(False)
+    Bool ->
+    -- | the description to give the list
+    Maybe T.Text ->
+    APIRequest ListsCreate List
 listsCreate name isPublic description = APIRequest "POST" (endpoint ++ "lists/create.json") p'
   where
     p = [("name", PVString name), ("mode", PVString . mode $ isPublic)]
-    p' = maybe id (\d -> (("description", PVString d):)) description p
+    p' = maybe id (\d -> (("description", PVString d) :)) description p
     mode True = "public"
     mode False = "private"
+
 type ListsCreate = EmptyParams
 
 -- | Returns the request parameter which asks the specified list.
@@ -925,6 +976,7 @@ type ListsCreate = EmptyParams
 -- APIRequest "GET" "https://api.twitter.com/1.1/lists/show.json" [("list_id","20849097")]
 listsShow :: ListParam -> APIRequest ListsShow List
 listsShow q = APIRequest "GET" (endpoint ++ "lists/show.json") (mkListParam q)
+
 type ListsShow = EmptyParams
 
 -- | Upload media and returns the media data.
@@ -948,14 +1000,16 @@ type ListsShow = EmptyParams
 --
 -- >>> mediaUpload (MediaFromFile "/home/test/test.png")
 -- APIRequestMultipart "POST" "https://upload.twitter.com/1.1/media/upload.json" []
-mediaUpload :: MediaData
-            -> APIRequest MediaUpload UploadedMedia
+mediaUpload ::
+    MediaData ->
+    APIRequest MediaUpload UploadedMedia
 mediaUpload mediaData =
     APIRequestMultipart "POST" uri [] [mediaBody mediaData]
   where
     uri = "https://upload.twitter.com/1.1/media/upload.json"
     mediaBody (MediaFromFile fp) = partFileSource "media" fp
     mediaBody (MediaRequestBody filename filebody) = partFileRequestBody "media" filename filebody
+
 type MediaUpload = EmptyParams
 
 statusesMentionsTimeline :: APIRequest Status.StatusesMentionsTimeline [Status]

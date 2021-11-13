@@ -1,5 +1,5 @@
-{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 -- Example:
 --   $ export OAUTH_CONSUMER_KEY="your consumer key"
@@ -8,12 +8,12 @@
 
 module Main where
 
-import Web.Twitter.Conduit
-import Web.Authenticate.OAuth as OA
 import qualified Data.ByteString.Char8 as S8
 import Data.Maybe
 import System.Environment
 import System.IO (hFlush, stdout)
+import Web.Authenticate.OAuth as OA
+import Web.Twitter.Conduit
 
 getTokens :: IO OAuth
 getTokens = do
@@ -21,14 +21,16 @@ getTokens = do
     consumerSecret <- getEnv "OAUTH_CONSUMER_SECRET"
     return $
         twitterOAuth
-        { oauthConsumerKey = S8.pack consumerKey
-        , oauthConsumerSecret = S8.pack consumerSecret
-        , oauthCallback = Just "oob"
-        }
+            { oauthConsumerKey = S8.pack consumerKey
+            , oauthConsumerSecret = S8.pack consumerSecret
+            , oauthCallback = Just "oob"
+            }
 
-authorize :: OAuth -- ^ OAuth Consumer key and secret
-          -> Manager
-          -> IO Credential
+authorize ::
+    -- | OAuth Consumer key and secret
+    OAuth ->
+    Manager ->
+    IO Credential
 authorize oauth mgr = do
     cred <- OA.getTemporaryCredential oauth mgr
     let url = OA.authorizeUrl oauth cred

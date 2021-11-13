@@ -3,10 +3,10 @@
 {-# LANGUAGE Rank2Types #-}
 {-# LANGUAGE TypeFamilies #-}
 
-module Web.Twitter.Conduit.Request
-       ( HasParam
-       , APIRequest(..)
-       ) where
+module Web.Twitter.Conduit.Request (
+    HasParam,
+    APIRequest (..),
+) where
 
 import Data.Aeson
 import GHC.TypeLits (Symbol)
@@ -51,22 +51,23 @@ import Web.Twitter.Conduit.Request.Internal
 -- [("max_id",PVInteger {unPVInteger = 1234567890})]
 data APIRequest (supports :: [Param Symbol *]) responseType
     = APIRequest
-      { _method :: HT.Method
-      , _url :: String
-      , _params :: APIQuery
-      }
+        { _method :: HT.Method
+        , _url :: String
+        , _params :: APIQuery
+        }
     | APIRequestMultipart
-      { _method :: HT.Method
-      , _url :: String
-      , _params :: APIQuery
-      , _part :: [Part]
-      }
+        { _method :: HT.Method
+        , _url :: String
+        , _params :: APIQuery
+        , _part :: [Part]
+        }
     | APIRequestJSON
-      { _method :: HT.Method
-      , _url :: String
-      , _params :: APIQuery
-      , _body :: Value
-      }
+        { _method :: HT.Method
+        , _url :: String
+        , _params :: APIQuery
+        , _body :: Value
+        }
+
 instance Parameters (APIRequest supports responseType) where
     type SupportParameters (APIRequest supports responseType) = supports
 

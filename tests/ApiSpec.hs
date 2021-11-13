@@ -1,5 +1,5 @@
-{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE CPP #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module ApiSpec where
 
@@ -9,7 +9,7 @@ import qualified Data.Conduit.List as CL
 import Network.HTTP.Conduit
 import System.IO.Unsafe
 import TestUtils
-import Web.Twitter.Conduit (call, sourceWithCursor, TWInfo)
+import Web.Twitter.Conduit (TWInfo, call, sourceWithCursor)
 import Web.Twitter.Conduit.Api
 import Web.Twitter.Conduit.Lens
 import qualified Web.Twitter.Conduit.Parameters as Param
@@ -27,6 +27,7 @@ mgr = unsafePerformIO $ newManager tlsManagerSettings
 spec :: Spec
 spec = do
     unit
+
 #ifdef RUN_INTEGRATED_TEST
     integrated
 #endif

@@ -7,19 +7,19 @@
 
 module Main where
 
-import Web.Scotty
-import qualified Network.HTTP.Types as HT
-import Web.Twitter.Conduit
-import qualified Web.Authenticate.OAuth as OA
-import qualified Data.Text.Lazy as LT
+import Control.Monad.IO.Class
 import qualified Data.ByteString as S
 import qualified Data.ByteString.Char8 as S8
+import Data.IORef
 import qualified Data.Map as M
 import Data.Maybe
-import Data.IORef
-import Control.Monad.IO.Class
+import qualified Data.Text.Lazy as LT
+import qualified Network.HTTP.Types as HT
 import System.Environment
 import System.IO.Unsafe
+import qualified Web.Authenticate.OAuth as OA
+import Web.Scotty
+import Web.Twitter.Conduit
 
 callback :: String
 callback = "http://localhost:3000/callback"
@@ -30,10 +30,10 @@ getTokens = do
     consumerSecret <- getEnv "OAUTH_CONSUMER_SECRET"
     return $
         twitterOAuth
-        { oauthConsumerKey = S8.pack consumerKey
-        , oauthConsumerSecret = S8.pack consumerSecret
-        , oauthCallback = Just $ S8.pack callback
-        }
+            { oauthConsumerKey = S8.pack consumerKey
+            , oauthConsumerSecret = S8.pack consumerSecret
+            , oauthCallback = Just $ S8.pack callback
+            }
 
 type OAuthToken = S.ByteString
 
@@ -43,8 +43,8 @@ usersToken = unsafePerformIO $ newIORef M.empty
 takeCredential :: OAuthToken -> IORef (M.Map OAuthToken Credential) -> IO (Maybe Credential)
 takeCredential k ioref =
     atomicModifyIORef ioref $ \m ->
-        let (res, newm) = M.updateLookupWithKey (\_ _ -> Nothing) k m in
-        (newm, res)
+        let (res, newm) = M.updateLookupWithKey (\_ _ -> Nothing) k m
+         in (newm, res)
 
 storeCredential :: OAuthToken -> Credential -> IORef (M.Map OAuthToken Credential) -> IO ()
 storeCredential k cred ioref =
@@ -59,7 +59,8 @@ main = do
 
 makeMessage :: OAuth -> Credential -> S.ByteString
 makeMessage tokens (Credential cred) =
-    S8.intercalate "\n"
+    S8.intercalate
+        "\n"
         [ "export OAUTH_CONSUMER_KEY=\"" <> oauthConsumerKey tokens <> "\""
         , "export OAUTH_CONSUMER_SECRET=\"" <> oauthConsumerSecret tokens <> "\""
         , "export OAUTH_ACCESS_TOKEN=\"" <> fromMaybe "" (lookup "oauth_token" cred) <> "\""
@@ -80,7 +81,6 @@ app tokens mgr = do
                 let message = makeMessage tokens accessTokens
                 liftIO . S8.putStrLn $ message
                 text . LT.pack . S8.unpack $ message
-
             Nothing -> do
                 status HT.status404
                 text "temporary token is not found"

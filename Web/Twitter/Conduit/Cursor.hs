@@ -1,15 +1,15 @@
-{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE EmptyDataDecls #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 
-module Web.Twitter.Conduit.Cursor
-       ( CursorKey (..)
-       , IdsCursorKey
-       , UsersCursorKey
-       , ListsCursorKey
-       , EventsCursorKey
-       , WithCursor (..)
-       ) where
+module Web.Twitter.Conduit.Cursor (
+    CursorKey (..),
+    IdsCursorKey,
+    UsersCursorKey,
+    ListsCursorKey,
+    EventsCursorKey,
+    WithCursor (..),
+) where
 
 import Data.Aeson
 import Data.Text (Text)
@@ -23,16 +23,19 @@ class CursorKey a where
 
 -- | Phantom type to specify the key which point out the content in the response.
 data IdsCursorKey
+
 instance CursorKey IdsCursorKey where
     cursorKey = const "ids"
 
 -- | Phantom type to specify the key which point out the content in the response.
 data UsersCursorKey
+
 instance CursorKey UsersCursorKey where
     cursorKey = const "users"
 
 -- | Phantom type to specify the key which point out the content in the response.
 data ListsCursorKey
+
 instance CursorKey ListsCursorKey where
     cursorKey = const "lists"
 
@@ -65,12 +68,16 @@ data WithCursor cursorType cursorKey wrapped = WithCursor
     { previousCursor :: Maybe cursorType
     , nextCursor :: Maybe cursorType
     , contents :: [wrapped]
-    } deriving Show
+    }
+    deriving (Show)
 
-instance (FromJSON wrapped, FromJSON ct, CursorKey c) =>
-         FromJSON (WithCursor ct c wrapped) where
-    parseJSON (Object o) = checkError o >>
-      WithCursor <$> o .:? "previous_cursor"
-                 <*> o .:? "next_cursor"
-                 <*> o .:  cursorKey (undefined :: c)
+instance
+    (FromJSON wrapped, FromJSON ct, CursorKey c) =>
+    FromJSON (WithCursor ct c wrapped)
+    where
+    parseJSON (Object o) =
+        checkError o
+            >> WithCursor <$> o .:? "previous_cursor"
+            <*> o .:? "next_cursor"
+            <*> o .: cursorKey (undefined :: c)
     parseJSON _ = mempty
