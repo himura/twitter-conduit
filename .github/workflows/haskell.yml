@@ -35,6 +35,16 @@ jobs:
     - name: Run tests
       run: cabal v2-test all
 
+  hlint:
+    name: lint *.hs
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@master
+      - name: Install hlint
+        run: sudo apt-get install hlint
+
+      - run: hlint $(git ls-tree -r HEAD | awk '$4 ~ /\.hs/{ print $4}' | grep -vE '^Warning.hs$|^(tests|sample)/.*')
+
   cabal-format:
     name: check .cabal style
     runs-on: ubuntu-latest
