@@ -1,0 +1,18 @@
+name: format
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  cabal-format:
+    name: check .cabal style
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@master
+      - uses: haskell/actions/setup@v1
+        with:
+          cabal-version: 'latest'
+      - run: cabal format
+      - run: git diff --exit-code
