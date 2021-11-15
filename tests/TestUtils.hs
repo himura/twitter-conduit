@@ -12,14 +12,16 @@ getOAuthTokens = do
     consumerSecret <- getEnv' "OAUTH_CONSUMER_SECRET"
     accessToken <- getEnv' "OAUTH_ACCESS_TOKEN"
     accessSecret <- getEnv' "OAUTH_ACCESS_SECRET"
-    let oauth = twitterOAuth
-            { oauthConsumerKey = consumerKey
-            , oauthConsumerSecret = consumerSecret
-            }
-        cred = Credential
-            [ ("oauth_token", accessToken)
-            , ("oauth_token_secret", accessSecret)
-            ]
+    let oauth =
+            twitterOAuth
+                { oauthConsumerKey = consumerKey
+                , oauthConsumerSecret = consumerSecret
+                }
+        cred =
+            Credential
+                [ ("oauth_token", accessToken)
+                , ("oauth_token_secret", accessSecret)
+                ]
     return (oauth, cred)
   where
     getEnv' = (S8.pack <$>) . getEnv

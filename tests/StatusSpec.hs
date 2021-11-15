@@ -1,6 +1,6 @@
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE OverloadedLabels #-}
 {-# LANGUAGE CPP #-}
+{-# LANGUAGE OverloadedLabels #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module StatusSpec where
 
@@ -10,13 +10,13 @@ import qualified Data.Conduit.List as CL
 import Data.Time
 import Network.HTTP.Conduit
 import System.IO.Unsafe
-import Web.Twitter.Conduit (call, accountVerifyCredentials, sourceWithMaxId, TWInfo)
+import Web.Twitter.Conduit (TWInfo, accountVerifyCredentials, call, sourceWithMaxId)
 import qualified Web.Twitter.Conduit.Parameters as Param
 import Web.Twitter.Conduit.Status as Status
 import Web.Twitter.Types.Lens
 
-import TestUtils
 import Test.Hspec
+import TestUtils
 
 twInfo :: TWInfo
 twInfo = unsafePerformIO getTWInfo
@@ -32,6 +32,7 @@ self = unsafePerformIO $ call twInfo mgr $ accountVerifyCredentials
 spec :: Spec
 spec = do
     unit
+
 #ifdef RUN_INTEGRATED_TEST
     integrated
 #endif
@@ -55,13 +56,16 @@ integrated = do
             length res `shouldSatisfy` (== 20)
             res `shouldSatisfy` (allOf folded (^. statusUser . userScreenName . to (== "thimura")))
         it "returns the recent tweets which include RTs when specified include_rts option" $ do
-            res <- call twInfo mgr
-                   $ userTimeline (Param.ScreenNameParam "thimura")
-                   & #count ?~ 100 & #include_rts ?~ True
+            res <-
+                call twInfo mgr $
+                    userTimeline (Param.ScreenNameParam "thimura")
+                        & #count ?~ 100
+                        & #include_rts ?~ True
             res `shouldSatisfy` (anyOf (folded . statusRetweetedStatus . _Just . statusUser . userScreenName) (/= "thimura"))
         it "iterate with sourceWithMaxId" $ do
-            let src = sourceWithMaxId twInfo mgr $
-                      userTimeline (Param.ScreenNameParam "thimura") & #count ?~ 200
+            let src =
+                    sourceWithMaxId twInfo mgr $
+                        userTimeline (Param.ScreenNameParam "thimura") & #count ?~ 200
             tl <- src $$ CL.isolate 600 =$ CL.consume
             length tl `shouldSatisfy` (== 600)
 

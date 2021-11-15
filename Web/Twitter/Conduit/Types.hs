@@ -1,36 +1,41 @@
 {-# LANGUAGE DeriveDataTypeable #-}
-module Web.Twitter.Conduit.Types
-       ( TWToken (..)
-       , TWInfo (..)
-       , twitterOAuth
-       , setCredential
-       ) where
+
+module Web.Twitter.Conduit.Types (
+    TWToken (..),
+    TWInfo (..),
+    twitterOAuth,
+    setCredential,
+) where
 
 import Data.Default
 import Data.Typeable (Typeable)
-import Web.Authenticate.OAuth
 import Network.HTTP.Conduit
+import Web.Authenticate.OAuth
 
 data TWToken = TWToken
     { twOAuth :: OAuth
     , twCredential :: Credential
-    } deriving (Show, Read, Eq, Typeable)
+    }
+    deriving (Show, Read, Eq, Typeable)
 instance Default TWToken where
     def = TWToken twitterOAuth (Credential [])
 
 data TWInfo = TWInfo
     { twToken :: TWToken
     , twProxy :: Maybe Proxy
-    } deriving (Show, Read, Eq, Typeable)
+    }
+    deriving (Show, Read, Eq, Typeable)
 instance Default TWInfo where
-    def = TWInfo
-        { twToken = def
-        , twProxy = Nothing
-        }
+    def =
+        TWInfo
+            { twToken = def
+            , twProxy = Nothing
+            }
 
 twitterOAuth :: OAuth
 twitterOAuth =
-    def { oauthServerName = "twitter"
+    def
+        { oauthServerName = "twitter"
         , oauthRequestUri = "https://api.twitter.com/oauth/request_token"
         , oauthAccessTokenUri = "https://api.twitter.com/oauth/access_token"
         , oauthAuthorizeUri = "https://api.twitter.com/oauth/authorize"
@@ -52,8 +57,8 @@ twitterOAuth =
 -- >>> twProxy twinfo2 == Just proxy
 -- True
 setCredential :: OAuth -> Credential -> TWInfo -> TWInfo
-setCredential oa cred env
-  = TWInfo
-    { twToken = TWToken oa cred
-    , twProxy = twProxy env
-    }
+setCredential oa cred env =
+    TWInfo
+        { twToken = TWToken oa cred
+        , twProxy = twProxy env
+        }

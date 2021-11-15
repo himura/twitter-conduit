@@ -1,5 +1,7 @@
 {-# LANGUAGE CPP #-}
+
 module Main (main) where
+
 #ifndef MIN_VERSION_cabal_doctest
 #define MIN_VERSION_cabal_doctest(x,y,z) 0
 #endif
@@ -17,7 +19,8 @@ main = defaultMainWithDoctests "doctests"
 import Warning ()
 #endif
 import Distribution.Simple
+
 main :: IO ()
 main = defaultMain
-#endif
 
+#endif

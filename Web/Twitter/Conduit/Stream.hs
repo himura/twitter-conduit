@@ -1,34 +1,33 @@
 {-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE DataKinds #-}
-{-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TypeOperators #-}
 
-module Web.Twitter.Conduit.Stream
-       (
-       -- * StreamingAPI
-         Userstream
-       , userstream
-       , StatusesFilter
-       , FilterParameter (..)
-       , statusesFilter
-       , statusesFilterByFollow
-       , statusesFilterByTrack
-       -- , statusesFilterByLocation
-       -- , statusesSample
-       -- , statusesFirehose
-       -- , sitestream
-       -- , sitestream'
-       , stream
-       , stream'
-  ) where
+module Web.Twitter.Conduit.Stream (
+    -- * StreamingAPI
+    Userstream,
+    userstream,
+    StatusesFilter,
+    FilterParameter (..),
+    statusesFilter,
+    statusesFilterByFollow,
+    statusesFilterByTrack,
+    -- , statusesFilterByLocation
+    -- , statusesSample
+    -- , statusesFirehose
+    -- , sitestream
+    -- , sitestream'
+    stream,
+    stream',
+) where
 
-import Web.Twitter.Conduit.Types
 import Web.Twitter.Conduit.Base
-import Web.Twitter.Types
 import Web.Twitter.Conduit.Request
 import Web.Twitter.Conduit.Request.Internal
 import Web.Twitter.Conduit.Response
+import Web.Twitter.Conduit.Types
+import Web.Twitter.Types
 
 import Control.Monad.Catch
 import Control.Monad.IO.Class
@@ -43,25 +42,25 @@ import qualified Data.Text as T
 import qualified Network.HTTP.Conduit as HTTP
 
 stream ::
-          ( MonadResource m
-          , FromJSON responseType
-          , MonadThrow m
-          )
-       => TWInfo
-       -> HTTP.Manager
-       -> APIRequest apiName responseType
-        -> m (C.ConduitM () responseType m ())
+    ( MonadResource m
+    , FromJSON responseType
+    , MonadThrow m
+    ) =>
+    TWInfo ->
+    HTTP.Manager ->
+    APIRequest apiName responseType ->
+    m (C.ConduitM () responseType m ())
 stream = stream'
 
 stream' ::
-           ( MonadResource m
-           , FromJSON value
-           , MonadThrow m
-           )
-        => TWInfo
-        -> HTTP.Manager
-        -> APIRequest apiName responseType
-        -> m (C.ConduitM () value m ())
+    ( MonadResource m
+    , FromJSON value
+    , MonadThrow m
+    ) =>
+    TWInfo ->
+    HTTP.Manager ->
+    APIRequest apiName responseType ->
+    m (C.ConduitM () value m ())
 stream' info mgr req = do
     rsrc <- getResponse info mgr =<< liftIO (makeRequest req)
     return $ responseBody rsrc C..| CL.sequence sinkFromJSONIgnoreSpaces
@@ -70,16 +69,17 @@ stream' info mgr req = do
 
 userstream :: APIRequest Userstream StreamingAPI
 userstream = APIRequest "GET" "https://userstream.twitter.com/1.1/user.json" []
-type Userstream = '[
-      "language" ':= T.Text
-    , "filter_level" ':= T.Text
-    , "stall_warnings" ':= Bool
-    , "replies" ':= T.Text
-    ]
+type Userstream =
+    '[ "language" ':= T.Text
+     , "filter_level" ':= T.Text
+     , "stall_warnings" ':= Bool
+     , "replies" ':= T.Text
+     ]
 
 -- https://dev.twitter.com/streaming/overview/request-parameters
-data FilterParameter = Follow [UserId]
-                     | Track [T.Text]
+data FilterParameter
+    = Follow [UserId]
+    | Track [T.Text]
 
 -- | Returns statuses/filter.json API query data.
 --
@@ -110,11 +110,14 @@ statusesFilterByFollow userIds = statusesFilter [Follow userIds]
 --
 -- >>> statusesFilterByTrack "haskell"
 -- APIRequest "POST" "https://stream.twitter.com/1.1/statuses/filter.json" [("track","haskell")]
-statusesFilterByTrack :: T.Text -- ^ keyword
-                      -> APIRequest StatusesFilter StreamingAPI
+statusesFilterByTrack ::
+    -- | keyword
+    T.Text ->
+    APIRequest StatusesFilter StreamingAPI
 statusesFilterByTrack keyword = statusesFilter [Track [keyword]]
-type StatusesFilter = '[
-      "language" ':= T.Text
-    , "filter_level" ':= T.Text
-    , "stall_warnings" ':= Bool
-    ]
+
+type StatusesFilter =
+    '[ "language" ':= T.Text
+     , "filter_level" ':= T.Text
+     , "stall_warnings" ':= Bool
+     ]

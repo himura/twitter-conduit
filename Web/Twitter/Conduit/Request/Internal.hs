@@ -37,12 +37,12 @@ type APIQuery = [APIQueryItem]
 type APIQueryItem = (ByteString, PV)
 
 data PV
-    = PVInteger { unPVInteger :: Integer }
-    | PVBool { unPVBool :: Bool }
-    | PVString { unPVString :: Text }
-    | PVIntegerArray { unPVIntegerArray :: [Integer] }
-    | PVStringArray { unPVStringArray :: [Text] }
-    | PVDay { unPVDay :: Day }
+    = PVInteger {unPVInteger :: Integer}
+    | PVBool {unPVBool :: Bool}
+    | PVString {unPVString :: Text}
+    | PVIntegerArray {unPVIntegerArray :: [Integer]}
+    | PVStringArray {unPVStringArray :: [Text]}
+    | PVDay {unPVDay :: Day}
     deriving (Show, Eq)
 
 class Parameters req where
@@ -84,24 +84,29 @@ paramValueBS (PVStringArray iarr) = S8.intercalate "," $ map T.encodeUtf8 iarr
 paramValueBS (PVDay day) = S8.pack . show $ day
 
 rawParam ::
-       (Parameters p, ParameterValue a)
-    => ByteString -- ^ key
-    -> Lens' p (Maybe a)
+    (Parameters p, ParameterValue a) =>
+    -- | key
+    ByteString ->
+    Lens' p (Maybe a)
 rawParam key = lens getter setter
-   where
-     getter = preview $ params . to (lookup key) . _Just . to unwrap
-     setter = flip (over params . replace key)
-     replace k (Just v) = ((k, wrap v):) . dropAssoc k
-     replace k Nothing = dropAssoc k
-     dropAssoc k = filter ((/= k) . fst)
+  where
+    getter = preview $ params . to (lookup key) . _Just . to unwrap
+    setter = flip (over params . replace key)
+    replace k (Just v) = ((k, wrap v) :) . dropAssoc k
+    replace k Nothing = dropAssoc k
+    dropAssoc k = filter ((/= k) . fst)
 
-instance ( Parameters req
-         , ParameterValue a
-         , KnownSymbol label
-         , HasParam label a (SupportParameters req)
-         , Functor f
-         , lens ~ ((Maybe a -> f (Maybe a)) -> req -> f req)) =>
-         IsLabel label lens where
+{- ORMOLU_DISABLE -}
+instance
+    ( Parameters req
+    , ParameterValue a
+    , KnownSymbol label
+    , HasParam label a (SupportParameters req)
+    , Functor f
+    , lens ~ ((Maybe a -> f (Maybe a)) -> req -> f req)
+    ) =>
+    IsLabel label lens where
+
 #if MIN_VERSION_base(4, 10, 0)
     fromLabel = rawParam key
 #else
@@ -109,3 +114,4 @@ instance ( Parameters req
 #endif
       where
         key = S8.pack (symbolVal (Proxy :: Proxy label))
+{- ORMOLU_ENABLE -}

@@ -9,46 +9,44 @@
 -- Portability: portable
 --
 -- A client library for Twitter APIs (see <https://dev.twitter.com/>).
+module Web.Twitter.Conduit (
+    -- * How to use this library
+    -- $howto
 
-module Web.Twitter.Conduit
-       (
-       -- * How to use this library
-       -- $howto
+    -- * Re-exports
+    module Web.Twitter.Conduit.Api,
+    module Web.Twitter.Conduit.Cursor,
+    module Web.Twitter.Conduit.Request,
+    module Web.Twitter.Conduit.Response,
+    module Web.Twitter.Conduit.Stream,
+    module Web.Twitter.Conduit.Types,
 
-       -- * Re-exports
-         module Web.Twitter.Conduit.Api
-       , module Web.Twitter.Conduit.Cursor
-       , module Web.Twitter.Conduit.Request
-       , module Web.Twitter.Conduit.Response
-       , module Web.Twitter.Conduit.Stream
-       , module Web.Twitter.Conduit.Types
+    -- * 'Web.Twitter.Conduit.Base'
+    call,
+    call',
+    callWithResponse,
+    callWithResponse',
+    sourceWithMaxId,
+    sourceWithMaxId',
+    sourceWithCursor,
+    sourceWithCursor',
+    sourceWithSearchResult,
+    sourceWithSearchResult',
 
-       -- * 'Web.Twitter.Conduit.Base'
-       , call
-       , call'
-       , callWithResponse
-       , callWithResponse'
-       , sourceWithMaxId
-       , sourceWithMaxId'
-       , sourceWithCursor
-       , sourceWithCursor'
-       , sourceWithSearchResult
-       , sourceWithSearchResult'
+    -- * 'Web.Twitter.Conduit.Parameters'
+    ListParam (..),
+    MediaData (..),
+    UserListParam (..),
+    UserParam (..),
 
-       -- * 'Web.Twitter.Conduit.Parameters'
-       , ListParam(..)
-       , MediaData(..)
-       , UserListParam(..)
-       , UserParam(..)
-
-       -- * re-exports
-       , OAuth (..)
-       , Credential (..)
-       , def
-       , Manager
-       , newManager
-       , tlsManagerSettings
-       ) where
+    -- * re-exports
+    OAuth (..),
+    Credential (..),
+    def,
+    Manager,
+    newManager,
+    tlsManagerSettings,
+) where
 
 import Web.Twitter.Conduit.Api
 import Web.Twitter.Conduit.Base
@@ -64,12 +62,13 @@ import Network.HTTP.Conduit (Manager, newManager, tlsManagerSettings)
 import Web.Authenticate.OAuth
 
 -- for haddock
+
+import Control.Lens
+import Control.Monad.IO.Class
 import Data.Conduit
 import qualified Data.Conduit.List as CL
 import qualified Data.Text as T
 import qualified Data.Text.IO as T
-import Control.Monad.IO.Class
-import Control.Lens
 
 {-# ANN module "HLint: ignore Use import/export shortcut" #-}
 
@@ -81,7 +80,7 @@ import Control.Lens
 -- and <http://hackage.haskell.org/package/conduit conduit>.
 -- All of following examples import modules as below:
 --
--- > {-# LANGUAGE OverloadedStrings #-}
+-- > {\-# LANGUAGE OverloadedStrings #-\}
 -- >
 -- > import Web.Twitter.Conduit
 -- > import Web.Twitter.Types.Lens
