@@ -1,6 +1,6 @@
 cabal-version:      1.24
 name:               twitter-conduit
-version:            0.5.1
+version:            0.6.0
 license:            BSD3
 license-file:       LICENSE
 maintainer:         Takahiro HIMURA <taka@himura.jp>

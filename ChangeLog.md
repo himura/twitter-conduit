@@ -1,3 +1,8 @@
+## 0.6.0
+
+* Support extended tweets [#83](https://github.com/himura/twitter-conduit/pull/83)
+* Remove deprecated module `Web.Twitter.Conduit.ParametersDeprecated` [#81](https://github.com/himura/twitter-conduit/pull/81)
+
 ## 0.5.1
 
 * Add result_type to searchTweets [#78](https://github.com/himura/twitter-conduit/pull/78).
