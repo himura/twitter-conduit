@@ -1,4 +1,8 @@
 {-# LANGUAGE CPP #-}
+{-# LANGUAGE DeriveFoldable #-}
+{-# LANGUAGE DeriveFunctor #-}
+{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DeriveTraversable #-}
 {-# LANGUAGE EmptyDataDecls #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
@@ -14,6 +18,7 @@ module Web.Twitter.Conduit.Cursor (
 
 import Data.Aeson
 import Data.Text (Text)
+import GHC.Generics
 import Web.Twitter.Types (checkError)
 
 -- $setup
@@ -76,7 +81,7 @@ data WithCursor cursorType cursorKey wrapped = WithCursor
     , nextCursor :: Maybe cursorType
     , contents :: [wrapped]
     }
-    deriving (Show)
+    deriving (Show, Eq, Generic, Functor, Foldable, Traversable)
 
 instance
     (FromJSON wrapped, FromJSON ct, CursorKey c) =>
