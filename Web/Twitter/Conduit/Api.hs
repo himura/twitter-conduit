@@ -6,16 +6,27 @@
 
 module Web.Twitter.Conduit.Api (
     -- * Status
+    StatusesMentionsTimeline,
     statusesMentionsTimeline,
+    StatusesUserTimeline,
     statusesUserTimeline,
+    StatusesHomeTimeline,
     statusesHomeTimeline,
+    StatusesRetweetsOfMe,
     statusesRetweetsOfMe,
+    StatusesRetweetsId,
     statusesRetweetsId,
+    StatusesShowId,
     statusesShowId,
+    StatusesDestroyId,
     statusesDestroyId,
+    StatusesUpdate,
     statusesUpdate,
+    StatusesRetweetId,
     statusesRetweetId,
+    StatusesUpdateWithMedia,
     statusesUpdateWithMedia,
+    StatusesLookup,
     statusesLookup,
 
     -- * Search
@@ -165,7 +176,6 @@ import Web.Twitter.Conduit.Cursor
 import Web.Twitter.Conduit.Parameters
 import Web.Twitter.Conduit.Request
 import Web.Twitter.Conduit.Request.Internal
-import qualified Web.Twitter.Conduit.Status as Status
 import Web.Twitter.Types
 
 import Data.Aeson
@@ -177,6 +187,280 @@ import Network.HTTP.Client.MultipartFormData
 -- $setup
 -- >>> :set -XOverloadedStrings -XOverloadedLabels
 -- >>> import Control.Lens
+
+-- * Timelines
+
+-- | Returns query data asks the most recent mentions for the authenticating user.
+--
+-- You can perform a query using 'call':
+--
+-- @
+-- res <- 'call' 'mentionsTimeline'
+-- @
+--
+-- >>> statusesMentionsTimeline
+-- APIRequest "GET" "https://api.twitter.com/1.1/statuses/mentions_timeline.json" []
+statusesMentionsTimeline :: APIRequest StatusesMentionsTimeline [Status]
+statusesMentionsTimeline = APIRequest "GET" (endpoint ++ "statuses/mentions_timeline.json") def
+
+type StatusesMentionsTimeline =
+    '[ "count" ':= Integer
+     , "since_id" ':= Integer
+     , "max_id" ':= Integer
+     , "trim_user" ':= Bool
+     , "contributor_details" ':= Bool
+     , "include_entities" ':= Bool
+     , "tweet_mode" ':= TweetMode
+     ]
+
+-- | Returns query data asks a collection of the most recent Tweets posted by the user indicated by the screen_name or user_id parameters.
+--
+-- You can perform a search query using 'call':
+--
+-- @
+-- res <- 'call' $ 'userTimeline' ('ScreenNameParam' \"thimura\")
+-- @
+--
+-- >>> statusesUserTimeline (ScreenNameParam "thimura")
+-- APIRequest "GET" "https://api.twitter.com/1.1/statuses/user_timeline.json" [("screen_name","thimura")]
+-- >>> statusesUserTimeline (ScreenNameParam "thimura") & #include_rts ?~ True & #count ?~ 200
+-- APIRequest "GET" "https://api.twitter.com/1.1/statuses/user_timeline.json" [("count","200"),("include_rts","true"),("screen_name","thimura")]
+statusesUserTimeline :: UserParam -> APIRequest StatusesUserTimeline [Status]
+statusesUserTimeline q = APIRequest "GET" (endpoint ++ "statuses/user_timeline.json") (mkUserParam q)
+
+type StatusesUserTimeline =
+    '[ "count" ':= Integer
+     , "since_id" ':= Integer
+     , "max_id" ':= Integer
+     , "trim_user" ':= Bool
+     , "exclude_replies" ':= Bool
+     , "contributor_details" ':= Bool
+     , "include_rts" ':= Bool
+     , "tweet_mode" ':= TweetMode
+     ]
+
+-- | Returns query data asks a collection of the most recentTweets and retweets posted by the authenticating user and the users they follow.
+--
+-- You can perform a search query using 'call':
+--
+-- @
+-- res <- 'call' 'homeTimeline'
+-- @
+--
+-- >>> statusesHomeTimeline
+-- APIRequest "GET" "https://api.twitter.com/1.1/statuses/home_timeline.json" []
+-- >>> statusesHomeTimeline & #count ?~ 200
+-- APIRequest "GET" "https://api.twitter.com/1.1/statuses/home_timeline.json" [("count","200")]
+statusesHomeTimeline :: APIRequest StatusesHomeTimeline [Status]
+statusesHomeTimeline = APIRequest "GET" (endpoint ++ "statuses/home_timeline.json") def
+
+type StatusesHomeTimeline =
+    '[ "count" ':= Integer
+     , "since_id" ':= Integer
+     , "max_id" ':= Integer
+     , "trim_user" ':= Bool
+     , "exclude_replies" ':= Bool
+     , "contributor_details" ':= Bool
+     , "include_entities" ':= Bool
+     , "tweet_mode" ':= TweetMode
+     ]
+
+-- | Returns query data asks the most recent tweets authored by the authenticating user that have been retweeted by others.
+--
+-- You can perform a search query using 'call':
+--
+-- @
+-- res <- 'call' 'retweetsOfMe'
+-- @
+--
+-- >>> statusesRetweetsOfMe
+-- APIRequest "GET" "https://api.twitter.com/1.1/statuses/retweets_of_me.json" []
+-- >>> statusesRetweetsOfMe & #count ?~ 100
+-- APIRequest "GET" "https://api.twitter.com/1.1/statuses/retweets_of_me.json" [("count","100")]
+statusesRetweetsOfMe :: APIRequest StatusesRetweetsOfMe [Status]
+statusesRetweetsOfMe = APIRequest "GET" (endpoint ++ "statuses/retweets_of_me.json") def
+
+type StatusesRetweetsOfMe =
+    '[ "count" ':= Integer
+     , "since_id" ':= Integer
+     , "max_id" ':= Integer
+     , "trim_user" ':= Bool
+     , "include_entities" ':= Bool
+     , "include_user_entities" ':= Bool
+     , "tweet_mode" ':= TweetMode
+     ]
+
+-- * Tweets
+
+-- | Returns query data that asks for the most recent retweets of the specified tweet
+--
+-- You can perform a search query using 'call':
+--
+-- @
+-- res <- 'call' twInfo mgr '$' 'retweetsId' 1234567890
+-- @
+--
+-- >>> statusesRetweetsId 1234567890
+-- APIRequest "GET" "https://api.twitter.com/1.1/statuses/retweets/1234567890.json" []
+-- >>> statusesRetweetsId 1234567890 & #count ?~ 100
+-- APIRequest "GET" "https://api.twitter.com/1.1/statuses/retweets/1234567890.json" [("count","100")]
+statusesRetweetsId :: StatusId -> APIRequest StatusesRetweetsId [RetweetedStatus]
+statusesRetweetsId status_id = APIRequest "GET" uri def
+  where
+    uri = endpoint ++ "statuses/retweets/" ++ show status_id ++ ".json"
+
+type StatusesRetweetsId =
+    '[ "count" ':= Integer
+     , "trim_user" ':= Bool
+     , "tweet_mode" ':= TweetMode
+     ]
+
+-- | Returns query data asks a single Tweet, specified by the id parameter.
+--
+-- You can perform a search query using 'call':
+--
+-- @
+-- res <- 'call' twInfo mgr '$' 'showId' 1234567890
+-- @
+--
+-- >>> statusesShowId 1234567890
+-- APIRequest "GET" "https://api.twitter.com/1.1/statuses/show/1234567890.json" []
+-- >>> statusesShowId 1234567890 & #include_my_retweet ?~ True
+-- APIRequest "GET" "https://api.twitter.com/1.1/statuses/show/1234567890.json" [("include_my_retweet","true")]
+statusesShowId :: StatusId -> APIRequest StatusesShowId Status
+statusesShowId status_id = APIRequest "GET" uri def
+  where
+    uri = endpoint ++ "statuses/show/" ++ show status_id ++ ".json"
+
+type StatusesShowId =
+    '[ "trim_user" ':= Bool
+     , "include_my_retweet" ':= Bool
+     , "include_entities" ':= Bool
+     , "include_ext_alt_text" ':= Bool
+     , "tweet_mode" ':= TweetMode
+     ]
+
+-- | Returns post data which destroys the status specified by the require ID parameter.
+--
+-- You can perform a search query using 'call':
+--
+-- @
+-- res <- 'call' twInfo mgr '$' 'destroyId' 1234567890
+-- @
+--
+-- >>> statusesDestroyId 1234567890
+-- APIRequest "POST" "https://api.twitter.com/1.1/statuses/destroy/1234567890.json" []
+statusesDestroyId :: StatusId -> APIRequest StatusesDestroyId Status
+statusesDestroyId status_id = APIRequest "POST" uri def
+  where
+    uri = endpoint ++ "statuses/destroy/" ++ show status_id ++ ".json"
+
+type StatusesDestroyId =
+    '[ "trim_user" ':= Bool
+     , "tweet_mode" ':= TweetMode
+     ]
+
+-- | Returns post data which updates the authenticating user's current status.
+-- To upload an image to accompany the tweet, use 'updateWithMedia'.
+--
+-- You can perform a search query using 'call':
+--
+-- @
+-- res <- 'call' twInfo mgr '$' 'update' \"Hello World\"
+-- @
+--
+-- >>> statusesUpdate "Hello World"
+-- APIRequest "POST" "https://api.twitter.com/1.1/statuses/update.json" [("status","Hello World")]
+-- >>> statusesUpdate "Hello World" & #in_reply_to_status_id ?~ 1234567890
+-- APIRequest "POST" "https://api.twitter.com/1.1/statuses/update.json" [("in_reply_to_status_id","1234567890"),("status","Hello World")]
+statusesUpdate :: T.Text -> APIRequest StatusesUpdate Status
+statusesUpdate status = APIRequest "POST" uri [("status", PVString status)]
+  where
+    uri = endpoint ++ "statuses/update.json"
+
+type StatusesUpdate =
+    '[ "in_reply_to_status_id" ':= Integer
+     , -- , "lat_long"
+       -- , "place_id"
+       "display_coordinates" ':= Bool
+     , "trim_user" ':= Bool
+     , "media_ids" ':= [Integer]
+     , "tweet_mode" ':= TweetMode
+     ]
+
+-- | Returns post data which retweets a tweet, specified by ID.
+--
+-- You can perform a search query using 'call':
+--
+-- @
+-- res <- 'call' twInfo mgr '$' 'retweetId' 1234567890
+-- @
+--
+-- >>> statusesRetweetId 1234567890
+-- APIRequest "POST" "https://api.twitter.com/1.1/statuses/retweet/1234567890.json" []
+statusesRetweetId :: StatusId -> APIRequest StatusesRetweetId RetweetedStatus
+statusesRetweetId status_id = APIRequest "POST" uri def
+  where
+    uri = endpoint ++ "statuses/retweet/" ++ show status_id ++ ".json"
+
+type StatusesRetweetId =
+    '[ "trim_user" ':= Bool
+     , "tweet_mode" ':= TweetMode
+     ]
+
+-- | Returns post data which updates the authenticating user's current status and attaches media for upload.
+--
+-- You can perform a search query using 'call':
+--
+-- @
+-- res <- 'call' twInfo mgr '$' 'updateWithMedia' \"Hello World\" ('MediaFromFile' \"/home/thimura/test.jpeg\")
+-- @
+--
+-- >>> statusesUpdateWithMedia "Hello World" (MediaFromFile "/home/fuga/test.jpeg")
+-- APIRequestMultipart "POST" "https://api.twitter.com/1.1/statuses/update_with_media.json" [("status","Hello World")]
+statusesUpdateWithMedia ::
+    T.Text ->
+    MediaData ->
+    APIRequest StatusesUpdateWithMedia Status
+statusesUpdateWithMedia tweet mediaData =
+    APIRequestMultipart "POST" uri [("status", PVString tweet)] [mediaBody mediaData]
+  where
+    uri = endpoint ++ "statuses/update_with_media.json"
+    mediaBody (MediaFromFile fp) = partFileSource "media[]" fp
+    mediaBody (MediaRequestBody filename filebody) = partFileRequestBody "media[]" filename filebody
+
+type StatusesUpdateWithMedia =
+    '[ "possibly_sensitive" ':= Bool
+     , "in_reply_to_status_id" ':= Integer
+     , -- , "lat_long"
+       -- , "place_id"
+       "display_coordinates" ':= Bool
+     , "tweet_mode" ':= TweetMode
+     ]
+
+-- | Returns fully-hydrated tweet objects for up to 100 tweets per request, as specified by comma-separated values passed to the id parameter.
+--
+-- You can perform a request using 'call':
+--
+-- @
+-- res <- 'call' twInfo mgr '$' 'lookup' [20, 432656548536401920]
+-- @
+--
+-- >>> statusesLookup [10]
+-- APIRequest "GET" "https://api.twitter.com/1.1/statuses/lookup.json" [("id","10")]
+-- >>> statusesLookup [10, 432656548536401920]
+-- APIRequest "GET" "https://api.twitter.com/1.1/statuses/lookup.json" [("id","10,432656548536401920")]
+-- >>> statusesLookup [10, 432656548536401920] & #include_entities ?~ True
+-- APIRequest "GET" "https://api.twitter.com/1.1/statuses/lookup.json" [("include_entities","true"),("id","10,432656548536401920")]
+statusesLookup :: [StatusId] -> APIRequest StatusesLookup [Status]
+statusesLookup ids = APIRequest "GET" (endpoint ++ "statuses/lookup.json") [("id", PVIntegerArray ids)]
+
+type StatusesLookup =
+    '[ "include_entities" ':= Bool
+     , "trim_user" ':= Bool
+     , "map" ':= Bool
+     , "tweet_mode" ':= TweetMode
+     ]
 
 -- | Returns search query.
 --
@@ -1011,26 +1295,3 @@ mediaUpload mediaData =
     mediaBody (MediaRequestBody filename filebody) = partFileRequestBody "media" filename filebody
 
 type MediaUpload = EmptyParams
-
-statusesMentionsTimeline :: APIRequest Status.StatusesMentionsTimeline [Status]
-statusesMentionsTimeline = Status.mentionsTimeline
-statusesUserTimeline :: UserParam -> APIRequest Status.StatusesUserTimeline [Status]
-statusesUserTimeline = Status.userTimeline
-statusesHomeTimeline :: APIRequest Status.StatusesHomeTimeline [Status]
-statusesHomeTimeline = Status.homeTimeline
-statusesRetweetsOfMe :: APIRequest Status.StatusesRetweetsOfMe [Status]
-statusesRetweetsOfMe = Status.retweetsOfMe
-statusesRetweetsId :: StatusId -> APIRequest Status.StatusesRetweetsId [RetweetedStatus]
-statusesRetweetsId = Status.retweetsId
-statusesShowId :: StatusId -> APIRequest Status.StatusesShowId Status
-statusesShowId = Status.showId
-statusesDestroyId :: StatusId -> APIRequest Status.StatusesDestroyId Status
-statusesDestroyId = Status.destroyId
-statusesUpdate :: T.Text -> APIRequest Status.StatusesUpdate Status
-statusesUpdate = Status.update
-statusesRetweetId :: StatusId -> APIRequest Status.StatusesRetweetId RetweetedStatus
-statusesRetweetId = Status.retweetId
-statusesUpdateWithMedia :: T.Text -> MediaData -> APIRequest Status.StatusesUpdateWithMedia Status
-statusesUpdateWithMedia = Status.updateWithMedia
-statusesLookup :: [StatusId] -> APIRequest Status.StatusesLookup [Status]
-statusesLookup = Status.lookup
