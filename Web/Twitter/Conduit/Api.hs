@@ -513,7 +513,7 @@ search = searchTweets
 -- APIRequest "GET" "https://api.twitter.com/1.1/direct_messages/events/list.json" []
 -- >>> directMessages & #count ?~ 50
 -- APIRequest "GET" "https://api.twitter.com/1.1/direct_messages/events/list.json" [("count","50")]
-directMessages :: APIRequest DirectMessages (WithCursor T.Text "events" DirectMessage)
+directMessages :: APIRequest DirectMessages (WithCursor T.Text EventsCursorKey DirectMessage)
 directMessages = APIRequest "GET" (endpoint ++ "direct_messages/events/list.json") def
 
 type DirectMessages =
@@ -653,7 +653,7 @@ type FriendshipsNoRetweetsIds = EmptyParams
 -- APIRequest "GET" "https://api.twitter.com/1.1/friends/ids.json" [("screen_name","thimura")]
 -- >>> friendsIds (ScreenNameParam "thimura") & #count ?~ 5000
 -- APIRequest "GET" "https://api.twitter.com/1.1/friends/ids.json" [("count","5000"),("screen_name","thimura")]
-friendsIds :: UserParam -> APIRequest FriendsIds (WithCursor Integer "ids" UserId)
+friendsIds :: UserParam -> APIRequest FriendsIds (WithCursor Integer IdsCursorKey UserId)
 friendsIds q = APIRequest "GET" (endpoint ++ "friends/ids.json") (mkUserParam q)
 
 type FriendsIds =
@@ -679,7 +679,7 @@ type FriendsIds =
 -- APIRequest "GET" "https://api.twitter.com/1.1/followers/ids.json" [("screen_name","thimura")]
 -- >>> followersIds (ScreenNameParam "thimura") & #count ?~ 5000
 -- APIRequest "GET" "https://api.twitter.com/1.1/followers/ids.json" [("count","5000"),("screen_name","thimura")]
-followersIds :: UserParam -> APIRequest FollowersIds (WithCursor Integer "ids" UserId)
+followersIds :: UserParam -> APIRequest FollowersIds (WithCursor Integer IdsCursorKey UserId)
 followersIds q = APIRequest "GET" (endpoint ++ "followers/ids.json") (mkUserParam q)
 
 type FollowersIds =
@@ -703,7 +703,7 @@ type FollowersIds =
 --
 -- >>> friendshipsIncoming
 -- APIRequest "GET" "https://api.twitter.com/1.1/friendships/incoming.json" []
-friendshipsIncoming :: APIRequest FriendshipsIncoming (WithCursor Integer "ids" UserId)
+friendshipsIncoming :: APIRequest FriendshipsIncoming (WithCursor Integer IdsCursorKey UserId)
 friendshipsIncoming = APIRequest "GET" (endpoint ++ "friendships/incoming.json") def
 
 type FriendshipsIncoming =
@@ -726,7 +726,7 @@ type FriendshipsIncoming =
 --
 -- >>> friendshipsOutgoing
 -- APIRequest "GET" "https://api.twitter.com/1.1/friendships/outgoing.json" []
-friendshipsOutgoing :: APIRequest FriendshipsOutgoing (WithCursor Integer "ids" UserId)
+friendshipsOutgoing :: APIRequest FriendshipsOutgoing (WithCursor Integer IdsCursorKey UserId)
 friendshipsOutgoing = APIRequest "GET" (endpoint ++ "friendships/outgoing.json") def
 
 type FriendshipsOutgoing =
@@ -787,7 +787,7 @@ type FriendshipsDestroy = EmptyParams
 -- APIRequest "GET" "https://api.twitter.com/1.1/friends/list.json" [("screen_name","thimura")]
 -- >>> friendsList (UserIdParam 69179963)
 -- APIRequest "GET" "https://api.twitter.com/1.1/friends/list.json" [("user_id","69179963")]
-friendsList :: UserParam -> APIRequest FriendsList (WithCursor Integer "users" User)
+friendsList :: UserParam -> APIRequest FriendsList (WithCursor Integer UsersCursorKey User)
 friendsList q = APIRequest "GET" (endpoint ++ "friends/list.json") (mkUserParam q)
 
 type FriendsList =
@@ -815,7 +815,7 @@ type FriendsList =
 -- APIRequest "GET" "https://api.twitter.com/1.1/followers/list.json" [("screen_name","thimura")]
 -- >>> followersList (UserIdParam 69179963)
 -- APIRequest "GET" "https://api.twitter.com/1.1/followers/list.json" [("user_id","69179963")]
-followersList :: UserParam -> APIRequest FollowersList (WithCursor Integer "users" User)
+followersList :: UserParam -> APIRequest FollowersList (WithCursor Integer UsersCursorKey User)
 followersList q = APIRequest "GET" (endpoint ++ "followers/list.json") (mkUserParam q)
 
 type FollowersList =
@@ -1027,7 +1027,7 @@ type ListsMembersDestroy = EmptyParams
 -- APIRequest "GET" "https://api.twitter.com/1.1/lists/memberships.json" [("screen_name","thimura")]
 -- >>> listsMemberships (Just (UserIdParam 69179963))
 -- APIRequest "GET" "https://api.twitter.com/1.1/lists/memberships.json" [("user_id","69179963")]
-listsMemberships :: Maybe UserParam -> APIRequest ListsMemberships (WithCursor Integer "lists" List)
+listsMemberships :: Maybe UserParam -> APIRequest ListsMemberships (WithCursor Integer ListsCursorKey List)
 listsMemberships q = APIRequest "GET" (endpoint ++ "lists/memberships.json") $ maybe [] mkUserParam q
 
 type ListsMemberships =
@@ -1047,7 +1047,7 @@ type ListsMemberships =
 -- APIRequest "GET" "https://api.twitter.com/1.1/lists/subscribers.json" [("slug","haskell"),("owner_screen_name","thimura")]
 -- >>> listsSubscribers (ListIdParam 20849097)
 -- APIRequest "GET" "https://api.twitter.com/1.1/lists/subscribers.json" [("list_id","20849097")]
-listsSubscribers :: ListParam -> APIRequest ListsSubscribers (WithCursor Integer "users" User)
+listsSubscribers :: ListParam -> APIRequest ListsSubscribers (WithCursor Integer UsersCursorKey User)
 listsSubscribers q = APIRequest "GET" (endpoint ++ "lists/subscribers.json") (mkListParam q)
 
 type ListsSubscribers =
@@ -1070,7 +1070,7 @@ type ListsSubscribers =
 -- APIRequest "GET" "https://api.twitter.com/1.1/lists/subscriptions.json" [("screen_name","thimura")]
 -- >>> listsSubscriptions (Just (UserIdParam 69179963))
 -- APIRequest "GET" "https://api.twitter.com/1.1/lists/subscriptions.json" [("user_id","69179963")]
-listsSubscriptions :: Maybe UserParam -> APIRequest ListsSubscriptions (WithCursor Integer "lists" List)
+listsSubscriptions :: Maybe UserParam -> APIRequest ListsSubscriptions (WithCursor Integer ListsCursorKey List)
 listsSubscriptions q = APIRequest "GET" (endpoint ++ "lists/subscriptions.json") $ maybe [] mkUserParam q
 
 type ListsSubscriptions =
@@ -1092,7 +1092,7 @@ type ListsSubscriptions =
 -- APIRequest "GET" "https://api.twitter.com/1.1/lists/ownerships.json" [("screen_name","thimura")]
 -- >>> listsOwnerships (Just (UserIdParam 69179963))
 -- APIRequest "GET" "https://api.twitter.com/1.1/lists/ownerships.json" [("user_id","69179963")]
-listsOwnerships :: Maybe UserParam -> APIRequest ListsOwnerships (WithCursor Integer "lists" List)
+listsOwnerships :: Maybe UserParam -> APIRequest ListsOwnerships (WithCursor Integer ListsCursorKey List)
 listsOwnerships q = APIRequest "GET" (endpoint ++ "lists/ownerships.json") $ maybe [] mkUserParam q
 
 type ListsOwnerships =
@@ -1146,7 +1146,7 @@ type ListsMembersDestroyAll = EmptyParams
 -- APIRequest "GET" "https://api.twitter.com/1.1/lists/members.json" [("slug","haskell"),("owner_screen_name","thimura")]
 -- >>> listsMembers (ListIdParam 20849097)
 -- APIRequest "GET" "https://api.twitter.com/1.1/lists/members.json" [("list_id","20849097")]
-listsMembers :: ListParam -> APIRequest ListsMembers (WithCursor Integer "users" User)
+listsMembers :: ListParam -> APIRequest ListsMembers (WithCursor Integer UsersCursorKey User)
 listsMembers q = APIRequest "GET" (endpoint ++ "lists/members.json") (mkListParam q)
 
 type ListsMembers =

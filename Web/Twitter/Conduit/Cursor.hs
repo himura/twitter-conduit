@@ -8,6 +8,10 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 
 module Web.Twitter.Conduit.Cursor (
+    IdsCursorKey,
+    UsersCursorKey,
+    ListsCursorKey,
+    EventsCursorKey,
     WithCursor (..),
 ) where
 
@@ -21,6 +25,11 @@ import GHC.TypeLits (KnownSymbol, Symbol, symbolVal)
 -- $setup
 -- >>> import Data.Text
 -- >>> type UserId = Integer
+
+type IdsCursorKey = "ids"
+type UsersCursorKey = "users"
+type ListsCursorKey = "lists"
+type EventsCursorKey = "events"
 
 -- | A wrapper for API responses which have "next_cursor" field.
 --
