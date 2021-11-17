@@ -1,4 +1,3 @@
-{-# LANGUAGE CPP #-}
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
@@ -55,10 +54,6 @@ import Network.HTTP.Client.MultipartFormData
 import qualified Network.HTTP.Conduit as HTTP
 import qualified Network.HTTP.Types as HT
 import Web.Authenticate.OAuth (signOAuth)
-
-#if __GLASGOW_HASKELL__ < 804
-import Data.Monoid
-#endif
 
 makeRequest ::
     APIRequest apiName responseType ->
