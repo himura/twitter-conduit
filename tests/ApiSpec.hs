@@ -12,8 +12,7 @@ import Network.HTTP.Conduit
 import System.IO.Unsafe
 import Test.Hspec
 import TestUtils
-import TestUtils
-import Web.Twitter.Conduit (TWInfo, accountVerifyCredentials, call, sourceWithMaxId, sourceWithCursor)
+import Web.Twitter.Conduit (TWInfo, accountVerifyCredentials, call, sourceWithCursor, sourceWithMaxId)
 import Web.Twitter.Conduit.Api
 import Web.Twitter.Conduit.Lens
 import qualified Web.Twitter.Conduit.Parameters as Param
@@ -67,7 +66,7 @@ integrated = do
             let src =
                     sourceWithMaxId twInfo mgr $
                         statusesUserTimeline (Param.ScreenNameParam "thimura") & #count ?~ 200
-            tl <- src $$ CL.isolate 600 =$ CL.consume
+            tl <- runConduit $ src .| CL.isolate 600 .| CL.consume
             length tl `shouldSatisfy` (== 600)
 
             let ids = tl ^.. traversed . statusId
@@ -114,7 +113,7 @@ integrated = do
 
         it "iterate with sourceWithCursor" $ do
             let src = sourceWithCursor twInfo mgr $ friendsIds (Param.ScreenNameParam "thimura")
-            friends <- src $$ CL.consume
+            friends <- runConduit $ src .| CL.consume
             length friends `shouldSatisfy` (>= 0)
 
     describe "listsMembers" $ do
@@ -128,5 +127,5 @@ integrated = do
 
         it "iterate with sourceWithCursor" $ do
             let src = sourceWithCursor twInfo mgr $ listsMembers (Param.ListNameParam "thimura/haskell")
-            members <- src $$ CL.consume
+            members <- runConduit $ src .| CL.consume
             members ^.. traversed . userScreenName `shouldContain` ["Hackage"]
