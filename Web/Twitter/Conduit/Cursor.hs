@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE EmptyDataDecls #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
@@ -18,8 +19,14 @@ import Web.Twitter.Types (checkError)
 -- $setup
 -- >>> type UserId = Integer
 
+{- ORMOLU_DISABLE -}
 class CursorKey a where
+#if MIN_VERSION_aeson(2, 0, 0)
+    cursorKey :: a -> Key
+#else
     cursorKey :: a -> Text
+#endif
+{- ORMOLU_ENABLE -}
 
 -- | Phantom type to specify the key which point out the content in the response.
 data IdsCursorKey
