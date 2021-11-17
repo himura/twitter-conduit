@@ -1,4 +1,3 @@
-{-# LANGUAGE CPP #-}
 {-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE FlexibleInstances #-}
@@ -96,7 +95,6 @@ rawParam key = lens getter setter
     replace k Nothing = dropAssoc k
     dropAssoc k = filter ((/= k) . fst)
 
-{- ORMOLU_DISABLE -}
 instance
     ( Parameters req
     , ParameterValue a
@@ -105,13 +103,8 @@ instance
     , Functor f
     , lens ~ ((Maybe a -> f (Maybe a)) -> req -> f req)
     ) =>
-    IsLabel label lens where
-
-#if MIN_VERSION_base(4, 10, 0)
+    IsLabel label lens
+    where
     fromLabel = rawParam key
-#else
-    fromLabel _ = rawParam key
-#endif
       where
         key = S8.pack (symbolVal (Proxy :: Proxy label))
-{- ORMOLU_ENABLE -}
