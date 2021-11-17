@@ -107,7 +107,6 @@ test-suite spec_main
         Spec
         ApiSpec
         BaseSpec
-        StatusSpec
         TestUtils
 
     default-language:   Haskell2010
