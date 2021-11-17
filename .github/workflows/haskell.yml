@@ -10,9 +10,14 @@ jobs:
   build:
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         ghc: [ '8.8.4', '8.10.7', '9.0.1' ]
         cabal: [ 'latest' ]
+        allow-failure: [ false ]
+        cabal-options:
+          - '--constraint="aeson < 2"'
+          - '--constraint="aeson >= 2"'
     steps:
     - uses: actions/checkout@v2
     - uses: haskell/actions/setup@v1
@@ -29,11 +34,11 @@ jobs:
     - name: Install dependencies
       run: |
         cabal v2-update
-        cabal v2-build all --only-dependencies --enable-tests
+        cabal v2-build all --only-dependencies --enable-tests ${{ matrix.cabal-options }}
     - name: Build
-      run: cabal v2-build all
+      run: cabal v2-build all ${{ matrix.cabal-options }}
     - name: Run tests
-      run: cabal v2-test all
+      run: cabal v2-test all ${{ matrix.cabal-options }}
 
   hlint:
     name: lint *.hs
