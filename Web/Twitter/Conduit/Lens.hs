@@ -20,10 +20,6 @@ module Web.Twitter.Conduit.Lens (
 
     -- * Re-exports
     TT.TwitterError (..),
-    TT.CursorKey (..),
-    TT.IdsCursorKey,
-    TT.UsersCursorKey,
-    TT.ListsCursorKey,
 ) where
 
 import Control.Lens
