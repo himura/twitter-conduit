@@ -50,6 +50,7 @@ import qualified Data.Conduit.Attoparsec as CA
 import qualified Data.Conduit.List as CL
 import qualified Data.Map as M
 import qualified Data.Text.Encoding as T
+import GHC.TypeLits (KnownSymbol)
 import Network.HTTP.Client.MultipartFormData
 import qualified Network.HTTP.Conduit as HTTP
 import qualified Network.HTTP.Types as HT
@@ -293,7 +294,7 @@ sourceWithMaxId' info mgr = loop
 sourceWithCursor ::
     ( MonadIO m
     , FromJSON responseType
-    , CursorKey ck
+    , KnownSymbol ck
     , HasParam "cursor" Integer supports
     ) =>
     -- | Twitter Setting
@@ -317,7 +318,7 @@ sourceWithCursor info mgr req = loop (Just (-1))
 -- This function cooperate with instances of 'HasCursorParam'.
 sourceWithCursor' ::
     ( MonadIO m
-    , CursorKey ck
+    , KnownSymbol ck
     , HasParam "cursor" Integer supports
     ) =>
     -- | Twitter Setting
