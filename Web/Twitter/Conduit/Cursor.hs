@@ -15,7 +15,7 @@ module Web.Twitter.Conduit.Cursor (
     WithCursor (..),
 ) where
 
--- import Control.DeepSeq (NFData)
+import Control.DeepSeq (NFData)
 import Data.Aeson
 import Data.Proxy (Proxy (..))
 import Data.String
@@ -71,4 +71,4 @@ instance (KnownSymbol cursorKey, FromJSON cursorType) => FromJSON1 (WithCursor c
 instance (KnownSymbol cursorKey, FromJSON cursorType, FromJSON wrapped) => FromJSON (WithCursor cursorType cursorKey wrapped) where
     parseJSON = parseJSON1
 
--- instance NFData a => NFData (WithCursor cursorType cursorKey wrapped)
+instance (NFData cursorType, NFData wrapped) => NFData (WithCursor cursorType cursorKey wrapped)
