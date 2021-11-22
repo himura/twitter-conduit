@@ -37,15 +37,7 @@ data TwitterErrorMessage = TwitterErrorMessage
     { twitterErrorCode :: Int
     , twitterErrorMessage :: T.Text
     }
-    deriving (Show, Data, Typeable)
-
-instance Eq TwitterErrorMessage where
-    TwitterErrorMessage {twitterErrorCode = a} == TwitterErrorMessage {twitterErrorCode = b} =
-        a == b
-
-instance Ord TwitterErrorMessage where
-    compare TwitterErrorMessage {twitterErrorCode = a} TwitterErrorMessage {twitterErrorCode = b} =
-        a `compare` b
+    deriving (Show, Eq, Ord, Data, Typeable)
 
 instance Enum TwitterErrorMessage where
     fromEnum = twitterErrorCode
