@@ -62,6 +62,9 @@ library
         Web.Twitter.Conduit.Response
         Web.Twitter.Conduit.Cursor
         Web.Twitter.Conduit.Parameters
+        Web.Twitter.Conduit.Internal
+        Web.Twitter.Conduit.Internal.APIRequest
+        Web.Twitter.Conduit.Internal.APIResponse
         Web.Twitter.Conduit.Internal.AesonUtil
 
     hs-source-dirs:   src
