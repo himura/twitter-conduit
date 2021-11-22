@@ -163,12 +163,12 @@ import qualified Data.Text.IO as T
 -- or use the conduit wrapper 'sourceWithCursor' as below:
 --
 -- @
--- friends \<- 'sourceWithCursor' twInfo mgr ('friendsList' ('ScreenNameParam' \"thimura\") '&' #count '?~' 200) '$$' 'CL.consume'
+-- friends \<- 'sourceWithCursor' twInfo mgr ('friendsList' ('ScreenNameParam' \"thimura\") '&' #count '?~' 200) '.|' 'CL.consume'
 -- @
 --
 -- Statuses APIs, for instance, 'homeTimeline', are also wrapped by 'sourceWithMaxId'.
 --
--- For example, you can print 1000 tweets from your home timeline, as below:
+-- For example, you can print 60 tweets from your home timeline, as below:
 --
 -- @
 -- main :: IO ()
@@ -176,15 +176,15 @@ import qualified Data.Text.IO as T
 --     mgr \<- 'newManager' 'tlsManagerSettings'
 --     'sourceWithMaxId' twInfo mgr 'homeTimeline'
 --         .| CL.isolate 60
---         .| CL.mapM_ $
---             (\\status -> liftIO $ do
---                 T.putStrLn $
---                     T.concat
---                         [ T.pack . show $ status ^. statusId
---                         , \": \"
---                         , status ^. statusUser . userScreenName
---                         , \": \"
---                         , status ^. statusText
---                         ]
+--         .| CL.mapM_
+--             (\\status -> do
+--                  T.putStrLn $
+--                      T.concat
+--                          [ T.pack . show $ status ^. statusId
+--                          , \": \"
+--                          , status ^. statusUser . userScreenName
+--                          , \": \"
+--                          , status ^. statusText
+--                          ]
 --             )
 -- @
