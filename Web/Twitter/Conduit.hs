@@ -175,12 +175,16 @@ import qualified Data.Text.IO as T
 -- main = do
 --     mgr \<- 'newManager' 'tlsManagerSettings'
 --     'sourceWithMaxId' twInfo mgr 'homeTimeline'
---         $= CL.isolate 60
---         $$ CL.mapM_ $ \\status -> liftIO $ do
---             T.putStrLn $ T.concat [ T.pack . show $ status ^. statusId
---                                   , \": \"
---                                   , status ^. statusUser . userScreenName
---                                   , \": \"
---                                   , status ^. statusText
---                                   ]
+--         .| CL.isolate 60
+--         .| CL.mapM_ $
+--             (\\status -> liftIO $ do
+--                 T.putStrLn $
+--                     T.concat
+--                         [ T.pack . show $ status ^. statusId
+--                         , \": \"
+--                         , status ^. statusUser . userScreenName
+--                         , \": \"
+--                         , status ^. statusText
+--                         ]
+--             )
 -- @
