@@ -174,7 +174,7 @@ import qualified Data.Text.IO as T
 -- main :: IO ()
 -- main = do
 --     mgr \<- 'newManager' 'tlsManagerSettings'
---     'sourceWithMaxId' twInfo mgr 'homeTimeline'
+--     runConduit $ 'sourceWithMaxId' twInfo mgr 'homeTimeline'
 --         .| CL.isolate 60
 --         .| CL.mapM_
 --             (\\status -> do
