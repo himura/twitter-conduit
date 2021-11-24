@@ -80,16 +80,19 @@ import qualified Data.Text.IO as T
 -- and <http://hackage.haskell.org/package/conduit conduit>.
 -- All of following examples import modules as below:
 --
--- > {\-# LANGUAGE OverloadedStrings #-\}
--- >
--- > import Web.Twitter.Conduit
--- > import Web.Twitter.Types.Lens
--- > import Data.Conduit
--- > import qualified Data.Conduit.List as CL
--- > import qualified Data.Text as T
--- > import qualified Data.Text.IO as T
--- > import Control.Monad.IO.Class
--- > import Control.Lens
+-- @
+-- {-# LANGUAGE OverloadedLabels #-}
+-- {-# LANGUAGE OverloadedStrings #-}
+--
+-- import Web.Twitter.Conduit
+-- import Web.Twitter.Types.Lens
+-- import Data.Conduit
+-- import qualified Data.Conduit.List as CL
+-- import qualified Data.Text as T
+-- import qualified Data.Text.IO as T
+-- import Control.Monad.IO.Class
+-- import Control.Lens
+-- @
 --
 -- First, you should obtain consumer token and secret from <https://apps.twitter.com/ Twitter>,
 -- and prepare 'OAuth' variables as follows:
@@ -132,7 +135,9 @@ import qualified Data.Text.IO as T
 --
 -- Or, simply as follows:
 --
--- > twInfo = setCredential tokens credential def
+-- @
+-- twInfo = 'setCredential' tokens credential 'def'
+-- @
 --
 -- Twitter API requests are performed by 'call' function.
 -- For example, <https://dev.twitter.com/docs/api/1.1/get/statuses/home_timeline GET statuses/home_timeline>
@@ -140,7 +145,7 @@ import qualified Data.Text.IO as T
 --
 -- @
 -- mgr \<- 'newManager' 'tlsManagerSettings'
--- timeline \<- 'call' twInfo mgr 'homeTimeline'
+-- timeline \<- 'call' twInfo mgr 'statusesHomeTimeline'
 -- @
 --
 -- The response of 'call' function is wrapped by the suitable type of
@@ -153,7 +158,42 @@ import qualified Data.Text.IO as T
 -- includes 20 tweets, and you can change the number of tweets by the /count/ parameter.
 --
 -- @
--- timeline \<- 'call' twInfo mgr '$' 'homeTimeline' '&' #count '?~' 200
+-- timeline \<- 'call' twInfo mgr '$' 'statusesHomeTimeline' '&' #count '?~' 200
+-- @
+--
+-- The parameters which can be specified for this API, is able to be obtained from type parameters of APIRequest.
+-- For example,
+--
+-- @
+-- 'statusesHomeTimeline' ::
+--     'APIRequest' 'StatusesHomeTimeline' ['Web.Twitter.Types.Status']
+-- @
+--
+-- - The 2nd type parameter of 'APIRequest' represents acceptable parameters in this API request.
+-- - The 3nd type parameter of 'APIRequest' denotes a return type of this API request.
+--
+-- The 2nd type parameter of 'statusesHomeTimeline' is 'StatusesHomeTimeline' defined as below:
+--
+-- @
+-- type StatusesHomeTimeline =
+--     '[ "count" ':= Integer
+--      , "since_id" ':= Integer
+--      , "max_id" ':= Integer
+--      , "trim_user" ':= Bool
+--      , "exclude_replies" ':= Bool
+--      , "contributor_details" ':= Bool
+--      , "include_entities" ':= Bool
+--      , "tweet_mode" ':= TweetMode
+--      ]
+-- @
+--
+-- Each element of list represents the name and type of API parameters.
+-- You can specify those parameter with OverloadedLabels extension.
+-- In the above example, it shows that 'statusesHomeTimeline' API supports "tweet_mode" parameter with 'TweetMode' type, so
+-- you can specify "tweet_mode" parameter as:
+--
+-- @
+-- 'statusesHomeTimeline' & #tweet_mode ?~ 'Extended'
 -- @
 --
 -- If you need more statuses, you can obtain those with multiple API requests.
@@ -163,7 +203,10 @@ import qualified Data.Text.IO as T
 -- or use the conduit wrapper 'sourceWithCursor' as below:
 --
 -- @
--- friends \<- 'runConduit' $ 'sourceWithCursor' twInfo mgr ('friendsList' ('ScreenNameParam' \"thimura\") '&' #count '?~' 200) '.|' 'CL.consume'
+-- friends \<-
+--     'runConduit' $
+--         'sourceWithMaxId' twInfo mgr ('friendsList' ('ScreenNameParam' \"thimura\") '&' #count '?~' 200)
+--             '.|' 'CL.consume'
 -- @
 --
 -- Statuses APIs, for instance, 'homeTimeline', are also wrapped by 'sourceWithMaxId'.
@@ -174,9 +217,9 @@ import qualified Data.Text.IO as T
 -- main :: IO ()
 -- main = do
 --     mgr \<- 'newManager' 'tlsManagerSettings'
---     runConduit $ 'sourceWithMaxId' twInfo mgr 'homeTimeline'
---         .| CL.isolate 60
---         .| CL.mapM_
+--     'runConduit' $ 'sourceWithMaxId' twInfo mgr 'homeTimeline'
+--         '.|' CL.isolate 60
+--         '.|' CL.mapM_
 --             (\\status -> do
 --                  T.putStrLn $
 --                      T.concat
