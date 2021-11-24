@@ -10,11 +10,6 @@ This is an conduit based Twitter API library for Haskell, including Streaming AP
 
 Documentation is available in [hackage](http://hackage.haskell.org/package/twitter-conduit).
 
-## Usage ##
-
-    $ cabal update
-    $ cabal install twitter-conduit
-
 ## Quick Start ##
 
 For a runnable example, see [sample/simple.hs](https://github.com/himura/twitter-conduit/blob/master/sample/simple.hs).
@@ -24,19 +19,32 @@ You can find other various examples in [sample](https://github.com/himura/twitte
 
 ### Build ###
 
-If you would like to use cabal sandbox, prepare sandbox as below:
+#### Building with Cabal ####
 
 ~~~~
-$ cabal sandbox init
+$ cabal v2-build all
 ~~~~
 
-and then,
+#### Building with Stack ####
 
-~~~~
-$ cabal install --only-dependencies -fbuild-samples
-$ cabal configure -fbuild-samples
-$ cabal build
-~~~~
+To build with Stack, you should create top-level `stack.yaml` file first.
+An example of `stack.yaml` is like below:
+
+```.yaml
+resolver: lts-18.12
+packages:
+- .
+- sample
+extra-deps:
+- twitter-types-0.11.0
+- twitter-types-lens-0.11.0
+```
+
+then, run stack.
+
+```
+$ stack build
+```
 
 ### Run ###
 
