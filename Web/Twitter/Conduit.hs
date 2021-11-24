@@ -163,7 +163,7 @@ import qualified Data.Text.IO as T
 -- or use the conduit wrapper 'sourceWithCursor' as below:
 --
 -- @
--- friends \<- 'sourceWithCursor' twInfo mgr ('friendsList' ('ScreenNameParam' \"thimura\") '&' #count '?~' 200) '.|' 'CL.consume'
+-- friends \<- 'runConduit' $ 'sourceWithCursor' twInfo mgr ('friendsList' ('ScreenNameParam' \"thimura\") '&' #count '?~' 200) '.|' 'CL.consume'
 -- @
 --
 -- Statuses APIs, for instance, 'homeTimeline', are also wrapped by 'sourceWithMaxId'.
