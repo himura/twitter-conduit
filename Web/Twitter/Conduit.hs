@@ -13,6 +13,18 @@ module Web.Twitter.Conduit (
     -- * How to use this library
     -- $howto
 
+    -- ** Authentication
+    -- $auth
+
+    -- ** How to call API
+    -- $call
+
+    -- *** How to specify API parameters
+    -- $parameter
+
+    -- *** Conduit API: Recursive API call with changing cursor parameter
+    -- $conduit
+
     -- * Re-exports
     module Web.Twitter.Conduit.Api,
     module Web.Twitter.Conduit.Cursor,
@@ -93,6 +105,8 @@ import qualified Data.Text.IO as T
 -- import Control.Monad.IO.Class
 -- import Control.Lens
 -- @
+
+-- $auth
 --
 -- First, you should obtain consumer token and secret from <https://apps.twitter.com/ Twitter>,
 -- and prepare 'OAuth' variables as follows:
@@ -138,6 +152,8 @@ import qualified Data.Text.IO as T
 -- @
 -- twInfo = 'setCredential' tokens credential 'def'
 -- @
+
+-- $call
 --
 -- Twitter API requests are performed by 'call' function.
 -- For example, <https://dev.twitter.com/docs/api/1.1/get/statuses/home_timeline GET statuses/home_timeline>
@@ -160,6 +176,8 @@ import qualified Data.Text.IO as T
 -- @
 -- timeline \<- 'call' twInfo mgr '$' 'statusesHomeTimeline' '&' #count '?~' 200
 -- @
+
+-- $parameter
 --
 -- The parameters which can be specified for this API, is able to be obtained from type parameters of APIRequest.
 -- For example,
@@ -195,6 +213,8 @@ import qualified Data.Text.IO as T
 -- @
 -- 'statusesHomeTimeline' & #tweet_mode ?~ 'Extended'
 -- @
+
+-- $conduit
 --
 -- If you need more statuses, you can obtain those with multiple API requests.
 -- This library provides the wrapper for multiple requests with conduit interfaces.
