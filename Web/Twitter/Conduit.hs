@@ -93,8 +93,8 @@ import qualified Data.Text.IO as T
 -- All of following examples import modules as below:
 --
 -- @
--- {-# LANGUAGE OverloadedLabels #-}
--- {-# LANGUAGE OverloadedStrings #-}
+-- {\-# LANGUAGE OverloadedLabels #-\}
+-- {\-# LANGUAGE OverloadedStrings #-\}
 --
 -- import Web.Twitter.Conduit
 -- import Web.Twitter.Types.Lens
