@@ -184,6 +184,8 @@ import qualified Data.Text as T
 import Data.Time.Calendar (Day)
 import Network.HTTP.Client.MultipartFormData
 
+type NoContent = ()
+
 -- $setup
 -- >>> :set -XOverloadedStrings -XOverloadedLabels
 -- >>> import Control.Lens

@@ -10,13 +10,10 @@
 
 module Web.Twitter.Conduit.Base (
     ResponseBodyType (..),
-    NoContent,
-    getResponse,
     call,
     call',
     callWithResponse,
     callWithResponse',
-    checkResponse,
     sourceWithMaxId,
     sourceWithMaxId',
     sourceWithCursor,
@@ -24,9 +21,7 @@ module Web.Twitter.Conduit.Base (
     sourceWithSearchResult,
     sourceWithSearchResult',
     endpoint,
-    makeRequest,
-    sinkJSON,
-    sinkFromJSON,
+    makeRequest
 ) where
 
 import Web.Twitter.Conduit.Cursor
@@ -37,22 +32,17 @@ import Web.Twitter.Conduit.Types
 import Web.Twitter.Types.Lens
 
 import Control.Lens
-import Control.Monad (void)
-import Control.Monad.Catch (MonadThrow (..))
 import Control.Monad.IO.Class
-import Control.Monad.Trans.Resource (MonadResource, ResourceT, runResourceT)
 import Data.Aeson
 import Data.Aeson.Lens
-import Data.ByteString (ByteString)
 import Data.Coerce
 import qualified Data.Conduit as C
-import qualified Data.Conduit.Attoparsec as CA
 import qualified Data.Conduit.List as CL
 import qualified Data.Map as M
 import qualified Data.Text.Encoding as T
 import GHC.TypeLits (KnownSymbol)
 import Network.HTTP.Client.MultipartFormData
-import qualified Network.HTTP.Conduit as HTTP
+import qualified Network.HTTP.Client as HTTP
 import qualified Network.HTTP.Types as HT
 import Web.Authenticate.OAuth (signOAuth)
 
@@ -89,80 +79,18 @@ makeRequest' m url query = do
                 else \r -> r {HTTP.queryString = HT.renderSimpleQuery False query}
     return $ addParams $ req {HTTP.method = m}
 
-class ResponseBodyType a where
-    parseResponseBody ::
-        Response (C.ConduitM () ByteString (ResourceT IO) ()) ->
-        ResourceT IO (Response a)
-
-type NoContent = ()
-instance ResponseBodyType NoContent where
-    parseResponseBody res =
-        case responseStatus res of
-            st | st == HT.status204 -> return $ void res
-            _ -> do
-                body <- C.runConduit $ responseBody res C..| sinkJSON
-                throwM $ TwitterStatusError (responseStatus res) (responseHeaders res) body
-
-instance {-# OVERLAPPABLE #-} FromJSON a => ResponseBodyType a where
-    parseResponseBody = getValueOrThrow
-
-getResponse ::
-    MonadResource m =>
-    TWInfo ->
-    HTTP.Manager ->
-    HTTP.Request ->
-    m (Response (C.ConduitM () ByteString m ()))
-getResponse TWInfo {..} mgr req = do
+withHTTPResponse ::
+       TWInfo
+    -> HTTP.Manager
+    -> HTTP.Request
+    -> (HTTP.Response HTTP.BodyReader -> IO a)
+    -> IO a
+withHTTPResponse TWInfo {..} mgr req respond = do
     signedReq <- signOAuth (twOAuth twToken) (twCredential twToken) $ req {HTTP.proxy = twProxy}
-    res <- HTTP.http signedReq mgr
-    return
-        Response
-            { responseStatus = HTTP.responseStatus res
-            , responseHeaders = HTTP.responseHeaders res
-            , responseBody = HTTP.responseBody res
-            }
+    HTTP.withResponse signedReq mgr respond
 
 endpoint :: String
 endpoint = "https://api.twitter.com/1.1/"
-
-getValue ::
-    Response (C.ConduitM () ByteString (ResourceT IO) ()) ->
-    ResourceT IO (Response Value)
-getValue res = do
-    value <-
-        C.runConduit $ responseBody res C..| sinkJSON
-    return $ res {responseBody = value}
-
-checkResponse ::
-    Response Value ->
-    Either TwitterError Value
-checkResponse Response {..} =
-    case responseBody ^? key "errors" of
-        Just errs@(Array _) ->
-            case fromJSON errs of
-                Success errList -> Left $ TwitterErrorResponse responseStatus responseHeaders errList
-                Error msg -> Left $ FromJSONError msg
-        Just err ->
-            Left $ TwitterUnknownErrorResponse responseStatus responseHeaders err
-        Nothing ->
-            if sci < 200 || sci > 400
-                then Left $ TwitterStatusError responseStatus responseHeaders responseBody
-                else Right responseBody
-  where
-    sci = HT.statusCode responseStatus
-
-getValueOrThrow ::
-    FromJSON a =>
-    Response (C.ConduitM () ByteString (ResourceT IO) ()) ->
-    ResourceT IO (Response a)
-getValueOrThrow res = do
-    res' <- getValue res
-    case checkResponse res' of
-        Left err -> throwM err
-        Right _ -> return ()
-    case fromJSON (responseBody res') of
-        Success r -> return $ res' {responseBody = r}
-        Error err -> throwM $ FromJSONError err
 
 -- | Perform an 'APIRequest' and then provide the response which is mapped to a suitable type of
 -- <http://hackage.haskell.org/package/twitter-types twitter-types>.
@@ -195,7 +123,7 @@ call' ::
     HTTP.Manager ->
     APIRequest apiName responseType ->
     IO value
-call' info mgr req = responseBody `fmap` callWithResponse' info mgr req
+call' info mgr req = apiResponseBody `fmap` callWithResponse' info mgr req
 
 -- | Perform an 'APIRequest' and then provide the 'Response'.
 --
@@ -213,7 +141,7 @@ callWithResponse ::
     TWInfo ->
     HTTP.Manager ->
     APIRequest apiName responseType ->
-    IO (Response responseType)
+    IO (APIResponse responseType)
 callWithResponse = callWithResponse'
 
 -- | Perform an 'APIRequest' and then provide the 'Response'.
@@ -233,11 +161,10 @@ callWithResponse' ::
     TWInfo ->
     HTTP.Manager ->
     APIRequest apiName responseType ->
-    IO (Response value)
-callWithResponse' info mgr req =
-    runResourceT $ do
-        res <- getResponse info mgr =<< liftIO (makeRequest req)
-        parseResponseBody res
+    IO (APIResponse value)
+callWithResponse' info mgr req = do
+    httpReq <- makeRequest req
+    withHTTPResponse info mgr httpReq handleResponseThrow
 
 -- | A wrapper function to perform multiple API request with changing @max_id@ parameter.
 --
@@ -393,20 +320,3 @@ sourceWithSearchResult' info mgr req = do
         res <- liftIO $ call info mgr $ relax $ req & params .~ nextParams
         CL.sourceList (res ^. searchResultStatuses)
         loop $ res ^. searchResultSearchMetadata . searchMetadataNextResults
-
-sinkJSON ::
-    ( MonadThrow m
-    ) =>
-    C.ConduitT ByteString o m Value
-sinkJSON = CA.sinkParser json
-
-sinkFromJSON ::
-    ( FromJSON a
-    , MonadThrow m
-    ) =>
-    C.ConduitT ByteString o m a
-sinkFromJSON = do
-    v <- sinkJSON
-    case fromJSON v of
-        Error err -> throwM $ FromJSONError err
-        Success r -> return r

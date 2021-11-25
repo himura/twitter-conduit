@@ -1,7 +1,10 @@
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DeriveTraversable #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE UndecidableInstances #-}
 
 module Web.Twitter.Conduit.Response where
 
@@ -117,11 +120,45 @@ eitherFromJSON value =
         Success body -> Right body
         Error err -> Left $ FromJSONError err value
 
-handleResponse ::
+class ResponseBodyType a where
+    handleResponse :: HTTP.Response HTTP.BodyReader -> IO (Either APIException (APIResponse a))
+
+instance ResponseBodyType () where
+    handleResponse = handleNoContentResponse
+
+instance {-# OVERLAPPABLE #-} FromJSON a => ResponseBodyType a where
+    handleResponse = handleJSONResponse
+
+handleNoContentResponse ::
+       HTTP.Response HTTP.BodyReader
+    -> IO (Either APIException (APIResponse ()))
+handleNoContentResponse res =
+    case HTTP.responseStatus res of
+        st
+            | st == HTTPTypes.status204 ->
+                return . Right $
+                APIResponse
+                    { apiResponseStatus = st
+                    , apiResponseHeaders = HTTP.responseHeaders res
+                    , apiResponseRateLimitStatus = getRateLimitStatus res
+                    , apiResponseBody = ()
+                    }
+            | otherwise -> Left <$> handleErrorResponse res
+
+handleErrorResponse :: HTTP.Response HTTP.BodyReader -> IO APIException
+handleErrorResponse res = do
+    lbs <- HTTP.brReadSome (HTTP.responseBody res) 4096
+    let err =
+            either (const $ UnknownErrorResponse lbs) ErrorResponse $
+            eitherDecode' lbs
+    return $
+        APIException (HTTP.responseStatus res) (HTTP.responseHeaders res) err
+
+handleJSONResponse ::
        FromJSON responseType
     => HTTP.Response HTTP.BodyReader
     -> IO (Either APIException (APIResponse responseType))
-handleResponse res =
+handleJSONResponse res =
     case HTTP.responseStatus res of
         st
             | st >= HTTPTypes.status200 && st < HTTPTypes.status300 -> do
@@ -135,19 +172,14 @@ handleResponse res =
                         APIResponse
                             { apiResponseStatus = st
                             , apiResponseHeaders = HTTP.responseHeaders res
-                            , apiResponseRateLimitStatus = getRateLimitStatus res
+                            , apiResponseRateLimitStatus =
+                                  getRateLimitStatus res
                             , apiResponseBody = value
                             }
-            | otherwise -> do
-                lbs <- HTTP.brReadSome (HTTP.responseBody res) 4096
-                let err =
-                        either (const $ UnknownErrorResponse lbs) ErrorResponse $
-                        eitherDecode' lbs
-                return . Left $
-                    APIException st (HTTP.responseHeaders res) err
+            | otherwise -> Left <$> handleErrorResponse res
 
 handleResponseThrow ::
-       FromJSON responseType
+       ResponseBodyType responseType
     => HTTP.Response HTTP.BodyReader
     -> IO (APIResponse responseType)
 handleResponseThrow = either throwIO return <=< handleResponse
