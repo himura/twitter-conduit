@@ -1,3 +1,7 @@
+## 0.6.1
+
+*  Export TweetMode (Extended) [#92](https://github.com/himura/twitter-conduit/pull/92)
+
 ## 0.6.0
 
 * Support extended tweets [#83](https://github.com/himura/twitter-conduit/pull/83)
