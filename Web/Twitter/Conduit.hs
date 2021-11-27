@@ -50,6 +50,7 @@ module Web.Twitter.Conduit (
     MediaData (..),
     UserListParam (..),
     UserParam (..),
+    TweetMode (..),
 
     -- * re-exports
     OAuth (..),
