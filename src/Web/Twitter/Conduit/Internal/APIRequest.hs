@@ -143,13 +143,24 @@ unsafeParam ::
     -- | parameter key
     ByteString ->
     Lens' (APIRequest parameters body responseType) (Maybe a)
-unsafeParam key = lens (getter key) (setter key)
+unsafeParam key = lens (apiRequestGetParam key) (apiRequestSetParam key)
 
-getter :: ParameterValue a => ByteString -> APIRequest parameters body responseType -> Maybe a
-getter key = preview $ params . to (lookup key) . _Just . wrapped
+param ::
+       (KnownSymbol label, ParameterValue a, HasParam label a parameters)
+    => Proxy label
+    -> Lens' (APIRequest parameters body responseType) (Maybe a)
+param = unsafeParam . S8.pack . symbolVal
 
-setter :: ParameterValue a => ByteString -> APIRequest parameters body responseType -> Maybe a -> APIRequest parameters body responseType
-setter key = flip $ over params . replace key
+apiRequestGetParam :: ParameterValue a => ByteString -> APIRequest parameters body responseType -> Maybe a
+apiRequestGetParam key = preview $ params . to (lookup key) . _Just . wrapped
+
+apiRequestSetParam ::
+       ParameterValue a
+    => ByteString
+    -> APIRequest parameters body responseType
+    -> Maybe a
+    -> APIRequest parameters body responseType
+apiRequestSetParam key = flip $ over params . replace key
 
 replace :: ParameterValue a => ByteString -> Maybe a -> APIQuery -> APIQuery
 replace k (Just v) = ((k, wrapped # v) :) . dropAssoc k
@@ -167,6 +178,4 @@ instance
     ) =>
     IsLabel label lens
     where
-    fromLabel = unsafeParam key
-      where
-        key = S8.pack (symbolVal (Proxy :: Proxy label))
+    fromLabel = param (Proxy :: Proxy label)
