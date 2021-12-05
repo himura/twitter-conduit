@@ -159,20 +159,20 @@ unsafeParam ::
 unsafeParam key = lens (apiRequestGetParam key) (apiRequestSetParam key)
 
 param ::
-       (KnownSymbol label, ParameterValue a, HasParam label a parameters)
-    => Proxy label
-    -> Lens' (APIRequest parameters body responseType) (Maybe a)
+    (KnownSymbol label, ParameterValue a, HasParam label a parameters) =>
+    Proxy label ->
+    Lens' (APIRequest parameters body responseType) (Maybe a)
 param = unsafeParam . S8.pack . symbolVal
 
 apiRequestGetParam :: ParameterValue a => ByteString -> APIRequest parameters body responseType -> Maybe a
 apiRequestGetParam key = preview $ requestParamsL . to (lookup key) . _Just . wrapped
 
 apiRequestSetParam ::
-       ParameterValue a
-    => ByteString
-    -> APIRequest parameters body responseType
-    -> Maybe a
-    -> APIRequest parameters body responseType
+    ParameterValue a =>
+    ByteString ->
+    APIRequest parameters body responseType ->
+    Maybe a ->
+    APIRequest parameters body responseType
 apiRequestSetParam key = flip $ over requestParamsL . replace key
 
 replace :: ParameterValue a => ByteString -> Maybe a -> APIQuery -> APIQuery
