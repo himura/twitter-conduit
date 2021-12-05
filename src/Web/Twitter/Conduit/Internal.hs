@@ -24,9 +24,9 @@ import Web.Authenticate.OAuth (signOAuth)
 import Web.Twitter.Conduit.Internal.APIRequest (
     APIQuery,
     APIRequest (APIRequest),
-    APIRequestBodyEmpty,
-    APIRequestBodyJSON (..),
-    APIRequestBodyMultipart (..),
+    BodyEmpty,
+    BodyJSON (..),
+    BodyMultipart (..),
     makeSimpleQuery,
  )
 import Web.Twitter.Conduit.Internal.APIResponse (APIResponse, ResponseBodyType, handleResponseThrow)
@@ -35,7 +35,7 @@ import Web.Twitter.Conduit.Types (TWInfo (..), TWToken (twCredential, twOAuth))
 class ToRequest body where
     buildHTTPRequest :: APIRequest parameters body responseType -> IO Request
 
-instance ToRequest APIRequestBodyEmpty where
+instance ToRequest BodyEmpty where
     buildHTTPRequest (APIRequest m u p ()) = do
         req <- makeHTTPRequest m u
         return $
@@ -43,14 +43,14 @@ instance ToRequest APIRequestBodyEmpty where
                 then urlEncodedBody (makeSimpleQuery p) req
                 else req {queryString = buildQueryString p}
 
-instance ToRequest APIRequestBodyMultipart where
-    buildHTTPRequest (APIRequest m u p (APIRequestBodyMultipart ps)) =
+instance ToRequest BodyMultipart where
+    buildHTTPRequest (APIRequest m u p (BodyMultipart ps)) =
         formDataBody ps' =<< makeHTTPRequest m u
       where
         ps' = ps ++ paramParts
         paramParts = map (uncurry partBS . over _1 T.decodeUtf8) (makeSimpleQuery p)
-instance ToJSON a => ToRequest (APIRequestBodyJSON a) where
-    buildHTTPRequest (APIRequest m u p (APIRequestBodyJSON b)) = do
+instance ToJSON a => ToRequest (BodyJSON a) where
+    buildHTTPRequest (APIRequest m u p (BodyJSON b)) = do
         req <- makeHTTPRequest m u
         return $
             req

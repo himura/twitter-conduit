@@ -89,18 +89,18 @@ paramValueBS (PVDay day) = S8.pack . show $ day
 makeSimpleQuery :: APIQuery -> HTTPTypes.SimpleQuery
 makeSimpleQuery = traversed . _2 %~ paramValueBS
 
-type APIRequestBodyEmpty = ()
-newtype APIRequestBodyMultipart = APIRequestBodyMultipart [Part]
+type BodyEmpty = ()
+newtype BodyMultipart = BodyMultipart [Part]
     deriving (Generic, Show)
-newtype APIRequestBodyJSON a = APIRequestBodyJSON a
-    deriving (Generic, Show)
+newtype BodyJSON a = BodyJSON a
+    deriving (Generic, Show, Read)
 
 -- $setup
 -- >>> :set -XOverloadedStrings -XDataKinds -XTypeOperators
 -- >>> import Control.Lens
 -- >>> type SampleId = Integer
 -- >>> type SampleApi = '["count" ':= Integer, "max_id" ':= Integer]
--- >>> let sampleApiRequest :: APIRequest SampleApi [SampleId]; sampleApiRequest = APIRequest "GET" "https://api.twitter.com/sample/api.json" [] APIRequestBodyEmpty
+-- >>> let sampleApiRequest :: APIRequest SampleApi [SampleId]; sampleApiRequest = APIRequest "GET" "https://api.twitter.com/sample/api.json" [] BodyEmpty
 
 -- | API request. You should use specific builder functions instead of building this directly.
 --
@@ -109,7 +109,7 @@ newtype APIRequestBodyJSON a = APIRequestBodyJSON a
 -- @
 -- type SampleId = 'Integer'
 -- sampleApiRequest :: 'APIRequest' SampleApi [SampleId]
--- sampleApiRequest = 'APIRequest' \"GET\" \"https:\/\/api.twitter.com\/sample\/api.json\" [] APIRequestBodyEmpty
+-- sampleApiRequest = 'APIRequest' \"GET\" \"https:\/\/api.twitter.com\/sample\/api.json\" [] BodyEmpty
 -- type SampleApi = '[ "count" ':= Integer
 --                   , "max_id" ':= Integer
 --                   ]
