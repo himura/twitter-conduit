@@ -69,7 +69,7 @@ data PV
     | PVIntegerArray {unPVIntegerArray :: [Integer]}
     | PVStringArray {unPVStringArray :: [Text]}
     | PVDay {unPVDay :: Day}
-    deriving (Show, Eq)
+    deriving (Generic, Eq, Ord, Show, Read)
 makePrisms ''PV
 
 type APIQueryItem = (ByteString, PV)
@@ -106,7 +106,7 @@ type BodyEmpty = ()
 newtype BodyMultipart = BodyMultipart [Part]
     deriving (Generic, Show)
 newtype BodyJSON a = BodyJSON a
-    deriving (Generic, Show, Read)
+    deriving (Generic, Eq, Ord, Show, Read)
 
 -- $setup
 -- >>> :set -XOverloadedStrings -XDataKinds -XTypeOperators
@@ -148,7 +148,7 @@ data APIRequest (parameters :: [Param Symbol *]) body responseType = APIRequest
     , _params :: APIQuery
     , _body :: body
     }
-    deriving (Generic, Show)
+    deriving (Generic, Eq, Ord, Show, Read)
 makeLenses ''APIRequest
 
 unsafeParam ::

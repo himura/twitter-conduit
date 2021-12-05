@@ -16,10 +16,10 @@ module Web.Twitter.Conduit.Cursor (
 ) where
 
 import Control.DeepSeq (NFData)
-import Data.Aeson
+import Data.Aeson (FromJSON (parseJSON), FromJSON1 (liftParseJSON), parseJSON1, withObject, (.:), (.:?))
 import Data.Proxy (Proxy (..))
-import Data.String
-import GHC.Generics
+import Data.String (IsString (..))
+import GHC.Generics (Generic, Generic1)
 import GHC.TypeLits (KnownSymbol, Symbol, symbolVal)
 
 -- $setup
@@ -57,7 +57,7 @@ data WithCursor cursorType (cursorKey :: Symbol) wrapped = WithCursor
     , nextCursor :: Maybe cursorType
     , contents :: [wrapped]
     }
-    deriving (Show, Eq, Generic, Generic1, Functor, Foldable, Traversable)
+    deriving (Generic, Generic1, Eq, Ord, Functor, Foldable, Traversable, Show, Read)
 
 instance (KnownSymbol cursorKey, FromJSON cursorType) => FromJSON1 (WithCursor cursorType cursorKey) where
     liftParseJSON _ lp =

@@ -23,8 +23,8 @@ import Data.Attoparsec.ByteString (eitherResult, endOfInput, parseOnly, parseWit
 import Data.Attoparsec.ByteString.Char8 (decimal, signed)
 import qualified Data.ByteString as S
 import qualified Data.ByteString.Lazy as L
-import Data.Data (Data, Typeable)
 import qualified Data.Text as T
+import Data.Typeable (Typeable)
 import GHC.Generics (Generic)
 import qualified Network.HTTP.Client as HTTP
 import Network.HTTP.Types (ResponseHeaders, Status)
@@ -40,7 +40,7 @@ data APIResponse responseType = APIResponse
     , apiResponseRateLimitStatus :: RateLimitStatus
     , apiResponseBody :: responseType
     }
-    deriving (Show, Eq, Functor, Foldable, Traversable)
+    deriving (Generic, Eq, Functor, Foldable, Traversable, Show)
 
 data RateLimitStatus = RateLimitStatus
     { -- | the rate limit ceiling for that given endpoint (HTTP header: x-rate-limit-limit)
@@ -50,14 +50,14 @@ data RateLimitStatus = RateLimitStatus
     , -- | the remaining window before the rate limit resets, in UTC epoch seconds (HTTP header: x-rate-limit-reset)
       rateLimitStatusReset :: Maybe Int
     }
-    deriving (Show, Eq, Ord, Generic)
+    deriving (Generic, Eq, Ord, Show, Read)
 
 data APIException = APIException
     { apiExceptionStatus :: Status
     , apiExceptionHeaders :: ResponseHeaders
     , apiExceptionContext :: APIExceptionContent
     }
-    deriving (Show, Eq, Generic, Typeable)
+    deriving (Generic, Eq, Ord, Show, Typeable)
 instance Exception APIException
 
 data APIExceptionContent
@@ -66,12 +66,12 @@ data APIExceptionContent
     | UnknownErrorResponse L.ByteString
     | ParseJSONError String
     | FromJSONError String Value
-    deriving (Show, Eq, Generic)
+    deriving (Generic, Eq, Ord, Show, Read, Typeable)
 
 newtype TwitterErrors = TwitterErrors
     { twitterErrors :: [TwitterError]
     }
-    deriving (Show, Eq, Ord, Generic)
+    deriving (Generic, Eq, Ord, Show, Read, Typeable)
 
 instance FromJSON TwitterErrors where
     parseJSON = stripPrefixGenericParseJSON "twitter"
@@ -86,7 +86,7 @@ data TwitterError = TwitterError
     { twitterErrorCode :: Int
     , twitterErrorMessage :: T.Text
     }
-    deriving (Show, Eq, Ord, Generic, Data, Typeable)
+    deriving (Generic, Eq, Ord, Show, Read, Typeable)
 
 instance Enum TwitterError where
     fromEnum = twitterErrorCode
