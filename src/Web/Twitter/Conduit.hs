@@ -18,6 +18,11 @@ module Web.Twitter.Conduit (
 
     -- ** How to call API
     -- $call
+    send,
+    sendWithRawValue,
+    send',
+    call,
+    call',
 
     -- *** How to specify API parameters
     -- $parameter
@@ -25,25 +30,21 @@ module Web.Twitter.Conduit (
     -- *** Conduit API: Recursive API call with changing cursor parameter
     -- $conduit
 
-    -- * Re-exports
-    module Web.Twitter.Conduit.Api,
-    module Web.Twitter.Conduit.Cursor,
-    module Web.Twitter.Conduit.Request,
-    module Web.Twitter.Conduit.Response,
-    module Web.Twitter.Conduit.Stream,
-    module Web.Twitter.Conduit.Types,
+    -- * API Request
+    APIRequest (..),
 
-    -- * 'Web.Twitter.Conduit.Base'
-    call,
-    call',
-    callWithResponse,
-    callWithResponse',
-    sourceWithMaxId,
-    sourceWithMaxId',
-    sourceWithCursor,
-    sourceWithCursor',
-    sourceWithSearchResult,
-    sourceWithSearchResult',
+    -- * API Response
+    APIResponse (..),
+    APIException (..),
+    APIExceptionContent (..),
+    TwitterErrors (..),
+    TwitterError (..),
+    RateLimitStatus (..),
+    WithCursor (..),
+    WithRawValue (..),
+    module Web.Twitter.Conduit.Stream,
+    module Web.Twitter.Conduit.Recursive,
+    module Web.Twitter.Conduit.Types,
 
     -- * 'Web.Twitter.Conduit.Parameters'
     ListParam (..),
@@ -51,28 +52,26 @@ module Web.Twitter.Conduit (
     UserListParam (..),
     UserParam (..),
     TweetMode (..),
+    module Web.Twitter.Conduit.Api,
 
-    -- * re-exports
-    OAuth (..),
-    Credential (..),
-    def,
-    Manager,
-    newManager,
-    tlsManagerSettings,
+    -- * Re-exports
+    module M,
 ) where
 
 import Web.Twitter.Conduit.Api
-import Web.Twitter.Conduit.Base
 import Web.Twitter.Conduit.Cursor
-import Web.Twitter.Conduit.Parameters
-import Web.Twitter.Conduit.Request
-import Web.Twitter.Conduit.Response
+import Web.Twitter.Conduit.Internal
+import Web.Twitter.Conduit.Internal.APIRequest
+import Web.Twitter.Conduit.Internal.APIResponse
+import Web.Twitter.Conduit.Internal.WithRawValue
+import Web.Twitter.Conduit.Parameters (ListParam (..), MediaData (..), TweetMode (..), UserListParam (..), UserParam (..))
+import Web.Twitter.Conduit.Recursive
 import Web.Twitter.Conduit.Stream
 import Web.Twitter.Conduit.Types
 
-import Data.Default (def)
-import Network.HTTP.Conduit (Manager, newManager, tlsManagerSettings)
-import Web.Authenticate.OAuth
+import Data.Default as M (def)
+import Network.HTTP.Conduit as M (Manager, newManager, tlsManagerSettings)
+import Web.Authenticate.OAuth as M (Credential (..), OAuth (..))
 
 -- for haddock
 
