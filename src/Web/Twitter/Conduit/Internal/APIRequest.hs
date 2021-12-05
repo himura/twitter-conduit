@@ -41,6 +41,19 @@ import GHC.TypeLits (KnownSymbol, Symbol, symbolVal)
 import Network.HTTP.Client.MultipartFormData (Part)
 import qualified Network.HTTP.Types as HTTPTypes
 
+data Method
+    = GET
+    | POST
+    | PUT
+    | DELETE
+    deriving (Generic, Eq, Ord, Enum, Bounded, Show, Read)
+
+convertToHTTPMethod :: Method -> HTTPTypes.Method
+convertToHTTPMethod GET = "GET"
+convertToHTTPMethod POST = "POST"
+convertToHTTPMethod PUT = "PUT"
+convertToHTTPMethod DELETE = "DELETE"
+
 data Param label t = label := t
 type EmptyParams = ('[] :: [Param Symbol *])
 
@@ -130,7 +143,7 @@ newtype BodyJSON a = BodyJSON a
 -- >>> (sampleApiRequest & #count ?~ 100 & #max_id ?~ 1234567890 & #count .~ Nothing) ^. params
 -- [("max_id",PVInteger {unPVInteger = 1234567890})]
 data APIRequest (parameters :: [Param Symbol *]) body responseType = APIRequest
-    { _method :: HTTPTypes.Method
+    { _method :: Method
     , _url :: String
     , _params :: APIQuery
     , _body :: body

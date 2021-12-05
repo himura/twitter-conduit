@@ -19,7 +19,7 @@ import Network.HTTP.Client as HTTP (
     withResponse,
  )
 import Network.HTTP.Client.MultipartFormData (formDataBody, partBS)
-import Network.HTTP.Types as HTTPTypes (Method, renderSimpleQuery)
+import qualified Network.HTTP.Types as HTTPTypes
 import Web.Authenticate.OAuth (signOAuth)
 import Web.Twitter.Conduit.Internal.APIRequest (
     APIQuery,
@@ -27,6 +27,8 @@ import Web.Twitter.Conduit.Internal.APIRequest (
     BodyEmpty,
     BodyJSON (..),
     BodyMultipart (..),
+    Method (POST),
+    convertToHTTPMethod,
     makeSimpleQuery,
  )
 import Web.Twitter.Conduit.Internal.APIResponse (APIResponse, ResponseBodyType, handleResponseThrow)
@@ -39,9 +41,9 @@ instance ToRequest BodyEmpty where
     buildHTTPRequest (APIRequest m u p ()) = do
         req <- makeHTTPRequest m u
         return $
-            if m == "POST"
-                then urlEncodedBody (makeSimpleQuery p) req
-                else req {queryString = buildQueryString p}
+            case m of
+                POST -> urlEncodedBody (makeSimpleQuery p) req
+                _ -> req {queryString = buildQueryString p}
 
 instance ToRequest BodyMultipart where
     buildHTTPRequest (APIRequest m u p (BodyMultipart ps)) =
@@ -60,14 +62,14 @@ instance ToJSON a => ToRequest (BodyJSON a) where
                 }
 
 makeHTTPRequest ::
-    -- | HTTP request method (GET or POST)
-    HTTPTypes.Method ->
+    -- | HTTP request method
+    Method ->
     -- | API Resource URL
     String ->
     IO Request
 makeHTTPRequest m u = do
     req <- parseRequest u
-    return $ req {HTTP.method = m}
+    return $ req {HTTP.method = convertToHTTPMethod m}
 
 buildQueryString :: APIQuery -> S.ByteString
 buildQueryString = HTTPTypes.renderSimpleQuery False . makeSimpleQuery
