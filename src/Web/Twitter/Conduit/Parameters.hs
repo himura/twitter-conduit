@@ -11,13 +11,14 @@ module Web.Twitter.Conduit.Parameters (
     mkListParam,
 ) where
 
+import Control.Lens (prism')
 import qualified Data.Text as T
 import Network.HTTP.Client (RequestBody)
-import Web.Twitter.Conduit.Request.Internal (APIQuery, PV (..), ParameterValue (..))
+import Web.Twitter.Conduit.Internal.APIRequest (APIQuery, PV (..), ParameterValue (..))
 import Web.Twitter.Types
 
 -- $setup
--- >>> import Web.Twitter.Conduit.Request.Internal
+-- >>> import Web.Twitter.Conduit.Internal.APIRequest
 
 -- Required parameters
 
@@ -74,5 +75,8 @@ mkListParam (ListNameParam listname) =
 data TweetMode = Extended deriving (Show, Eq)
 
 instance ParameterValue TweetMode where
-    wrap Extended = PVString "extended"
-    unwrap = const Extended
+    wrapped = prism' (\Extended -> PVString "extended") unwrap
+      where
+        unwrap (PVString s)
+            | s == "extended" = Just Extended
+        unwrap _ = Nothing
