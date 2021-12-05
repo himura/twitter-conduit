@@ -132,6 +132,7 @@ eitherFromJSON value =
 class ResponseBodyType a where
     handleResponse :: HTTP.Response HTTP.BodyReader -> IO (Either APIException (APIResponse a))
 
+type NoContent = ()
 instance ResponseBodyType () where
     handleResponse = handleNoContentResponse
 
