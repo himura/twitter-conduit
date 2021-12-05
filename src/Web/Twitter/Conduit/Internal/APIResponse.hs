@@ -4,11 +4,13 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE UndecidableInstances #-}
 
 module Web.Twitter.Conduit.Internal.APIResponse where
 
 import Control.Exception (Exception, throwIO)
+import Control.Lens (makeLensesFor)
 import Control.Monad ((<=<))
 import Data.Aeson (
     FromJSON (parseJSON),
@@ -34,14 +36,6 @@ import Web.Twitter.Conduit.Internal.AesonUtil (
     stripPrefixGenericToEncoding,
  )
 
-data APIResponse responseType = APIResponse
-    { apiResponseStatus :: Status
-    , apiResponseHeaders :: ResponseHeaders
-    , apiResponseRateLimitStatus :: RateLimitStatus
-    , apiResponseBody :: responseType
-    }
-    deriving (Generic, Eq, Functor, Foldable, Traversable, Show)
-
 data RateLimitStatus = RateLimitStatus
     { -- | the rate limit ceiling for that given endpoint (HTTP header: x-rate-limit-limit)
       rateLimitStatusLimit :: Maybe Int
@@ -51,6 +45,21 @@ data RateLimitStatus = RateLimitStatus
       rateLimitStatusReset :: Maybe Int
     }
     deriving (Generic, Eq, Ord, Show, Read)
+
+data APIResponse responseType = APIResponse
+    { apiResponseStatus :: Status
+    , apiResponseHeaders :: ResponseHeaders
+    , apiResponseRateLimitStatus :: RateLimitStatus
+    , apiResponseBody :: responseType
+    }
+    deriving (Generic, Eq, Functor, Foldable, Traversable, Show)
+makeLensesFor
+    [ ("apiResponseStatus", "responseStatusL")
+    , ("apiResponseHeaders", "responseHeadersL")
+    , ("apiResponseRateLimitStatus", "rateLimitStatusL")
+    , ("apiResponseBody", "responseBodyL")
+    ]
+    ''APIResponse
 
 data APIException = APIException
     { apiExceptionStatus :: Status

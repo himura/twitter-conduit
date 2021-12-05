@@ -19,7 +19,7 @@ import Control.Lens (
     Lens',
     Prism',
     lens,
-    makeLenses,
+    makeLensesFor,
     makePrisms,
     over,
     preview,
@@ -143,13 +143,13 @@ newtype BodyJSON a = BodyJSON a
 -- >>> (sampleApiRequest & #count ?~ 100 & #max_id ?~ 1234567890 & #count .~ Nothing) ^. params
 -- [("max_id",PVInteger {unPVInteger = 1234567890})]
 data APIRequest (parameters :: [Param Symbol *]) body responseType = APIRequest
-    { _method :: Method
-    , _url :: String
-    , _params :: APIQuery
-    , _body :: body
+    { apiRequestMethod :: Method
+    , apiRequestUrl :: String
+    , apiRequestParams :: APIQuery
+    , apiRequestBody :: body
     }
     deriving (Generic, Eq, Ord, Show, Read)
-makeLenses ''APIRequest
+makeLensesFor [("apiRequestParams", "requestParamsL"), ("apiRequestBody", "requestBodyL")] ''APIRequest
 
 unsafeParam ::
     ParameterValue a =>
@@ -165,7 +165,7 @@ param ::
 param = unsafeParam . S8.pack . symbolVal
 
 apiRequestGetParam :: ParameterValue a => ByteString -> APIRequest parameters body responseType -> Maybe a
-apiRequestGetParam key = preview $ params . to (lookup key) . _Just . wrapped
+apiRequestGetParam key = preview $ requestParamsL . to (lookup key) . _Just . wrapped
 
 apiRequestSetParam ::
        ParameterValue a
@@ -173,7 +173,7 @@ apiRequestSetParam ::
     -> APIRequest parameters body responseType
     -> Maybe a
     -> APIRequest parameters body responseType
-apiRequestSetParam key = flip $ over params . replace key
+apiRequestSetParam key = flip $ over requestParamsL . replace key
 
 replace :: ParameterValue a => ByteString -> Maybe a -> APIQuery -> APIQuery
 replace k (Just v) = ((k, wrapped # v) :) . dropAssoc k
