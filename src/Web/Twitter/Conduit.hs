@@ -85,6 +85,8 @@ import qualified Data.Text.IO as T
 
 {-# ANN module "HLint: ignore Use import/export shortcut" #-}
 
+{- ORMOLU_DISABLE -}
+
 -- $howto
 --
 -- The main module of twitter-conduit is "Web.Twitter.Conduit".
@@ -94,8 +96,8 @@ import qualified Data.Text.IO as T
 -- All of following examples import modules as below:
 --
 -- @
--- {\-# LANGUAGE OverloadedLabels #-\}
--- {\-# LANGUAGE OverloadedStrings #-\}
+-- {-# LANGUAGE OverloadedLabels #-}
+-- {-# LANGUAGE OverloadedStrings #-}
 --
 -- import Web.Twitter.Conduit
 -- import Web.Twitter.Types.Lens
@@ -106,6 +108,8 @@ import qualified Data.Text.IO as T
 -- import Control.Monad.IO.Class
 -- import Control.Lens
 -- @
+
+{- ORMOLU_ENABLE -}
 
 -- $auth
 --
@@ -230,7 +234,7 @@ import qualified Data.Text.IO as T
 --             '.|' 'CL.consume'
 -- @
 --
--- Statuses APIs, for instance, 'homeTimeline', are also wrapped by 'sourceWithMaxId'.
+-- Statuses APIs, for instance, 'statusesHomeTimeline', are also wrapped by 'sourceWithMaxId'.
 --
 -- For example, you can print 60 tweets from your home timeline, as below:
 --
@@ -238,7 +242,7 @@ import qualified Data.Text.IO as T
 -- main :: IO ()
 -- main = do
 --     mgr \<- 'newManager' 'tlsManagerSettings'
---     'runConduit' $ 'sourceWithMaxId' twInfo mgr 'homeTimeline'
+--     'runConduit' $ 'sourceWithMaxId' twInfo mgr 'statusesHomeTimeline'
 --         '.|' CL.isolate 60
 --         '.|' CL.mapM_
 --             (\\status -> do
