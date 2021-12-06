@@ -29,7 +29,6 @@ import Control.Lens (
     (%~),
     _Just,
  )
-import Data.Aeson (Value)
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as S8
 import Data.Proxy (Proxy (..))
@@ -90,12 +89,11 @@ paramValueBS (PVDay day) = S8.pack . show $ day
 makeSimpleQuery :: APIQuery -> HTTPTypes.SimpleQuery
 makeSimpleQuery = traversed . _2 %~ paramValueBS
 
-data APIRequestBody
-    = APIRequestBodyEmpty
-    | APIRequestBodyMultipart [Part]
-    | APIRequestBodyJSON Value
+type APIRequestBodyEmpty = ()
+newtype APIRequestBodyMultipart = APIRequestBodyMultipart [Part]
     deriving (Generic, Show)
-makePrisms ''APIRequestBody
+newtype APIRequestBodyJSON a = APIRequestBodyJSON a
+    deriving (Generic, Show)
 
 -- $setup
 -- >>> :set -XOverloadedStrings -XDataKinds -XTypeOperators
@@ -131,11 +129,11 @@ makePrisms ''APIRequestBody
 -- [("max_id",PVInteger {unPVInteger = 1234567890}),("count",PVInteger {unPVInteger = 100})]
 -- >>> (sampleApiRequest & #count ?~ 100 & #max_id ?~ 1234567890 & #count .~ Nothing) ^. params
 -- [("max_id",PVInteger {unPVInteger = 1234567890})]
-data APIRequest (supports :: [Param Symbol *]) responseType = APIRequest
+data APIRequest (parameters :: [Param Symbol *]) body responseType = APIRequest
     { _method :: HTTPTypes.Method
     , _url :: String
     , _params :: APIQuery
-    , _body :: APIRequestBody
+    , _body :: body
     }
     deriving (Generic, Show)
 makeLenses ''APIRequest
@@ -144,13 +142,13 @@ unsafeParam ::
     ParameterValue a =>
     -- | parameter key
     ByteString ->
-    Lens' (APIRequest supports responseType) (Maybe a)
+    Lens' (APIRequest parameters body responseType) (Maybe a)
 unsafeParam key = lens (getter key) (setter key)
 
-getter :: ParameterValue a => ByteString -> APIRequest supports responseType -> Maybe a
+getter :: ParameterValue a => ByteString -> APIRequest parameters body responseType -> Maybe a
 getter key = preview $ params . to (lookup key) . _Just . wrapped
 
-setter :: ParameterValue a => ByteString -> APIRequest supports responseType -> Maybe a -> APIRequest supports responseType
+setter :: ParameterValue a => ByteString -> APIRequest parameters body responseType -> Maybe a -> APIRequest parameters body responseType
 setter key = flip $ over params . replace key
 
 replace :: ParameterValue a => ByteString -> Maybe a -> APIQuery -> APIQuery
@@ -163,9 +161,9 @@ dropAssoc k = filter ((/= k) . fst)
 instance
     ( ParameterValue a
     , KnownSymbol label
-    , HasParam label a supports
+    , HasParam label a parameters
     , Functor f
-    , lens ~ ((Maybe a -> f (Maybe a)) -> APIRequest supports responseType -> f (APIRequest supports responseType))
+    , lens ~ ((Maybe a -> f (Maybe a)) -> APIRequest parameters body responseType -> f (APIRequest parameters body responseType))
     ) =>
     IsLabel label lens
     where
