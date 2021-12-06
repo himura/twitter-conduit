@@ -4,13 +4,11 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE UndecidableInstances #-}
 
 module Web.Twitter.Conduit.Internal.APIResponse where
 
 import Control.Exception (Exception, throwIO)
-import Control.Lens (makeLensesFor)
 import Control.Monad ((<=<))
 import Data.Aeson (
     FromJSON (parseJSON),
@@ -53,13 +51,6 @@ data APIResponse responseType = APIResponse
     , apiResponseBody :: responseType
     }
     deriving (Generic, Eq, Functor, Foldable, Traversable, Show)
-makeLensesFor
-    [ ("apiResponseStatus", "responseStatusL")
-    , ("apiResponseHeaders", "responseHeadersL")
-    , ("apiResponseRateLimitStatus", "rateLimitStatusL")
-    , ("apiResponseBody", "responseBodyL")
-    ]
-    ''APIResponse
 
 data APIException = APIException
     { apiExceptionStatus :: Status

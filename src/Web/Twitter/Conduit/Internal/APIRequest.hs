@@ -19,16 +19,13 @@ import Control.Lens (
     Lens',
     Prism',
     lens,
-    makeLensesFor,
     makePrisms,
-    over,
     preview,
-    to,
     traversed,
     (#),
     (%~),
-    _Just,
  )
+import Control.Monad
 import Data.ByteString (ByteString)
 import qualified Data.ByteString.Char8 as S8
 import Data.Proxy (Proxy (..))
@@ -149,7 +146,6 @@ data APIRequest (parameters :: [Param Symbol *]) body responseType = APIRequest
     , apiRequestBody :: body
     }
     deriving (Generic, Eq, Ord, Show, Read)
-makeLensesFor [("apiRequestParams", "requestParamsL"), ("apiRequestBody", "requestBodyL")] ''APIRequest
 
 unsafeParam ::
     ParameterValue a =>
@@ -165,7 +161,7 @@ param ::
 param = unsafeParam . S8.pack . symbolVal
 
 apiRequestGetParam :: ParameterValue a => ByteString -> APIRequest parameters body responseType -> Maybe a
-apiRequestGetParam key = preview $ requestParamsL . to (lookup key) . _Just . wrapped
+apiRequestGetParam key = preview wrapped <=< lookup key . apiRequestParams
 
 apiRequestSetParam ::
     ParameterValue a =>
@@ -173,7 +169,8 @@ apiRequestSetParam ::
     APIRequest parameters body responseType ->
     Maybe a ->
     APIRequest parameters body responseType
-apiRequestSetParam key = flip $ over requestParamsL . replace key
+apiRequestSetParam key req a =
+    req {apiRequestParams = replace key a $ apiRequestParams req}
 
 replace :: ParameterValue a => ByteString -> Maybe a -> APIQuery -> APIQuery
 replace k (Just v) = ((k, wrapped # v) :) . dropAssoc k
