@@ -57,6 +57,7 @@ library
         Web.Twitter.Conduit.Internal.APIRequest
         Web.Twitter.Conduit.Internal.APIResponse
         Web.Twitter.Conduit.Internal.AesonUtil
+        Web.Twitter.Conduit.Internal.WithRawValue
         Web.Twitter.Conduit.Lens
         Web.Twitter.Conduit.Parameters
         Web.Twitter.Conduit.Stream
