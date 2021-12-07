@@ -60,6 +60,7 @@ library
         Web.Twitter.Conduit.Internal.WithRawValue
         Web.Twitter.Conduit.Lens
         Web.Twitter.Conduit.Parameters
+        Web.Twitter.Conduit.Recursive
         Web.Twitter.Conduit.Stream
         Web.Twitter.Conduit.Types
 
