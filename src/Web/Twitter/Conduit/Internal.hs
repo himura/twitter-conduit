@@ -1,3 +1,4 @@
+{-# LANGUAGE OverloadedLabels #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE TypeSynonymInstances #-}
@@ -5,7 +6,7 @@
 module Web.Twitter.Conduit.Internal where
 
 import Control.Lens (Field1 (_1), over)
-import Data.Aeson (ToJSON, encode)
+import Data.Aeson (FromJSON, ToJSON, encode)
 import qualified Data.ByteString as S
 import qualified Data.Text.Encoding as T
 import Network.HTTP.Client as HTTP (
@@ -31,7 +32,8 @@ import Web.Twitter.Conduit.Internal.APIRequest (
     convertToHTTPMethod,
     makeSimpleQuery,
  )
-import Web.Twitter.Conduit.Internal.APIResponse (APIResponse, ResponseBodyType, handleResponseThrow)
+import Web.Twitter.Conduit.Internal.APIResponse (APIResponse (apiResponseBody), ResponseBodyType, handleResponseThrow)
+import Web.Twitter.Conduit.Internal.WithRawValue (WithRawValue)
 import Web.Twitter.Conduit.Types (TWInfo (..), TWToken (twCredential, twOAuth))
 
 class ToRequest body where
@@ -84,12 +86,70 @@ withHTTPResponse TWInfo {..} mgr req respond = do
     signedReq <- signOAuth (twOAuth twToken) (twCredential twToken) $ req {HTTP.proxy = twProxy}
     HTTP.withResponse signedReq mgr respond
 
-call ::
+-- | Perform an 'APIRequest' and then provide the response which is mapped to a suitable type of
+-- <http://hackage.haskell.org/package/twitter-types twitter-types>.
+--
+-- Example:
+--
+-- @
+-- response <- 'send' twInfo mgr $ 'statusesHomeTimeline'
+-- @
+--
+-- If you need raw JSON value which is parsed by <http://hackage.haskell.org/package/aeson aeson>,
+-- use 'send'' to obtain it.
+send ::
     (ToRequest body, ResponseBodyType responseType) =>
     TWInfo ->
     Manager ->
     APIRequest parameters body responseType ->
     IO (APIResponse responseType)
+send = send'
+
+sendWithRawValue ::
+    (ToRequest body, ResponseBodyType responseType, FromJSON responseType) =>
+    TWInfo ->
+    Manager ->
+    APIRequest parameters body responseType ->
+    IO (APIResponse (WithRawValue responseType))
+sendWithRawValue = send'
+
+-- | Perform an 'APIRequest' and then provide the response.
+-- The response of this function is not restrict to @responseType@,
+-- so you can choose an arbitrarily type of FromJSON instances.
+send' ::
+    (ToRequest body, ResponseBodyType value) =>
+    TWInfo ->
+    Manager ->
+    APIRequest parameters body responseType ->
+    IO (APIResponse value)
+send' info mgr apiReq = do
+    req <- buildHTTPRequest apiReq
+    withHTTPResponse info mgr req handleResponseThrow
+
+callWithResponse ::
+    (ToRequest body, ResponseBodyType responseType) =>
+    TWInfo ->
+    Manager ->
+    APIRequest parameters body responseType ->
+    IO (APIResponse responseType)
+callWithResponse = send
+{-# DEPRECATED callWithResponse "Please use Web.Twitter.Conduit.send" #-}
+
+callWithResponse' ::
+    (ToRequest body, ResponseBodyType value) =>
+    TWInfo ->
+    Manager ->
+    APIRequest parameters body responseType ->
+    IO (APIResponse value)
+callWithResponse' = send'
+{-# DEPRECATED callWithResponse' "Please use Web.Twitter.Conduit.send'" #-}
+
+call ::
+    (ToRequest body, ResponseBodyType responseType) =>
+    TWInfo ->
+    Manager ->
+    APIRequest parameters body responseType ->
+    IO responseType
 call = call'
 
 call' ::
@@ -97,7 +157,5 @@ call' ::
     TWInfo ->
     Manager ->
     APIRequest parameters body responseType ->
-    IO (APIResponse value)
-call' info mgr apiReq = do
-    req <- buildHTTPRequest apiReq
-    withHTTPResponse info mgr req handleResponseThrow
+    IO value
+call' info mgr apiReq = apiResponseBody <$> send' info mgr apiReq
