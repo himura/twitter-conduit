@@ -32,6 +32,7 @@ module Web.Twitter.Conduit (
 
     -- * API Request
     APIRequest (..),
+    HasParam,
 
     -- * API Response
     APIResponse (..),
